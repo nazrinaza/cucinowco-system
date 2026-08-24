@@ -1,0 +1,9 @@
+---
+deployment:
+  tasks:
+    - '/bin/chmod -R 775 storage bootstrap/cache'
+    - '/bin/grep -q "^APP_KEY=$" .env && /usr/local/bin/ea-php83 artisan key:generate --force || /bin/true'
+    - '/usr/local/bin/ea-php83 artisan migrate --force'
+    - '/usr/local/bin/ea-php83 artisan db:seed --force'
+    - '[ -L public/storage ] || /usr/local/bin/ea-php83 artisan storage:link'
+    - '/usr/local/bin/ea-php83 artisan optimize'
