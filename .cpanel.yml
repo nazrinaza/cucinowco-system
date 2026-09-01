@@ -1,9 +1,10 @@
 ---
 deployment:
   tasks:
-    - '/bin/chmod -R 775 storage bootstrap/cache'
-    - '/bin/grep -q "^APP_KEY=$" .env && /usr/local/bin/ea-php83 artisan key:generate --force || /bin/true'
-    - '/usr/local/bin/ea-php83 artisan migrate --force'
-    - '/usr/local/bin/ea-php83 artisan db:seed --force'
-    - '[ -L public/storage ] || /usr/local/bin/ea-php83 artisan storage:link'
-    - '/usr/local/bin/ea-php83 artisan optimize'
+    - '/usr/bin/find storage bootstrap/cache -type d -exec /bin/chmod 775 {} \;'
+    - '/usr/bin/find storage bootstrap/cache -type f ! -name .gitignore -exec /bin/chmod 664 {} \;'
+    - '/bin/grep -Eq "^APP_KEY=[[:space:]]*$" .env && /opt/alt/php83/usr/bin/php artisan key:generate --force || /bin/true'
+    - '/opt/alt/php83/usr/bin/php artisan migrate --force'
+    - '/opt/alt/php83/usr/bin/php artisan db:seed --force'
+    - '[ -L public/storage ] || /opt/alt/php83/usr/bin/php artisan storage:link'
+    - '/opt/alt/php83/usr/bin/php artisan optimize'
