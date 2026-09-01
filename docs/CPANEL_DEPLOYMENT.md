@@ -45,7 +45,7 @@ Open the repository in cPanel, choose **Update from Remote**, then **Deploy HEAD
 
 In **Cron Jobs**, run this every minute after replacing the username:
 
-`/usr/local/bin/ea-php83 /home/YOUR_CPANEL_USER/cucinowco-system/artisan schedule:run >> /dev/null 2>&1`
+`/opt/alt/php83/usr/bin/php /home/YOUR_CPANEL_USER/cucinowco-system/artisan schedule:run >> /dev/null 2>&1`
 
 This processes queued emails in short, shared-hosting-safe batches and marks overdue invoices daily.
 
