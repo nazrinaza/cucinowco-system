@@ -4,10 +4,10 @@
             <div class="hero-copy">
                 <p class="eyebrow"><span></span> Cleaning, handled properly</p>
                 <h1>A cleaner space,<br><em>right when you need it.</em></h1>
-                <p class="hero-ms">Ruang lebih bersih, tepat pada waktunya.</p>
+                <p class="hero-ms">A cleaner space, right on time.</p>
                 <p class="hero-lead">Professional home, office and grand hall cleaning across Klang Valley, with clear scope, dependable coordination and experience built by Thursina since 2000.</p>
                 <div class="hero-actions">
-                    <a href="#quote" class="button">Book a cleaning <small>Tempah cucian</small></a>
+                    <a href="#quote" class="button">Book a cleaning <small>Request an estimate</small></a>
                     <a href="https://wa.me/{{ config('company.whatsapp') }}" class="text-link">Talk to our team <span>&rarr;</span></a>
                 </div>
                 <div class="hero-proof">
@@ -33,12 +33,12 @@
             <div class="section-heading"><div><p class="eyebrow"><span></span> Services</p><h2>The right clean for<br>the space you run.</h2></div><p>Start with the service that best fits. We confirm size, condition, access and timing before the job.</p></div>
             <div class="service-grid">
                 @foreach ([
-                    ['01','Home Cleaning','Pembersihan Rumah','One-off or scheduled cleaning for apartments, condominiums and landed homes.'],
-                    ['02','Office Cleaning','Pembersihan Pejabat','Reliable workplace cleaning, from individual visits to managed service schedules.'],
-                    ['03','Grand Hall & Event','Pembersihan Dewan','Pre-event preparation and post-event reset for halls, venues and shared spaces.'],
-                    ['04','Carpet Cleaning','Cucian Karpet','Machine shampoo cleaning for carpets and selected soft furnishings.'],
-                    ['05','Deep & Initial Clean','Pembersihan Menyeluruh','Detailed cleaning before occupancy, after renovation or for a full space reset.'],
-                    ['06','Specialist Care','Penjagaan Khas','Disinfection, floor polishing, kitchen and hood cleaning by confirmed scope.'],
+                    ['01','Home Cleaning','Residential','One-off or scheduled cleaning for apartments, condominiums and landed homes.'],
+                    ['02','Office Cleaning','Workplace','Reliable workplace cleaning, from individual visits to managed service schedules.'],
+                    ['03','Grand Hall & Event','Venue & Event','Pre-event preparation and post-event reset for halls, venues and shared spaces.'],
+                    ['04','Carpet Cleaning','Specialist Cleaning','Machine shampoo cleaning for carpets and selected soft furnishings.'],
+                    ['05','Deep & Initial Clean','Detailed Cleaning','Detailed cleaning before occupancy, after renovation or for a full space reset.'],
+                    ['06','Specialist Care','Specialist Services','Disinfection, floor polishing, kitchen and hood cleaning by confirmed scope.'],
                 ] as [$number,$name,$ms,$description])
                     <article class="service-card"><span class="service-no">{{ $number }}</span><div><p>{{ $ms }}</p><h3>{{ $name }}</h3><p>{{ $description }}</p><a href="#quote">Request this service <span>&rarr;</span></a></div></article>
                 @endforeach
@@ -65,7 +65,7 @@
                 <article><span>01</span><div><h3>Clear scope</h3><p>We confirm what is included, the working area and practical site conditions before final pricing.</p></div></article>
                 <article><span>02</span><div><h3>Fit-for-site methods</h3><p>Equipment, chemicals and manpower are matched to the service instead of using one approach everywhere.</p></div></article>
                 <article><span>03</span><div><h3>Quality feedback loop</h3><p>Thursina's stated commitment is to use client feedback to improve future service and uphold a zero-defect mindset.</p></div></article>
-                <article><span>04</span><div><h3>Budget-aware delivery</h3><p>Scope decisions balance the expected result, safety, timing and agreed budget.</p></div></article>
+                <article><span>04</span><div><h3>Budget-aware delivery</h3><p>Scope decisions balance the expected result, safety, timing and agreed quotation.</p></div></article>
             </div>
         </div>
     </section>
@@ -87,7 +87,7 @@
         ] as [$question,$answer])<details><summary>{{ $question }}<span>+</span></summary><p>{{ $answer }}</p></details>@endforeach
     </div></div></section>
 
-    <section class="final-cta"><div class="site-shell final-cta-inner"><div><p>Ready when your space is.</p><h2>Bersih. Teratur. Sedia.</h2></div><a href="#quote" class="button button-dark">Get my estimate <small>Dapatkan anggaran</small></a></div></section>
+    <section class="final-cta"><div class="site-shell final-cta-inner"><div><p>Ready when your space is.</p><h2>Clean. Organised. Ready.</h2></div><a href="#quote" class="button button-dark">Get my estimate <small>Request a quote</small></a></div></section>
 
     <section class="newsletter"><div class="site-shell newsletter-inner"><div><h2>Useful cleaning notes. No clutter.</h2><p>Occasional service reminders, practical tips and CuciNow updates.</p></div><form action="{{ route('newsletter.store') }}" method="post">@csrf<input name="email" type="email" required placeholder="Your email address" aria-label="Email address"><button type="submit">Subscribe</button></form>@if(session('newsletter_success'))<p class="form-success">{{ session('newsletter_success') }}</p>@endif</div></section>
 </x-layouts.public>

@@ -12,7 +12,7 @@
             <label><span>Service address</span><textarea wire:model="address" rows="2" placeholder="Unit, building and street"></textarea>@error('address')<small>{{ $message }}</small>@enderror</label>
             <div class="form-grid three"><label><span>Postcode</span><input type="text" wire:model="postcode" inputmode="numeric"></label><label><span>City</span><input type="text" wire:model="city"></label><label><span>State</span><input type="text" wire:model="state"></label></div>
             <label><span>Anything we should know? <em>optional</em></span><textarea wire:model="notes" rows="3" placeholder="Condition, access, preferred scope or special surfaces"></textarea></label>
-            <button type="submit" class="button estimator-submit" wire:loading.attr="disabled"><span wire:loading.remove>Submit quote request</span><span wire:loading>Sending...</span><small>Hantar permintaan</small></button>
+            <button type="submit" class="button estimator-submit" wire:loading.attr="disabled"><span wire:loading.remove>Submit quote request</span><span wire:loading>Sending...</span><small>Send request</small></button>
             <p class="privacy-note">By submitting, you agree that CuciNow may contact you about this request. No payment is taken here.</p>
         </form>
     @endif
