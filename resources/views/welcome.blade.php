@@ -26,7 +26,7 @@
         </div>
     </section>
 
-    <section class="trust-strip" aria-label="Service principles"><div class="site-shell"><span>Trained operations</span><span>Site-appropriate equipment</span><span>Scope confirmed upfront</span><span>Zero-defect mindset</span></div></section>
+    <section class="trust-strip" aria-label="Service principles"><div class="site-shell"><span>Trained operations</span><span>Professional High-Powered Machinery</span><span>Scope confirmed upfront</span><span>Zero-defect mindset</span></div></section>
 
     <section id="services" class="section-pad">
         <div class="site-shell">
