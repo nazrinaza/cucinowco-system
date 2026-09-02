@@ -20,6 +20,8 @@ class ExampleTest extends TestCase
             ->assertSee('A cleaner space')
             ->assertSee('CuciNow.co')
             ->assertSee('Book my free site visit')
+            ->assertSee('Book your free site visit')
+            ->assertDontSee('Preliminary estimate')
             ->assertSee('data-accordion', false)
             ->assertSee('name="cucinow-faq"', false)
             ->assertSee('property="og:image"', false)

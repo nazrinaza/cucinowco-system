@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Quote;
+use App\Models\SiteVisitRequest;
 use App\Models\Subscriber;
 use Illuminate\View\View;
 
@@ -15,6 +16,7 @@ class DashboardController extends Controller
     public function __invoke(): View
     {
         $metrics = [
+            'site_visits' => SiteVisitRequest::whereIn('status', ['new', 'contacted', 'scheduled'])->count(),
             'quotes' => Quote::whereIn('status', ['draft', 'sent', 'viewed'])->count(),
             'bookings' => Booking::whereIn('status', ['pending', 'confirmed', 'in_progress'])->count(),
             'outstanding' => Invoice::whereIn('status', ['sent', 'partial', 'overdue'])->sum('balance'),

@@ -14,6 +14,11 @@ class Customer extends Model
         return $this->hasMany(Quote::class);
     }
 
+    public function siteVisitRequests(): HasMany
+    {
+        return $this->hasMany(SiteVisitRequest::class);
+    }
+
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class);

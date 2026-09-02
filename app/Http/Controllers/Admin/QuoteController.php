@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Invoice;
 use App\Models\Quote;
+use App\Models\SiteVisitRequest;
 use App\Support\ReferenceNumber;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,6 +17,15 @@ use Illuminate\View\View;
 class QuoteController extends Controller
 {
     private const STATUSES = ['draft', 'sent', 'viewed', 'accepted', 'rejected', 'expired'];
+
+    public function create(Request $request): View
+    {
+        $siteVisit = $request->integer('site_visit')
+            ? SiteVisitRequest::with(['customer', 'service'])->findOrFail($request->integer('site_visit'))
+            : null;
+
+        return view('admin.quotes.create', compact('siteVisit'));
+    }
 
     public function index(Request $request): View
     {

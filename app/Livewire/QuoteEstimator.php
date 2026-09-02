@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Customer;
 use App\Models\Quote;
 use App\Models\Service;
+use App\Models\SiteVisitRequest;
 use App\Support\ReferenceNumber;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -17,6 +18,10 @@ class QuoteEstimator extends Component
 
     public ?int $serviceId = null;
 
+    public ?int $siteVisitId = null;
+
+    public ?int $quoteId = null;
+
     public string $propertyType = 'office';
 
     public string $sizeBand = 'under_1000';
@@ -28,6 +33,8 @@ class QuoteEstimator extends Component
     public string $preferredTimeSlot = 'morning';
 
     public string $name = '';
+
+    public string $companyName = '';
 
     public string $email = '';
 
@@ -47,7 +54,7 @@ class QuoteEstimator extends Component
 
     public string $reference = '';
 
-    public function mount(): void
+    public function mount(?SiteVisitRequest $siteVisit = null): void
     {
         $this->serviceId = Service::query()
             ->where('is_active', true)
@@ -55,6 +62,21 @@ class QuoteEstimator extends Component
             ->orderBy('sort_order')
             ->value('id');
         $this->preferredDate = now()->addDays(2)->format('Y-m-d');
+
+        if ($siteVisit) {
+            $this->siteVisitId = $siteVisit->id;
+            $this->serviceId = $siteVisit->service_id ?: $this->serviceId;
+            $this->propertyType = in_array($siteVisit->space_type, ['office', 'hall']) ? $siteVisit->space_type : 'other';
+            $this->name = $siteVisit->customer->name;
+            $this->companyName = (string) $siteVisit->customer->company_name;
+            $this->email = (string) $siteVisit->customer->email;
+            $this->phone = $siteVisit->customer->phone;
+            $this->address = $siteVisit->site_address;
+            $this->postcode = (string) $siteVisit->postcode;
+            $this->city = (string) $siteVisit->customer->city;
+            $this->state = (string) ($siteVisit->customer->state ?: 'Selangor');
+            $this->notes = (string) $siteVisit->customer_notes;
+        }
     }
 
     #[Computed]
@@ -88,6 +110,7 @@ class QuoteEstimator extends Component
             'preferredDate' => ['required', 'date', 'after_or_equal:today'],
             'preferredTimeSlot' => ['required', Rule::in(['morning', 'afternoon', 'evening', 'flexible'])],
             'name' => ['required', 'string', 'max:120'],
+            'companyName' => ['nullable', 'string', 'max:160'],
             'email' => ['nullable', 'email', 'max:160'],
             'phone' => ['required', 'string', 'min:9', 'max:30'],
             'address' => ['required', 'string', 'max:1000'],
@@ -99,12 +122,13 @@ class QuoteEstimator extends Component
 
         $service = Service::findOrFail($validated['serviceId']);
 
-        DB::transaction(function () use ($validated, $service) {
+        $quote = DB::transaction(function () use ($validated, $service) {
             $customer = Customer::query()->firstOrNew(['phone' => $validated['phone']]);
             $customer->fill([
                 'name' => $validated['name'],
                 'email' => $validated['email'] ?: null,
                 'type' => 'business',
+                'company_name' => $validated['companyName'] ?: null,
                 'address' => $validated['address'],
                 'postcode' => $validated['postcode'],
                 'city' => $validated['city'],
@@ -117,7 +141,7 @@ class QuoteEstimator extends Component
             $quote = Quote::create([
                 'quote_number' => $this->reference,
                 'customer_id' => $customer->id,
-                'source' => 'website',
+                'source' => 'admin',
                 'status' => 'draft',
                 'property_type' => $validated['propertyType'],
                 'preferred_date' => $validated['preferredDate'],
@@ -140,9 +164,17 @@ class QuoteEstimator extends Component
                 'unit' => 'job',
                 'unit_price' => $estimate,
                 'amount' => $estimate,
-                'notes' => 'Preliminary website estimate; final scope and pricing require confirmation.',
+                'notes' => 'Internal planning estimate; final scope and pricing require confirmation.',
             ]);
+
+            return $quote;
         });
+
+        $this->quoteId = $quote->id;
+
+        if ($this->siteVisitId) {
+            SiteVisitRequest::whereKey($this->siteVisitId)->update(['quote_id' => $quote->id]);
+        }
 
         $this->submitted = true;
     }

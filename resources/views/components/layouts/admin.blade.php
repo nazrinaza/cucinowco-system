@@ -7,7 +7,7 @@
             <a href="{{ route('admin.dashboard') }}" class="admin-brand"><img src="{{ asset('images/cucinow-logo.png') }}" alt="CuciNow.co"></a>
             <nav>
                 @foreach ([
-                    ['admin.dashboard','Overview','OV'],['admin.quotes.*','Quotes','QU'],['admin.invoices.*','Invoices','IN'],['admin.bookings.*','Bookings','BK'],['admin.customers.*','Customers','CU'],['admin.staff.*','Staff','ST'],['admin.subscribers.*','Subscribers','SU'],['admin.campaigns.*','Campaigns','CA']
+                    ['admin.dashboard','Overview','OV'],['admin.site-visits.*','Site visits','SV'],['admin.quotes.*','Quotes','QU'],['admin.invoices.*','Invoices','IN'],['admin.bookings.*','Bookings','BK'],['admin.customers.*','Customers','CU'],['admin.staff.*','Staff','ST'],['admin.subscribers.*','Subscribers','SU'],['admin.campaigns.*','Campaigns','CA']
                 ] as [$route,$label,$icon])
                     <a href="{{ route(str_replace('.*','.index',$route)) }}" @class(['active' => request()->routeIs($route)])><span>{{ $icon }}</span>{{ $label }}</a>
                 @endforeach
