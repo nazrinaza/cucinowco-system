@@ -16,7 +16,6 @@ class ServiceSeeder extends Seeder
             ['deep-initial-cleaning', 'Deep & Initial Cleaning', null, 'Specialist', 350, 'Detailed cleaning before occupancy, after renovation or when a space needs a full reset.'],
             ['disinfection', 'Disinfection Service', null, 'Specialist', 280, 'Targeted anti-virus and anti-bacteria treatment using suitable equipment and chemicals.'],
             ['floor-care', 'Floor Coating & Polishing', null, 'Specialist', 450, 'Surface-specific floor care to restore presentation and support easier maintenance.'],
-            ['kitchen-hood', 'Kitchen & Hood Cleaning', null, 'Specialist', 500, 'Specialist cleaning for kitchens, hoods and grease-prone work areas.'],
         ];
 
         foreach ($services as $index => [$code, $name, $nameMs, $category, $price, $description]) {

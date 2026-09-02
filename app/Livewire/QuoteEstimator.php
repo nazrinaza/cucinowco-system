@@ -13,6 +13,8 @@ use Livewire\Component;
 
 class QuoteEstimator extends Component
 {
+    private const UNAVAILABLE_SERVICE_CODES = ['home-cleaning', 'kitchen-hood'];
+
     public ?int $serviceId = null;
 
     public string $propertyType = 'office';
@@ -49,7 +51,7 @@ class QuoteEstimator extends Component
     {
         $this->serviceId = Service::query()
             ->where('is_active', true)
-            ->where('code', '!=', 'home-cleaning')
+            ->whereNotIn('code', self::UNAVAILABLE_SERVICE_CODES)
             ->orderBy('sort_order')
             ->value('id');
         $this->preferredDate = now()->addDays(2)->format('Y-m-d');
@@ -60,7 +62,7 @@ class QuoteEstimator extends Component
     {
         return Service::query()
             ->where('is_active', true)
-            ->where('code', '!=', 'home-cleaning')
+            ->whereNotIn('code', self::UNAVAILABLE_SERVICE_CODES)
             ->orderBy('sort_order')
             ->get();
     }
@@ -79,7 +81,7 @@ class QuoteEstimator extends Component
     public function submit(): void
     {
         $validated = $this->validate([
-            'serviceId' => ['required', Rule::exists('services', 'id')->where(fn ($query) => $query->where('is_active', true)->where('code', '!=', 'home-cleaning'))],
+            'serviceId' => ['required', Rule::exists('services', 'id')->where(fn ($query) => $query->where('is_active', true)->whereNotIn('code', self::UNAVAILABLE_SERVICE_CODES))],
             'propertyType' => ['required', Rule::in(['office', 'hall', 'other'])],
             'sizeBand' => ['required', Rule::in(['under_1000', '1000_2000', '2000_5000', 'over_5000'])],
             'frequency' => ['required', Rule::in(['one_off', 'weekly', 'fortnightly', 'monthly'])],
