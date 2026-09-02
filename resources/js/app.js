@@ -12,4 +12,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('[data-admin-menu]')?.addEventListener('click', () => {
         document.querySelector('[data-admin-sidebar]')?.classList.toggle('open');
     });
+
+    document.querySelectorAll('[data-accordion]').forEach((accordion) => {
+        const items = [...accordion.querySelectorAll('details')];
+
+        items.forEach((item) => item.addEventListener('toggle', () => {
+            if (!item.open) return;
+
+            items.forEach((otherItem) => {
+                if (otherItem !== item) otherItem.open = false;
+            });
+        }));
+    });
 });
