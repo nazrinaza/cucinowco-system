@@ -10,7 +10,24 @@
     <meta property="og:description" content="A cleaner space, right when you need it. Office, grand hall and specialist cleaning in Klang Valley.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ config('app.url') }}">
-    <link rel="icon" href="{{ asset('favicon.ico') }}">
+    <meta property="og:site_name" content="CuciNow.co">
+    <meta property="og:locale" content="en_MY">
+    <meta property="og:image" content="{{ asset('images/og-cucinow.png') }}">
+    <meta property="og:image:secure_url" content="{{ asset('images/og-cucinow.png') }}">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="628">
+    <meta property="og:image:alt" content="CuciNow.co — A cleaner space, right when you need it. Free site visit.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="CuciNow.co | Professional Cleaning by Thursina">
+    <meta name="twitter:description" content="Office, grand hall and specialist cleaning in Klang Valley, backed by Thursina experience since 2000.">
+    <meta name="twitter:image" content="{{ asset('images/og-cucinow.png') }}">
+    <meta name="twitter:image:alt" content="CuciNow.co — A cleaner space, right when you need it. Free site visit.">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="64x64">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/favicon-192x192.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
