@@ -18,6 +18,10 @@ class ExampleTest extends TestCase
 
         $response->assertOk()
             ->assertSee('A cleaner space')
-            ->assertSee('CuciNow.co');
+            ->assertSee('CuciNow.co')
+            ->assertSee('property="og:image"', false)
+            ->assertSee('images/og-cucinow.png')
+            ->assertSee('name="twitter:image"', false)
+            ->assertSee('images/favicon-32x32.png');
     }
 }
