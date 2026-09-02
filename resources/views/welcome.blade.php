@@ -13,7 +13,7 @@
                 <div class="hero-proof">
                     <div><strong>2000</strong><span>Thursina established</span></div>
                     <div><strong>2 sectors</strong><span>Government & private experience</span></div>
-                    <div><strong>1 team</strong><span>From quote to handover</span></div>
+                    <div><strong>6 services</strong><span>Commercial &amp; specialist cleaning</span></div>
                 </div>
             </div>
             <div class="hero-visual" aria-label="CuciNow service promise">
