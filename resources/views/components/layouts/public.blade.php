@@ -46,7 +46,7 @@
                 <a href="#how-it-works">How it works</a>
                 <a href="#about">Why CuciNow</a>
                 <a href="#faq">FAQ</a>
-                <a href="#quote" class="button button-small">Get a quote</a>
+                <a href="#quote" class="button button-small">Free site visit</a>
             </nav>
         </div>
     </header>
@@ -63,7 +63,7 @@
         </div>
         <div class="site-shell footer-bottom"><span>&copy; {{ date('Y') }} CuciNow.co by Thursina.</span><span>Privacy &middot; Terms &middot; Service policy</span></div>
     </footer>
-    <a class="whatsapp-float" href="https://wa.me/{{ config('company.whatsapp') }}?text={{ urlencode('Hi CuciNow, I would like to ask about a cleaning service.') }}" target="_blank" rel="noopener">WhatsApp <span>Chat now</span></a>
+    <a class="whatsapp-float" href="https://wa.me/{{ config('company.whatsapp') }}?text={{ urlencode('Hi CuciNow, I would like to book a free site visit for a cleaning service.') }}" target="_blank" rel="noopener">WhatsApp <span>Book a visit</span></a>
     @livewireScripts
 </body>
 </html>

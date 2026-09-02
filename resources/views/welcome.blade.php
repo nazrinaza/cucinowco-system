@@ -7,7 +7,7 @@
                 <p class="hero-ms">A cleaner space, right on time.</p>
                 <p class="hero-lead">Professional office, grand hall and specialist cleaning across Klang Valley, with clear scope, dependable coordination and experience built by Thursina since 2000.</p>
                 <div class="hero-actions">
-                    <a href="#quote" class="button">Book a cleaning <small>Request an estimate</small></a>
+                    <a href="#quote" class="button">Book my free site visit <small>No obligation &middot; Clear quotation</small></a>
                     <a href="https://wa.me/{{ config('company.whatsapp') }}" class="text-link">Talk to our team <span>&rarr;</span></a>
                 </div>
                 <div class="hero-proof">
@@ -39,7 +39,7 @@
                     ['04','Deep & Initial Clean','Detailed Cleaning','Detailed cleaning before occupancy, after renovation or for a full space reset.'],
                     ['05','Specialist Care','Specialist Services','Disinfection and floor polishing delivered to a confirmed scope.'],
                 ] as [$number,$name,$ms,$description])
-                    <article class="service-card"><span class="service-no">{{ $number }}</span><div><p>{{ $ms }}</p><h3>{{ $name }}</h3><p>{{ $description }}</p><a href="#quote">Request this service <span>&rarr;</span></a></div></article>
+                    <article class="service-card"><span class="service-no">{{ $number }}</span><div><p>{{ $ms }}</p><h3>{{ $name }}</h3><p>{{ $description }}</p><a href="#quote">Book a free site visit <span>&rarr;</span></a></div></article>
                 @endforeach
             </div>
             <p class="source-note">Thursina profile source: carpet cleaning, disinfection, building/contract cleaning, initial cleaning, high-rise cleaning, floor coating and polishing, landscaping and furniture supply. Grand hall packages are a CuciNow launch service.</p>
@@ -59,7 +59,7 @@
 
     <section id="about" class="section-pad about-section">
         <div class="site-shell about-grid">
-            <div class="about-panel"><p class="eyebrow"><span></span> Built on experience</p><h2>A new booking experience.<br>A proven operating base.</h2><p>CuciNow.co is the customer-facing cleaning platform of Thursina Land & Services, established on 17 February 2000. Thursina's company profile records experience in building maintenance, specialist machinery and service delivery for both government and private-sector projects.</p><p>The management team brings backgrounds in operations, business management, corporate communications, sales and intensive cleaning and building-maintenance training. CuciNow turns that operational experience into a clearer, mobile-first way to request, schedule and manage cleaning services.</p><a href="#quote" class="text-link">Start your request <span>&rarr;</span></a></div>
+            <div class="about-panel"><p class="eyebrow"><span></span> Built on experience</p><h2>A new booking experience.<br>A proven operating base.</h2><p>CuciNow.co is the customer-facing cleaning platform of Thursina Land & Services, established on 17 February 2000. Thursina's company profile records experience in building maintenance, specialist machinery and service delivery for both government and private-sector projects.</p><p>The management team brings backgrounds in operations, business management, corporate communications, sales and intensive cleaning and building-maintenance training. CuciNow turns that operational experience into a clearer, mobile-first way to request, schedule and manage cleaning services.</p><a href="#quote" class="text-link">Book a free site visit <span>&rarr;</span></a></div>
             <div class="principle-list">
                 <article><span>01</span><div><h3>Clear scope</h3><p>We confirm what is included, the working area and practical site conditions before final pricing.</p></div></article>
                 <article><span>02</span><div><h3>Fit-for-site methods</h3><p>Equipment, chemicals and manpower are matched to the service instead of using one approach everywhere.</p></div></article>
@@ -69,7 +69,7 @@
         </div>
     </section>
 
-    <section id="quote" class="quote-section section-pad"><div class="site-shell quote-grid"><div class="quote-intro"><p class="eyebrow"><span></span> Instant estimate</p><h2>Tell us what needs cleaning.</h2><p>Get a preliminary estimate now. Our team will confirm the final price after checking the site details and service scope.</p><ul><li>Prices shown in RM</li><li>No payment required to submit</li><li>Service slot confirmed separately</li></ul></div><livewire:quote-estimator /></div></section>
+    <section id="quote" class="quote-section section-pad"><div class="site-shell quote-grid"><div class="quote-intro"><p class="eyebrow"><span></span> Free site visit</p><h2>Let us assess your space.</h2><p>Share the essentials and receive a preliminary estimate. Our team will contact you to confirm the free site visit and prepare a clear final quotation.</p><ul><li>Free site visit with no obligation</li><li>Prices shown in RM</li><li>Cleaning slot confirmed separately</li></ul></div><livewire:quote-estimator /></div></section>
 
     <section class="experience-section section-pad"><div class="site-shell"><p class="eyebrow"><span></span> Thursina profile experience</p><h2>Work across complex,<br>high-expectation environments.</h2><p class="experience-lead">The supplied company profile records client and project experience associated with organisations and sites including:</p><div class="experience-list"><span>Maybank</span><span>CIMB</span><span>Tenaga Nasional</span><span>University of Malaya</span><span>UiTM</span><span>JKR</span><span>MRT Corp</span><span>Perodua</span><span>Proton</span><span>J&amp;T Express</span><span>Firefly</span><span>NSG Group</span></div><p class="source-note">Names reflect the historical company profile and do not imply current contracts or endorsements.</p></div></section>
 
@@ -86,7 +86,7 @@
         ] as [$question,$answer])<details><summary>{{ $question }}<span>+</span></summary><p>{{ $answer }}</p></details>@endforeach
     </div></div></section>
 
-    <section class="final-cta"><div class="site-shell final-cta-inner"><div><p>Ready when your space is.</p><h2>Clean. Organised. Ready.</h2></div><a href="#quote" class="button button-dark">Get my estimate <small>Request a quote</small></a></div></section>
+    <section class="final-cta"><div class="site-shell final-cta-inner"><div><p>Ready when your space is.</p><h2>Clean. Organised. Ready.</h2></div><a href="#quote" class="button button-dark">Book my free site visit <small>No obligation &middot; Clear quotation</small></a></div></section>
 
     <section class="newsletter"><div class="site-shell newsletter-inner"><div><h2>Useful cleaning notes. No clutter.</h2><p>Occasional service reminders, practical tips and CuciNow updates.</p></div><form action="{{ route('newsletter.store') }}" method="post">@csrf<input name="email" type="email" required placeholder="Your email address" aria-label="Email address"><button type="submit">Subscribe</button></form>@if(session('newsletter_success'))<p class="form-success">{{ session('newsletter_success') }}</p>@endif</div></section>
 </x-layouts.public>
