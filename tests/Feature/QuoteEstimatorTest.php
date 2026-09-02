@@ -12,16 +12,34 @@ class QuoteEstimatorTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_home_cleaning_is_not_available_in_the_quote_estimator(): void
+    {
+        Service::create([
+            'code' => 'home-cleaning', 'name' => 'Home Cleaning', 'base_price' => 120,
+            'unit' => 'job', 'is_active' => true, 'sort_order' => 1,
+        ]);
+
+        $office = Service::create([
+            'code' => 'office-cleaning', 'name' => 'Office Cleaning', 'base_price' => 280,
+            'unit' => 'job', 'is_active' => true, 'sort_order' => 2,
+        ]);
+
+        Livewire::test(QuoteEstimator::class)
+            ->assertSet('serviceId', $office->id)
+            ->assertDontSee('Home Cleaning')
+            ->assertSee('Office Cleaning');
+    }
+
     public function test_a_customer_can_submit_a_quote_request(): void
     {
         $service = Service::create([
-            'code' => 'home-cleaning', 'name' => 'Home Cleaning', 'base_price' => 120,
+            'code' => 'office-cleaning', 'name' => 'Office Cleaning', 'base_price' => 280,
             'unit' => 'job', 'is_active' => true, 'sort_order' => 1,
         ]);
 
         Livewire::test(QuoteEstimator::class)
             ->set('serviceId', $service->id)
-            ->set('propertyType', 'condominium')
+            ->set('propertyType', 'office')
             ->set('sizeBand', 'under_1000')
             ->set('frequency', 'one_off')
             ->set('preferredDate', now()->addDay()->format('Y-m-d'))
@@ -29,7 +47,7 @@ class QuoteEstimatorTest extends TestCase
             ->set('name', 'Aina Rahman')
             ->set('phone', '0123456789')
             ->set('email', 'aina@example.com')
-            ->set('address', 'Condominium Example, Jalan Example')
+            ->set('address', 'Office Example, Jalan Example')
             ->set('postcode', '40160')
             ->set('city', 'Shah Alam')
             ->set('state', 'Selangor')
@@ -38,7 +56,7 @@ class QuoteEstimatorTest extends TestCase
             ->assertSet('submitted', true);
 
         $this->assertDatabaseHas('customers', ['phone' => '0123456789', 'name' => 'Aina Rahman']);
-        $this->assertDatabaseHas('quotes', ['status' => 'draft', 'total' => 120]);
-        $this->assertDatabaseHas('quote_items', ['description' => 'Home Cleaning', 'amount' => 120]);
+        $this->assertDatabaseHas('quotes', ['status' => 'draft', 'property_type' => 'office', 'total' => 280]);
+        $this->assertDatabaseHas('quote_items', ['description' => 'Office Cleaning', 'amount' => 280]);
     }
 }

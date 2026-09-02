@@ -5,7 +5,7 @@
                 <p class="eyebrow"><span></span> Cleaning, handled properly</p>
                 <h1>A cleaner space,<br><em>right when you need it.</em></h1>
                 <p class="hero-ms">A cleaner space, right on time.</p>
-                <p class="hero-lead">Professional home, office and grand hall cleaning across Klang Valley, with clear scope, dependable coordination and experience built by Thursina since 2000.</p>
+                <p class="hero-lead">Professional office, grand hall and specialist cleaning across Klang Valley, with clear scope, dependable coordination and experience built by Thursina since 2000.</p>
                 <div class="hero-actions">
                     <a href="#quote" class="button">Book a cleaning <small>Request an estimate</small></a>
                     <a href="https://wa.me/{{ config('company.whatsapp') }}" class="text-link">Talk to our team <span>&rarr;</span></a>
@@ -18,7 +18,7 @@
             </div>
             <div class="hero-visual" aria-label="CuciNow service promise">
                 <div class="visual-orbit orbit-one"></div><div class="visual-orbit orbit-two"></div>
-                <div class="visual-card visual-card-main"><span class="visual-number">01</span><p>Tell us the space</p><strong>Home<br>Office<br>Grand hall</strong></div>
+                <div class="visual-card visual-card-main"><span class="visual-number">01</span><p>Tell us the space</p><strong>Office<br>Grand hall</strong></div>
                 <div class="visual-card visual-card-side"><span>Fast response</span><strong>Clear quote.<br>No guesswork.</strong></div>
                 <div class="visual-seal"><span>by</span><strong>Thursina</strong><small>Since 2000</small></div>
                 <div class="spark spark-one"></div><div class="spark spark-two"></div><div class="spark spark-three"></div>
@@ -33,17 +33,16 @@
             <div class="section-heading"><div><p class="eyebrow"><span></span> Services</p><h2>The right clean for<br>the space you run.</h2></div><p>Start with the service that best fits. We confirm size, condition, access and timing before the job.</p></div>
             <div class="service-grid">
                 @foreach ([
-                    ['01','Home Cleaning','Residential','One-off or scheduled cleaning for apartments, condominiums and landed homes.'],
-                    ['02','Office Cleaning','Workplace','Reliable workplace cleaning, from individual visits to managed service schedules.'],
-                    ['03','Grand Hall & Event','Venue & Event','Pre-event preparation and post-event reset for halls, venues and shared spaces.'],
-                    ['04','Carpet Cleaning','Specialist Cleaning','Machine shampoo cleaning for carpets and selected soft furnishings.'],
-                    ['05','Deep & Initial Clean','Detailed Cleaning','Detailed cleaning before occupancy, after renovation or for a full space reset.'],
-                    ['06','Specialist Care','Specialist Services','Disinfection, floor polishing, kitchen and hood cleaning by confirmed scope.'],
+                    ['01','Office Cleaning','Workplace','Reliable workplace cleaning, from individual visits to managed service schedules.'],
+                    ['02','Grand Hall & Event','Venue & Event','Pre-event preparation and post-event reset for halls, venues and shared spaces.'],
+                    ['03','Carpet Cleaning','Specialist Cleaning','Machine shampoo cleaning for carpets and selected soft furnishings.'],
+                    ['04','Deep & Initial Clean','Detailed Cleaning','Detailed cleaning before occupancy, after renovation or for a full space reset.'],
+                    ['05','Specialist Care','Specialist Services','Disinfection, floor polishing, kitchen and hood cleaning by confirmed scope.'],
                 ] as [$number,$name,$ms,$description])
                     <article class="service-card"><span class="service-no">{{ $number }}</span><div><p>{{ $ms }}</p><h3>{{ $name }}</h3><p>{{ $description }}</p><a href="#quote">Request this service <span>&rarr;</span></a></div></article>
                 @endforeach
             </div>
-            <p class="source-note">Thursina profile source: carpet cleaning, disinfection, building/contract cleaning, initial cleaning, kitchen and hood cleaning, high-rise cleaning, floor coating and polishing, landscaping and furniture supply. Home and grand hall packages are CuciNow launch services.</p>
+            <p class="source-note">Thursina profile source: carpet cleaning, disinfection, building/contract cleaning, initial cleaning, kitchen and hood cleaning, high-rise cleaning, floor coating and polishing, landscaping and furniture supply. Grand hall packages are a CuciNow launch service.</p>
         </div>
     </section>
 
