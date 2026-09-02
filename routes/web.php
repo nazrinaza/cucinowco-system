@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\QuoteController;
+use App\Http\Controllers\Admin\SiteVisitController;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SubscriberController;
@@ -23,6 +24,10 @@ Route::post('/admin/logout', [AuthController::class, 'destroy'])->middleware('au
 
 Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
+    Route::get('/site-visits', [SiteVisitController::class, 'index'])->name('site-visits.index');
+    Route::get('/site-visits/{siteVisit}', [SiteVisitController::class, 'show'])->name('site-visits.show');
+    Route::patch('/site-visits/{siteVisit}', [SiteVisitController::class, 'update'])->name('site-visits.update');
+    Route::get('/quotes/create', [QuoteController::class, 'create'])->name('quotes.create');
     Route::get('/quotes', [QuoteController::class, 'index'])->name('quotes.index');
     Route::get('/quotes/{quote}', [QuoteController::class, 'show'])->name('quotes.show');
     Route::patch('/quotes/{quote}', [QuoteController::class, 'update'])->name('quotes.update');

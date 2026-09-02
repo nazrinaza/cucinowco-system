@@ -62,7 +62,7 @@ class QuoteEstimatorTest extends TestCase
             ->assertSet('submitted', true);
 
         $this->assertDatabaseHas('customers', ['phone' => '0123456789', 'name' => 'Aina Rahman']);
-        $this->assertDatabaseHas('quotes', ['status' => 'draft', 'property_type' => 'office', 'total' => 280]);
+        $this->assertDatabaseHas('quotes', ['status' => 'draft', 'source' => 'admin', 'property_type' => 'office', 'total' => 280]);
         $this->assertDatabaseHas('quote_items', ['description' => 'Office Cleaning', 'amount' => 280]);
     }
 }
