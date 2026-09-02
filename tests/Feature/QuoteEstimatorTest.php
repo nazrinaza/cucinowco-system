@@ -12,21 +12,27 @@ class QuoteEstimatorTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_home_cleaning_is_not_available_in_the_quote_estimator(): void
+    public function test_unavailable_services_are_not_shown_in_the_quote_estimator(): void
     {
         Service::create([
             'code' => 'home-cleaning', 'name' => 'Home Cleaning', 'base_price' => 120,
             'unit' => 'job', 'is_active' => true, 'sort_order' => 1,
         ]);
 
+        Service::create([
+            'code' => 'kitchen-hood', 'name' => 'Kitchen & Hood Cleaning', 'base_price' => 500,
+            'unit' => 'job', 'is_active' => true, 'sort_order' => 2,
+        ]);
+
         $office = Service::create([
             'code' => 'office-cleaning', 'name' => 'Office Cleaning', 'base_price' => 280,
-            'unit' => 'job', 'is_active' => true, 'sort_order' => 2,
+            'unit' => 'job', 'is_active' => true, 'sort_order' => 3,
         ]);
 
         Livewire::test(QuoteEstimator::class)
             ->assertSet('serviceId', $office->id)
             ->assertDontSee('Home Cleaning')
+            ->assertDontSee('Kitchen &amp; Hood Cleaning', false)
             ->assertSee('Office Cleaning');
     }
 
