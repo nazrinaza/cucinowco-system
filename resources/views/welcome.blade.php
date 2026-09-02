@@ -73,7 +73,7 @@
 
     <section class="experience-section section-pad"><div class="site-shell"><p class="eyebrow"><span></span> Thursina profile experience</p><h2>Work across complex,<br>high-expectation environments.</h2><p class="experience-lead">The supplied company profile records client and project experience associated with organisations and sites including:</p><div class="experience-list"><span>Maybank</span><span>CIMB</span><span>Tenaga Nasional</span><span>University of Malaya</span><span>UiTM</span><span>JKR</span><span>MRT Corp</span><span>Perodua</span><span>Proton</span><span>J&amp;T Express</span><span>Firefly</span><span>NSG Group</span></div><p class="source-note">Names reflect the historical company profile and do not imply current contracts or endorsements.</p></div></section>
 
-    <section id="faq" class="section-pad faq-section"><div class="site-shell faq-grid"><div><p class="eyebrow"><span></span> FAQ</p><h2>Before you book.</h2><p>Still unsure? Message us on WhatsApp and describe the space.</p></div><div class="accordion-list">
+    <section id="faq" class="section-pad faq-section"><div class="site-shell faq-grid"><div><p class="eyebrow"><span></span> FAQ</p><h2>Before you book.</h2><p>Still unsure? Message us on WhatsApp and describe the space.</p></div><div class="accordion-list" data-accordion>
         @foreach ([
             ['Which areas do you cover?','Our launch focus is Klang Valley, starting from our Sungai Buloh operating base. Larger or outstation projects can be reviewed case by case.'],
             ['Is the instant estimate the final price?','No. It is a planning estimate based on service and size. We confirm final pricing after reviewing condition, access, inclusions and timing.'],
@@ -83,7 +83,7 @@
             ['How early should I book?','Two to five days ahead is recommended. Urgent requests are reviewed based on team availability.'],
             ['How do payments work?','Your confirmed quotation or invoice will show the accepted methods and due date. Online FPX, e-wallet/card, bank transfer and cash can be enabled by the business.'],
             ['Is SST included?','SST is shown only when legally applicable and the business is registered to charge it. Any applicable tax appears clearly on the final invoice.'],
-        ] as [$question,$answer])<details><summary>{{ $question }}<span>+</span></summary><p>{{ $answer }}</p></details>@endforeach
+        ] as [$question,$answer])<details name="cucinow-faq"><summary>{{ $question }}<span>+</span></summary><p>{{ $answer }}</p></details>@endforeach
     </div></div></section>
 
     <section class="final-cta"><div class="site-shell final-cta-inner"><div><p>Ready when your space is.</p><h2>Clean. Organised. Ready.</h2></div><a href="#quote" class="button button-dark">Book my free site visit <small>No obligation &middot; Clear quotation</small></a></div></section>
