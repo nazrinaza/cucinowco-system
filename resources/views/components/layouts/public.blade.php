@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? 'CuciNow.co | Professional Cleaning by Thursina' }}</title>
-    <meta name="description" content="Professional home, office and hall cleaning in Klang Valley. Request a clear estimate from CuciNow.co, backed by Thursina experience since 2000.">
+    <meta name="description" content="Professional office, hall and specialist cleaning in Klang Valley. Request a clear estimate from CuciNow.co, backed by Thursina experience since 2000.">
     <meta name="theme-color" content="#f5b800">
     <meta property="og:title" content="CuciNow.co | Professional Cleaning by Thursina">
-    <meta property="og:description" content="A cleaner space, right when you need it. Home, office and grand hall cleaning in Klang Valley.">
+    <meta property="og:description" content="A cleaner space, right when you need it. Office, grand hall and specialist cleaning in Klang Valley.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ config('app.url') }}">
     <link rel="icon" href="{{ asset('favicon.ico') }}">
@@ -38,7 +38,7 @@
         <div class="site-shell footer-grid">
             <div>
                 <img src="{{ asset('images/cucinow-logo.png') }}" alt="CuciNow.co by Thursina" class="footer-logo">
-                <p>Professional cleaning for homes, workplaces and shared spaces. Operated by Thursina Land & Services.</p>
+                <p>Professional cleaning for workplaces, venues and shared spaces. Operated by Thursina Land & Services.</p>
             </div>
             <div><h2>Explore</h2><a href="#services">Services</a><a href="#quote">Request quote</a><a href="#about">About Thursina</a><a href="#faq">FAQ</a></div>
             <div><h2>Contact</h2><a href="tel:+{{ config('company.phone') }}">+60 11-5147 1145</a><a href="mailto:{{ config('company.email') }}">{{ config('company.email') }}</a><p>{{ config('company.address') }}</p></div>

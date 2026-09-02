@@ -10,7 +10,6 @@ class ServiceSeeder extends Seeder
     public function run(): void
     {
         $services = [
-            ['home-cleaning', 'Home Cleaning', null, 'Residential', 120, 'A practical one-off or recurring clean for apartments, condominiums and landed homes.'],
             ['office-cleaning', 'Office Cleaning', null, 'Commercial', 280, 'Scheduled or contract cleaning for offices and managed workplaces.'],
             ['grand-hall-cleaning', 'Grand Hall & Event Cleaning', null, 'Commercial', 800, 'Pre-event preparation and post-event reset for halls, venues and shared spaces.'],
             ['carpet-cleaning', 'Carpet Cleaning', null, 'Specialist', 180, 'Machine shampoo cleaning for carpets and selected soft furnishings.'],

@@ -15,7 +15,7 @@ class QuoteEstimator extends Component
 {
     public ?int $serviceId = null;
 
-    public string $propertyType = 'condominium';
+    public string $propertyType = 'office';
 
     public string $sizeBand = 'under_1000';
 
@@ -47,14 +47,22 @@ class QuoteEstimator extends Component
 
     public function mount(): void
     {
-        $this->serviceId = Service::query()->where('is_active', true)->orderBy('sort_order')->value('id');
+        $this->serviceId = Service::query()
+            ->where('is_active', true)
+            ->where('code', '!=', 'home-cleaning')
+            ->orderBy('sort_order')
+            ->value('id');
         $this->preferredDate = now()->addDays(2)->format('Y-m-d');
     }
 
     #[Computed]
     public function services()
     {
-        return Service::query()->where('is_active', true)->orderBy('sort_order')->get();
+        return Service::query()
+            ->where('is_active', true)
+            ->where('code', '!=', 'home-cleaning')
+            ->orderBy('sort_order')
+            ->get();
     }
 
     #[Computed]
@@ -71,8 +79,8 @@ class QuoteEstimator extends Component
     public function submit(): void
     {
         $validated = $this->validate([
-            'serviceId' => ['required', Rule::exists('services', 'id')->where('is_active', true)],
-            'propertyType' => ['required', Rule::in(['apartment', 'condominium', 'landed', 'office', 'hall', 'other'])],
+            'serviceId' => ['required', Rule::exists('services', 'id')->where(fn ($query) => $query->where('is_active', true)->where('code', '!=', 'home-cleaning'))],
+            'propertyType' => ['required', Rule::in(['office', 'hall', 'other'])],
             'sizeBand' => ['required', Rule::in(['under_1000', '1000_2000', '2000_5000', 'over_5000'])],
             'frequency' => ['required', Rule::in(['one_off', 'weekly', 'fortnightly', 'monthly'])],
             'preferredDate' => ['required', 'date', 'after_or_equal:today'],
@@ -94,7 +102,7 @@ class QuoteEstimator extends Component
             $customer->fill([
                 'name' => $validated['name'],
                 'email' => $validated['email'] ?: null,
-                'type' => in_array($validated['propertyType'], ['office', 'hall']) ? 'business' : 'residential',
+                'type' => 'business',
                 'address' => $validated['address'],
                 'postcode' => $validated['postcode'],
                 'city' => $validated['city'],
