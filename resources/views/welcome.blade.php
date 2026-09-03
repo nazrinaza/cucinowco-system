@@ -44,6 +44,52 @@
         </div>
     </section>
 
+    @php($spaceTypes = [
+        ['01','Corporate Office','Workstations, meeting rooms and shared facilities.'],
+        ['02','Grand Hall','Large-capacity spaces that need planned teams and machinery.'],
+        ['03','Hotel / Ballroom','Guest-facing spaces where timing and presentation matter.'],
+        ['04','Event Place','Pre-event preparation or a thorough post-event reset.'],
+        ['05','Factory / Warehouse','Operational areas with access, safety and surface considerations.'],
+        ['06','Universities','Academic, administrative and shared campus spaces.'],
+    ])
+    @php($cleanTypes = [
+        ['01','Deep Clean','A detailed reset for built-up dust, grime and overlooked areas.'],
+        ['02','Tiles Cleaning','Targeted care for tiled surfaces, grout lines and embedded dirt.'],
+        ['03','Window Cleaning','Clearer glass and frames, planned around access and working height.'],
+        ['04','General Cleaning','Practical upkeep for everyday dust, surfaces and high-use areas.'],
+        ['05','Disinfect and Fragrance','Hygiene-focused treatment followed by a clean, fresh finish.'],
+    ])
+    <section id="scope-guide" class="scope-guide section-pad">
+        <div class="site-shell">
+            <div class="section-heading scope-heading">
+                <div><p class="eyebrow"><span></span> Space &amp; clean guide</p><h2>Different spaces.<br>Different cleaning demands.</h2></div>
+                <p>Start with where the work happens, then identify the result you need. We use both to recommend the right method, machinery, manpower and timing.</p>
+            </div>
+            <div class="scope-builder">
+                <section class="scope-panel space-panel" aria-labelledby="space-type-heading">
+                    <header class="scope-panel-head"><div><span>01</span><p>Choose the environment</p></div><h3 id="space-type-heading">Space Type</h3></header>
+                    <div class="space-type-grid">
+                        @foreach($spaceTypes as [$number,$name,$description])
+                            <article class="space-type-card"><span>{{ $number }}</span><h4>{{ $name }}</h4><p>{{ $description }}</p></article>
+                        @endforeach
+                    </div>
+                </section>
+                <section class="scope-panel clean-panel" aria-labelledby="clean-type-heading">
+                    <header class="scope-panel-head"><div><span>02</span><p>Define the result</p></div><h3 id="clean-type-heading">Clean Type</h3></header>
+                    <div class="clean-type-list">
+                        @foreach($cleanTypes as [$number,$name,$description])
+                            <article><span>{{ $number }}</span><div><h4>{{ $name }}</h4><p>{{ $description }}</p></div></article>
+                        @endforeach
+                    </div>
+                </section>
+            </div>
+            <div class="scope-outcome">
+                <div class="scope-formula" aria-label="Space type plus clean type equals a site-specific scope"><span>Space type</span><b>+</b><span>Clean type</span><b>=</b><strong>Site-specific scope</strong></div>
+                <a href="#site-visit" class="button button-dark">Find the right clean <small>Free site visit</small></a>
+            </div>
+        </div>
+    </section>
+
     <section id="how-it-works" class="dark-section section-pad">
         <div class="site-shell"><div class="section-heading light"><div><p class="eyebrow"><span></span> Simple by design</p><h2>From “need cleaning”<br>to ready-to-use.</h2></div><p>No long back-and-forth. Share the essentials and our team coordinates the rest.</p></div>
             <div class="process-grid">
