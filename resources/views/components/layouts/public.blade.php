@@ -58,7 +58,7 @@
                 <p>Professional cleaning for workplaces, venues and shared spaces. Operated by Thursina Land & Services.</p>
             </div>
             <div><h2>Explore</h2><a href="#services">Services</a><a href="#site-visit">Book free site visit</a><a href="#about">About Thursina</a><a href="#faq">FAQ</a></div>
-            <div><h2>Contact</h2><a href="tel:+{{ config('company.phone') }}">+60 11-5147 1145</a><a href="mailto:{{ config('company.email') }}">{{ config('company.email') }}</a><p>{{ config('company.address') }}</p></div>
+            <div><h2>Contact</h2><a href="tel:+{{ config('company.phone') }}">+60 11-1242 8593</a><a href="mailto:{{ config('company.email') }}">{{ config('company.email') }}</a><p>{{ config('company.address') }}</p></div>
             <div><h2>Business</h2><p>Thursina Land & Services</p><p>Reg. {{ config('company.registration_number') }}</p><a href="{{ route('login') }}">Admin access</a></div>
         </div>
         <div class="site-shell footer-bottom"><span>&copy; {{ date('Y') }} CuciNow.co by Thursina.</span><span>Privacy &middot; Terms &middot; Service policy</span></div>
