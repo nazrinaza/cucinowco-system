@@ -7,8 +7,8 @@ set -Eeuo pipefail
 
 APP_ROOT="${1:-/home2/shahjaha/public_html/staging.cucinow.co}"
 PHP_BIN="/opt/alt/php83/usr/bin/php"
-MIGRATION="2026_09_04_000001_add_email_delivery_support.php"
-COMPLETION_MARKER="${APP_ROOT}/storage/framework/resend-setup.completed"
+MIGRATION="2026_09_04_000002_repair_email_delivery_schema.php"
+COMPLETION_MARKER="${APP_ROOT}/storage/framework/resend-setup-v2.completed"
 
 timestamp() {
     /bin/date '+%Y-%m-%d %H:%M:%S %Z'
@@ -50,22 +50,6 @@ fi
 [[ -f "${APP_ROOT}/database/migrations/${MIGRATION}" ]] || \
     fail "The email migration is missing. Update the cPanel repository from the deploy branch first."
 
-if ! /bin/grep -Eq '^[[:space:]]*MAIL_MAILER[[:space:]]*=[[:space:]]*"?resend"?[[:space:]]*$' "${APP_ROOT}/.env"; then
-    fail "Set MAIL_MAILER=resend in .env."
-fi
-
-if ! /bin/grep -Eq '^[[:space:]]*RESEND_API_KEY[[:space:]]*=[[:space:]]*"?re_[^[:space:]"#]+' "${APP_ROOT}/.env"; then
-    fail "Set a valid, non-placeholder RESEND_API_KEY in .env. The secret value will not be printed."
-fi
-
-if ! /bin/grep -Eq '^[[:space:]]*QUEUE_CONNECTION[[:space:]]*=[[:space:]]*"?database"?[[:space:]]*$' "${APP_ROOT}/.env"; then
-    fail "Set QUEUE_CONNECTION=database in .env."
-fi
-
-if ! /bin/grep -Eq '^[[:space:]]*RESEND_WEBHOOK_SECRET[[:space:]]*=[[:space:]]*"?whsec_[^[:space:]"#]+' "${APP_ROOT}/.env"; then
-    log "WARNING: RESEND_WEBHOOK_SECRET is missing. Sending can work, but delivery/open tracking will not."
-fi
-
 cd "${APP_ROOT}"
 
 log "Clearing cached Laravel configuration."
@@ -73,6 +57,22 @@ log "Clearing cached Laravel configuration."
 
 log "Applying pending database migrations."
 "${PHP_BIN}" artisan migrate --force --no-interaction
+
+if ! /bin/grep -Eq '^[[:space:]]*MAIL_MAILER[[:space:]]*=[[:space:]]*"?resend"?[[:space:]]*$' "${APP_ROOT}/.env"; then
+    fail "Database repaired. Now set MAIL_MAILER=resend in .env."
+fi
+
+if ! /bin/grep -Eq '^[[:space:]]*RESEND_API_KEY[[:space:]]*=[[:space:]]*"?re_[^[:space:]"#]+' "${APP_ROOT}/.env"; then
+    fail "Database repaired. Now set a valid, non-placeholder RESEND_API_KEY in .env. The secret value will not be printed."
+fi
+
+if ! /bin/grep -Eq '^[[:space:]]*QUEUE_CONNECTION[[:space:]]*=[[:space:]]*"?database"?[[:space:]]*$' "${APP_ROOT}/.env"; then
+    fail "Database repaired. Now set QUEUE_CONNECTION=database in .env."
+fi
+
+if ! /bin/grep -Eq '^[[:space:]]*RESEND_WEBHOOK_SECRET[[:space:]]*=[[:space:]]*"?whsec_[^[:space:]"#]+' "${APP_ROOT}/.env"; then
+    log "WARNING: RESEND_WEBHOOK_SECRET is missing. Sending can work, but delivery/open tracking will not."
+fi
 
 log "Preparing writable Laravel directories."
 /usr/bin/find storage bootstrap/cache -type d -exec /bin/chmod 775 {} \;
