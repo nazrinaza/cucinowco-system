@@ -13,7 +13,8 @@ class Invoice extends Model
     protected function casts(): array
     {
         return [
-            'issued_at' => 'date', 'due_at' => 'date', 'subtotal' => 'decimal:2',
+            'issued_at' => 'date', 'due_at' => 'date', 'sent_at' => 'datetime',
+            'last_reminder_sent_at' => 'datetime', 'subtotal' => 'decimal:2',
             'discount' => 'decimal:2', 'tax_rate' => 'decimal:2', 'tax_amount' => 'decimal:2',
             'total' => 'decimal:2', 'amount_paid' => 'decimal:2', 'balance' => 'decimal:2',
         ];

@@ -2,11 +2,14 @@
 
 namespace App\Livewire;
 
+use App\Mail\NewSiteVisitNotificationMail;
+use App\Mail\SiteVisitConfirmationMail;
 use App\Models\Customer;
 use App\Models\Service;
 use App\Models\SiteVisitRequest;
 use App\Support\ReferenceNumber;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -83,7 +86,7 @@ class SiteVisitForm extends Component
             'website' => ['prohibited'],
         ]);
 
-        DB::transaction(function () use ($validated) {
+        $siteVisit = DB::transaction(function () use ($validated) {
             $customer = Customer::query()->firstOrNew(['phone' => $validated['phone']]);
             $customer->fill([
                 'name' => $validated['name'],
@@ -96,7 +99,7 @@ class SiteVisitForm extends Component
 
             $this->reference = ReferenceNumber::make('SV', SiteVisitRequest::class, 'reference_number');
 
-            SiteVisitRequest::create([
+            return SiteVisitRequest::create([
                 'reference_number' => $this->reference,
                 'customer_id' => $customer->id,
                 'service_id' => $validated['serviceId'],
@@ -110,6 +113,18 @@ class SiteVisitForm extends Component
                 'customer_notes' => $validated['notes'] ?: null,
             ]);
         });
+
+        $siteVisit->load(['customer', 'service']);
+
+        if ($siteVisit->customer->email) {
+            Mail::to($siteVisit->customer->email, $siteVisit->customer->name)
+                ->queue(new SiteVisitConfirmationMail($siteVisit));
+        }
+
+        if (config('company.notifications_email')) {
+            Mail::to(config('company.notifications_email'), config('company.name'))
+                ->queue(new NewSiteVisitNotificationMail($siteVisit));
+        }
 
         $this->submitted = true;
     }
