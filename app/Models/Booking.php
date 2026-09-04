@@ -11,7 +11,12 @@ class Booking extends Model
 
     protected function casts(): array
     {
-        return ['scheduled_start' => 'datetime', 'scheduled_end' => 'datetime', 'total' => 'decimal:2'];
+        return [
+            'scheduled_start' => 'datetime',
+            'scheduled_end' => 'datetime',
+            'confirmation_sent_at' => 'datetime',
+            'total' => 'decimal:2',
+        ];
     }
 
     public function customer(): BelongsTo

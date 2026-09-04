@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\BookingConfirmationMail;
+use App\Mail\QuoteMail;
 use App\Models\Booking;
 use App\Models\Invoice;
 use App\Models\Quote;
@@ -11,6 +13,7 @@ use App\Support\ReferenceNumber;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -57,6 +60,20 @@ class QuoteController extends Controller
         return back()->with('success', 'Quote updated.');
     }
 
+    public function send(Quote $quote): RedirectResponse
+    {
+        $quote->load(['customer', 'items.service']);
+
+        if (! $quote->customer->email) {
+            return back()->with('error', 'Add a customer email address before sending this quotation.');
+        }
+
+        $quote->update(['status' => 'sent', 'sent_at' => now()]);
+        Mail::to($quote->customer->email, $quote->customer->name)->queue(new QuoteMail($quote));
+
+        return back()->with('success', 'Quotation email queued for delivery.');
+    }
+
     public function convert(Quote $quote): RedirectResponse
     {
         if ($quote->invoice) {
@@ -98,7 +115,7 @@ class QuoteController extends Controller
             'access_notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        Booking::create([
+        $booking = Booking::create([
             ...$data,
             'booking_number' => ReferenceNumber::make('BK', Booking::class, 'booking_number'),
             'customer_id' => $quote->customer_id,
@@ -111,6 +128,17 @@ class QuoteController extends Controller
 
         $quote->update(['status' => 'accepted', 'accepted_at' => $quote->accepted_at ?? now()]);
 
-        return redirect()->route('admin.bookings.index')->with('success', 'Booking created and added to the schedule.');
+        $booking->load(['customer', 'service', 'quote.items']);
+        $confirmationQueued = false;
+        if ($booking->customer->email) {
+            $booking->update(['confirmation_sent_at' => now()]);
+            Mail::to($booking->customer->email, $booking->customer->name)
+                ->queue(new BookingConfirmationMail($booking));
+            $confirmationQueued = true;
+        }
+
+        return redirect()->route('admin.bookings.index')->with('success', $confirmationQueued
+            ? 'Booking created and confirmation email queued.'
+            : 'Booking created. Add a customer email address to send a confirmation.');
     }
 }

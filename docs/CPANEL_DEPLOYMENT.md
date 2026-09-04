@@ -31,6 +31,19 @@ Using **File Manager**, copy `.env.example` to `.env` in the application root. U
 - `ADMIN_EMAIL` and a strong, unique `ADMIN_PASSWORD`
 - company phone, email, WhatsApp, address, and outgoing mail settings
 
+For Resend email delivery, verify the sending domain in Resend first, then add:
+
+```dotenv
+MAIL_MAILER=resend
+MAIL_FROM_ADDRESS=hello@cucinow.co
+MAIL_FROM_NAME="CuciNow.co by Thursina"
+RESEND_API_KEY=re_your_production_key
+RESEND_WEBHOOK_SECRET=whsec_your_signing_secret
+NOTIFICATION_EMAIL=hello@cucinow.co
+```
+
+Use an address on the verified domain for `MAIL_FROM_ADDRESS`. `NOTIFICATION_EMAIL` receives internal alerts for new site visit requests. Never add the real API key or webhook secret to GitHub.
+
 Set the `.env` permissions to `600` or the most restrictive value your host supports. Never place `.env` inside the public directory.
 
 Leave `APP_KEY=` blank only for the first deployment. The deployment task generates it once. Never delete or rotate the key after the site contains live data.
@@ -47,14 +60,28 @@ In **Cron Jobs**, run this every minute after replacing the username:
 
 `/opt/alt/php83/usr/bin/php /home/YOUR_CPANEL_USER/cucinowco-system/artisan schedule:run >> /dev/null 2>&1`
 
-This processes queued emails in short, shared-hosting-safe batches and marks overdue invoices daily.
+This processes queued emails in short, shared-hosting-safe batches, dispatches scheduled newsletters, and sends overdue invoice reminders no more than once every seven days.
 
-## 6. Verify
+## 6. Connect the Resend webhook
+
+In **Resend > Webhooks**, add the production endpoint:
+
+`https://cucinow.co/resend/webhook`
+
+For staging, create a separate webhook pointing to:
+
+`https://staging.cucinow.co/resend/webhook`
+
+Enable the email sent, delivered, delayed, opened, clicked, bounced, complained, suppressed, and failed events. Copy that webhook's signing secret to `RESEND_WEBHOOK_SECRET` in the matching cPanel `.env`. CuciNow stores webhook events once and uses newsletter tags to update opens, clicks and bounce counts.
+
+## 7. Verify
 
 - Open `https://cucinow.co/up`.
 - Submit a test quote from the landing page.
 - Sign in at `https://cucinow.co/admin/login`.
 - Confirm the quote appears, then create a booking and invoice.
+- Use **Email quotation** and **Email invoice** with an address you control, then let the cron job run for up to one minute.
+- Create a one-recipient newsletter test and confirm its unsubscribe link works.
 - Record a RM1 test payment entry before connecting a live payment gateway.
 
-Payment gateways and email delivery remain disabled until production credentials are added. Never commit credentials or `.env` to GitHub.
+Payment gateways remain disabled until production credentials are added. Email delivery uses Resend only after the production `.env` is configured. Never commit credentials or `.env` to GitHub.

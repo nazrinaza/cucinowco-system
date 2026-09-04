@@ -7,6 +7,7 @@ return [
     'established' => 2000,
     'phone' => env('COMPANY_PHONE', '601112428593'),
     'email' => env('COMPANY_EMAIL', 'hello@cucinow.co'),
+    'notifications_email' => env('NOTIFICATION_EMAIL', env('COMPANY_EMAIL', 'hello@cucinow.co')),
     'whatsapp' => env('COMPANY_WHATSAPP', '601112428593'),
     'address' => env('COMPANY_ADDRESS', 'No. 28B, Jalan BRP 1/6, Bukit Rahman Putra, 40160 Sungai Buloh, Selangor'),
     'sst_enabled' => (bool) env('SST_ENABLED', false),
