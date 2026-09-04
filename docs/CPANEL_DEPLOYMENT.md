@@ -85,3 +85,15 @@ Enable the email sent, delivered, delayed, opened, clicked, bounced, complained,
 - Record a RM1 test payment entry before connecting a live payment gateway.
 
 Payment gateways remain disabled until production credentials are added. Email delivery uses Resend only after the production `.env` is configured. Never commit credentials or `.env` to GitHub.
+
+## Temporary staging recovery when Deploy HEAD Commit is disabled
+
+Use this only after Git Version Control is tracking the ready-built `deploy` branch and **Update from Remote** has completed. A migration cron cannot install the Resend package when cPanel still has the old code or the source-only `main` branch.
+
+Confirm the staging `.env` contains the Resend settings from section 3 plus `QUEUE_CONNECTION=database`. Then add this temporary cPanel cron job to run every minute:
+
+`/bin/bash /home2/shahjaha/public_html/staging.cucinow.co/scripts/cpanel-resend-setup.sh >> /home2/shahjaha/cucinow-resend-setup.log 2>&1`
+
+After one or two minutes, open `/home2/shahjaha/cucinow-resend-setup.log` in File Manager. When the final lines contain `SETUP COMPLETE`, remove the temporary cron job. Keep the normal `artisan schedule:run` cron from section 5 enabled.
+
+If the log reports a missing Resend package or migration, return to Git Version Control, select the `deploy` branch and use **Update from Remote**. If it reports an `.env` setting error, correct the setting without posting the API key publicly; the next cron run will retry automatically. After a successful run, submit a new site visit request or use **Email quotation/invoice** because requests created before the email feature was deployed did not create an email job.
