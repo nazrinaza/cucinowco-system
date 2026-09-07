@@ -31,6 +31,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const sourceToggle = editor.querySelector('[data-editor-source-toggle]');
         const format = editor.querySelector('[data-editor-format]');
         const count = editor.querySelector('[data-editor-count]');
+        const imageButton = editor.querySelector('[data-editor-image-button]');
+        const imageInput = editor.querySelector('[data-editor-image-input]');
+        const editorStatus = editor.querySelector('[data-editor-status]');
+        const imageUploadUrl = editor.dataset.imageUploadUrl;
         const form = editor.closest('form');
         let sourceMode = false;
         let savedRange = null;
@@ -75,6 +79,18 @@ document.addEventListener('DOMContentLoaded', () => {
             updateCount();
         };
 
+        const escapeAttribute = (value) => String(value)
+            .replaceAll('&', '&amp;')
+            .replaceAll('"', '&quot;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;');
+
+        const setEditorStatus = (message, state = '') => {
+            if (!editorStatus) return;
+            editorStatus.textContent = message;
+            editorStatus.dataset.state = state;
+        };
+
         editor.querySelectorAll('[data-editor-command]').forEach((button) => {
             button.addEventListener('mousedown', (event) => event.preventDefault());
             button.addEventListener('click', () => {
@@ -105,6 +121,65 @@ document.addEventListener('DOMContentLoaded', () => {
             document.execCommand('createLink', false, url);
             syncSource();
             rememberSelection();
+        });
+
+        imageButton?.addEventListener('mousedown', (event) => event.preventDefault());
+        imageButton?.addEventListener('click', () => imageInput?.click());
+        imageInput?.addEventListener('change', async () => {
+            const file = imageInput.files?.[0];
+            if (!file || !imageUploadUrl || !form) return;
+
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!allowedTypes.includes(file.type) || file.size > 2 * 1024 * 1024) {
+                setEditorStatus('Choose a JPG, PNG or WebP image up to 2 MB.', 'error');
+                imageInput.value = '';
+                return;
+            }
+
+            const suggestedAlt = file.name.replace(/\.[^.]+$/, '').replaceAll(/[-_]+/g, ' ');
+            const alt = window.prompt('Describe this image for accessibility:', suggestedAlt);
+            if (alt === null) {
+                imageInput.value = '';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('alt', alt);
+            formData.append('_token', form.querySelector('input[name="_token"]')?.value ?? '');
+
+            imageButton.disabled = true;
+            setEditorStatus('Uploading image...', 'working');
+
+            try {
+                const response = await fetch(imageUploadUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { Accept: 'application/json' },
+                    credentials: 'same-origin',
+                });
+                const payload = await response.json();
+
+                if (!response.ok) {
+                    const validationMessage = Object.values(payload.errors ?? {}).flat()[0];
+                    throw new Error(validationMessage || payload.message || 'The image upload failed.');
+                }
+
+                restoreSelection();
+                document.execCommand(
+                    'insertHTML',
+                    false,
+                    `<p><img src="${escapeAttribute(payload.url)}" alt="${escapeAttribute(payload.alt)}" style="display:block;max-width:100%;height:auto;margin:20px auto;border-radius:12px"></p><p><br></p>`,
+                );
+                syncSource();
+                rememberSelection();
+                setEditorStatus('Image uploaded and inserted.', 'success');
+            } catch (error) {
+                setEditorStatus(error instanceof Error ? error.message : 'The image upload failed.', 'error');
+            } finally {
+                imageButton.disabled = sourceMode;
+                imageInput.value = '';
+            }
         });
 
         sourceToggle?.addEventListener('click', () => {

@@ -12,7 +12,7 @@ class NewsletterHtmlSanitizer
 {
     private const ALLOWED_TAGS = [
         'a', 'b', 'blockquote', 'br', 'div', 'em', 'h2', 'h3', 'hr',
-        'i', 'li', 'ol', 'p', 's', 'strong', 'u', 'ul',
+        'i', 'img', 'li', 'ol', 'p', 's', 'strong', 'u', 'ul',
     ];
 
     private const REMOVE_WITH_CONTENT = [
@@ -63,7 +63,7 @@ class NewsletterHtmlSanitizer
     {
         $text = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
-        return trim(str_replace("\xc2\xa0", ' ', $text)) !== '';
+        return trim(str_replace("\xc2\xa0", ' ', $text)) !== '' || str_contains(strtolower($html), '<img');
     }
 
     private function cleanNode(DOMNode $node): void
@@ -97,6 +97,8 @@ class NewsletterHtmlSanitizer
         }
 
         $href = $tag === 'a' ? $node->getAttribute('href') : null;
+        $imageSource = $tag === 'img' ? $node->getAttribute('src') : null;
+        $imageAlt = $tag === 'img' ? $node->getAttribute('alt') : null;
 
         foreach (iterator_to_array($node->attributes) as $attribute) {
             $node->removeAttribute($attribute->name);
@@ -104,6 +106,12 @@ class NewsletterHtmlSanitizer
 
         if ($tag === 'a') {
             $this->cleanLink($node, (string) $href);
+        }
+
+        if ($tag === 'img' && ! $this->cleanImage($node, (string) $imageSource, (string) $imageAlt)) {
+            $node->parentNode?->removeChild($node);
+
+            return;
         }
 
         $style = $this->emailStyle($tag);
@@ -126,6 +134,30 @@ class NewsletterHtmlSanitizer
         $link->setAttribute('rel', 'noopener noreferrer');
     }
 
+    private function cleanImage(DOMElement $image, string $source, string $alt): bool
+    {
+        $source = trim($source);
+        $sourceHost = strtolower((string) parse_url($source, PHP_URL_HOST));
+        $sourcePath = (string) parse_url($source, PHP_URL_PATH);
+        $sourceScheme = strtolower((string) parse_url($source, PHP_URL_SCHEME));
+        $appHost = strtolower((string) parse_url((string) config('app.url'), PHP_URL_HOST));
+
+        if (
+            $source === '' ||
+            ! in_array($sourceScheme, ['http', 'https'], true) ||
+            $sourceHost === '' ||
+            $sourceHost !== $appHost ||
+            ! str_starts_with($sourcePath, '/storage/newsletters/')
+        ) {
+            return false;
+        }
+
+        $image->setAttribute('src', $source);
+        $image->setAttribute('alt', mb_substr(trim(strip_tags($alt)), 0, 180));
+
+        return true;
+    }
+
     private function emailStyle(string $tag): ?string
     {
         return match ($tag) {
@@ -135,6 +167,7 @@ class NewsletterHtmlSanitizer
             'h2' => 'margin:26px 0 12px;color:#25282d;font-size:24px;line-height:1.25',
             'h3' => 'margin:22px 0 10px;color:#25282d;font-size:19px;line-height:1.3',
             'hr' => 'margin:24px 0;border:0;border-top:1px solid #dedbd2',
+            'img' => 'display:block;max-width:100%;height:auto;margin:20px auto;border:0;border-radius:12px',
             'li' => 'margin:0 0 8px',
             'ol', 'ul' => 'margin:0 0 18px;padding-left:24px',
             default => null,
