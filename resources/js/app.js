@@ -24,4 +24,120 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }));
     });
+
+    document.querySelectorAll('[data-html-editor]').forEach((editor) => {
+        const canvas = editor.querySelector('[data-editor-canvas]');
+        const source = editor.querySelector('[data-editor-source]');
+        const sourceToggle = editor.querySelector('[data-editor-source-toggle]');
+        const format = editor.querySelector('[data-editor-format]');
+        const count = editor.querySelector('[data-editor-count]');
+        const form = editor.closest('form');
+        let sourceMode = false;
+        let savedRange = null;
+
+        if (!canvas || !source) return;
+
+        canvas.innerHTML = source.value;
+        document.execCommand('defaultParagraphSeparator', false, 'p');
+
+        const rememberSelection = () => {
+            const selection = window.getSelection();
+            if (!selection?.rangeCount) return;
+
+            const range = selection.getRangeAt(0);
+            if (canvas.contains(range.commonAncestorContainer)) savedRange = range.cloneRange();
+        };
+
+        const restoreSelection = () => {
+            canvas.focus();
+            if (!savedRange) return;
+
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(savedRange);
+        };
+
+        const plainText = () => {
+            if (!sourceMode) return canvas.textContent ?? '';
+
+            const temporary = document.createElement('div');
+            temporary.innerHTML = source.value;
+            return temporary.textContent ?? '';
+        };
+
+        const updateCount = () => {
+            const length = plainText().trim().length;
+            if (count) count.textContent = `${length.toLocaleString()} character${length === 1 ? '' : 's'}`;
+        };
+
+        const syncSource = () => {
+            if (!sourceMode) source.value = canvas.innerHTML;
+            updateCount();
+        };
+
+        editor.querySelectorAll('[data-editor-command]').forEach((button) => {
+            button.addEventListener('mousedown', (event) => event.preventDefault());
+            button.addEventListener('click', () => {
+                restoreSelection();
+                document.execCommand(button.dataset.editorCommand, false);
+                syncSource();
+                rememberSelection();
+            });
+        });
+
+        format?.addEventListener('change', () => {
+            restoreSelection();
+            document.execCommand('formatBlock', false, format.value);
+            syncSource();
+            rememberSelection();
+        });
+
+        editor.querySelector('[data-editor-link]')?.addEventListener('mousedown', (event) => event.preventDefault());
+        editor.querySelector('[data-editor-link]')?.addEventListener('click', () => {
+            const enteredUrl = window.prompt('Enter the link URL, email address, or telephone number:');
+            if (!enteredUrl) return;
+
+            let url = enteredUrl.trim();
+            if (url.includes('@') && !url.includes('://') && !url.startsWith('mailto:')) url = `mailto:${url}`;
+            if (!/^(https?:\/\/|mailto:|tel:|\/)/i.test(url)) url = `https://${url}`;
+
+            restoreSelection();
+            document.execCommand('createLink', false, url);
+            syncSource();
+            rememberSelection();
+        });
+
+        sourceToggle?.addEventListener('click', () => {
+            if (!sourceMode) syncSource();
+
+            sourceMode = !sourceMode;
+            canvas.hidden = sourceMode;
+            source.hidden = !sourceMode;
+            editor.classList.toggle('source-mode', sourceMode);
+            sourceToggle.classList.toggle('active', sourceMode);
+            sourceToggle.innerHTML = sourceMode ? 'Visual' : '&lt;/&gt; HTML';
+
+            editor.querySelectorAll('.html-editor-toolbar button:not([data-editor-source-toggle]), .html-editor-toolbar select')
+                .forEach((control) => { control.disabled = sourceMode; });
+
+            if (sourceMode) {
+                source.focus();
+            } else {
+                canvas.innerHTML = source.value;
+                canvas.focus();
+            }
+
+            updateCount();
+        });
+
+        ['input', 'keyup', 'mouseup', 'focus'].forEach((eventName) => {
+            canvas.addEventListener(eventName, () => {
+                rememberSelection();
+                syncSource();
+            });
+        });
+        source.addEventListener('input', updateCount);
+        form?.addEventListener('submit', syncSource);
+        updateCount();
+    });
 });
