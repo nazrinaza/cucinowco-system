@@ -19,6 +19,7 @@
             <main class="admin-content">
                 <div class="admin-page-head"><div><p class="admin-kicker">CuciNow operations</p><h1>{{ $heading ?? $title ?? 'Overview' }}</h1></div>{{ $actions ?? '' }}</div>
                 @if(session('success'))<div class="admin-alert success">{{ session('success') }}</div>@endif
+                @if(session('error'))<div class="admin-alert error">{{ session('error') }}</div>@endif
                 @if($errors->any())<div class="admin-alert error"><strong>Please check the form.</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
                 {{ $slot }}
             </main>

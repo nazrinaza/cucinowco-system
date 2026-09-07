@@ -10,6 +10,7 @@ use App\Mail\InvoiceMail;
 use App\Mail\InvoiceOverdueReminderMail;
 use App\Mail\NewSiteVisitNotificationMail;
 use App\Mail\NewsletterMail;
+use App\Mail\NewsletterPreviewMail;
 use App\Mail\PaymentReceiptMail;
 use App\Mail\QuoteMail;
 use App\Mail\SiteVisitConfirmationMail;
@@ -154,6 +155,44 @@ class EmailWorkflowTest extends TestCase
 
         $this->assertStringContainsString('<strong>cleaner</strong>', $rendered);
         $this->assertStringNotContainsString('onclick', $rendered);
+    }
+
+    public function test_admin_can_send_an_immediate_newsletter_preview(): void
+    {
+        Mail::fake();
+        $admin = User::factory()->create(['is_active' => true, 'email' => 'admin-preview@example.com']);
+
+        $this->actingAs($admin)->post(route('admin.campaigns.store'), [
+            'action' => 'test',
+            'name' => 'Preview campaign',
+            'subject' => 'Preview subject',
+            'preview_text' => 'Preview text',
+            'content' => '<p>Preview <strong>message</strong>.</p>',
+        ])->assertSessionHasNoErrors()->assertSessionHas('success');
+
+        Mail::assertSent(NewsletterPreviewMail::class, fn ($mail) => $mail->hasTo('admin-preview@example.com'));
+        Mail::assertNothingQueued();
+        $this->assertDatabaseMissing('newsletter_campaigns', ['name' => 'Preview campaign']);
+    }
+
+    public function test_admin_can_save_and_queue_a_campaign_from_the_editor(): void
+    {
+        Queue::fake();
+        $admin = User::factory()->create(['is_active' => true]);
+
+        $this->actingAs($admin)->post(route('admin.campaigns.store'), [
+            'action' => 'send',
+            'name' => 'Immediate campaign',
+            'subject' => 'Send this campaign',
+            'content' => '<p>Campaign content.</p>',
+            'scheduled_at' => now()->addDay()->format('Y-m-d H:i:s'),
+        ])->assertSessionHasNoErrors()->assertSessionHas('success');
+
+        $campaign = NewsletterCampaign::where('name', 'Immediate campaign')->firstOrFail();
+
+        $this->assertSame('queued', $campaign->status);
+        $this->assertNull($campaign->scheduled_at);
+        Queue::assertPushed(SendNewsletterCampaign::class, fn ($job) => $job->campaignId === $campaign->id);
     }
 
     public function test_resend_webhook_event_updates_campaign_metrics_once(): void

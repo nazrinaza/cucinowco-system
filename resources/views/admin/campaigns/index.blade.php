@@ -97,8 +97,12 @@
                     <span>Schedule <em>optional</em></span>
                     <input type="datetime-local" name="scheduled_at" value="{{ old('scheduled_at') }}">
                 </label>
-                <button class="admin-button" type="submit">Save campaign</button>
-                <p class="muted">Campaigns are delivered through Resend. Scheduled campaigns are picked up by the cPanel cron job.</p>
+                <div class="campaign-submit-actions">
+                    <button class="admin-button secondary" type="submit" name="action" value="draft">Save draft / schedule</button>
+                    <button class="admin-button dark" type="submit" name="action" value="test">Send test email</button>
+                    <button class="admin-button" type="submit" name="action" value="send">Save &amp; send now</button>
+                </div>
+                <p class="muted">Test email sends immediately to {{ auth()->user()->email }}. Bulk delivery is queued for the cPanel worker to protect the server from timeouts.</p>
             </form>
         </section>
     </div>
