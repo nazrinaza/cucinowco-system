@@ -28,6 +28,7 @@ return array(
     'App\\Mail\\InvoiceOverdueReminderMail' => $baseDir . '/app/Mail/InvoiceOverdueReminderMail.php',
     'App\\Mail\\NewSiteVisitNotificationMail' => $baseDir . '/app/Mail/NewSiteVisitNotificationMail.php',
     'App\\Mail\\NewsletterMail' => $baseDir . '/app/Mail/NewsletterMail.php',
+    'App\\Mail\\NewsletterPreviewMail' => $baseDir . '/app/Mail/NewsletterPreviewMail.php',
     'App\\Mail\\PaymentReceiptMail' => $baseDir . '/app/Mail/PaymentReceiptMail.php',
     'App\\Mail\\QuoteMail' => $baseDir . '/app/Mail/QuoteMail.php',
     'App\\Mail\\SiteVisitConfirmationMail' => $baseDir . '/app/Mail/SiteVisitConfirmationMail.php',

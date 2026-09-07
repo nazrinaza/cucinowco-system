@@ -524,6 +524,7 @@ class ComposerStaticInitee521a8475827814193025509abf0409
         'App\\Mail\\InvoiceOverdueReminderMail' => __DIR__ . '/../..' . '/app/Mail/InvoiceOverdueReminderMail.php',
         'App\\Mail\\NewSiteVisitNotificationMail' => __DIR__ . '/../..' . '/app/Mail/NewSiteVisitNotificationMail.php',
         'App\\Mail\\NewsletterMail' => __DIR__ . '/../..' . '/app/Mail/NewsletterMail.php',
+        'App\\Mail\\NewsletterPreviewMail' => __DIR__ . '/../..' . '/app/Mail/NewsletterPreviewMail.php',
         'App\\Mail\\PaymentReceiptMail' => __DIR__ . '/../..' . '/app/Mail/PaymentReceiptMail.php',
         'App\\Mail\\QuoteMail' => __DIR__ . '/../..' . '/app/Mail/QuoteMail.php',
         'App\\Mail\\SiteVisitConfirmationMail' => __DIR__ . '/../..' . '/app/Mail/SiteVisitConfirmationMail.php',
