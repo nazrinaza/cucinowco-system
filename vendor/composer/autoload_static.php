@@ -543,6 +543,7 @@ class ComposerStaticInitee521a8475827814193025509abf0409
         'App\\Models\\Subscriber' => __DIR__ . '/../..' . '/app/Models/Subscriber.php',
         'App\\Models\\User' => __DIR__ . '/../..' . '/app/Models/User.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',
+        'App\\Support\\NewsletterHtmlSanitizer' => __DIR__ . '/../..' . '/app/Support/NewsletterHtmlSanitizer.php',
         'App\\Support\\ReferenceNumber' => __DIR__ . '/../..' . '/app/Support/ReferenceNumber.php',
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Brick\\Math\\BigDecimal' => __DIR__ . '/..' . '/brick/math/src/BigDecimal.php',

@@ -47,6 +47,7 @@ return array(
     'App\\Models\\Subscriber' => $baseDir . '/app/Models/Subscriber.php',
     'App\\Models\\User' => $baseDir . '/app/Models/User.php',
     'App\\Providers\\AppServiceProvider' => $baseDir . '/app/Providers/AppServiceProvider.php',
+    'App\\Support\\NewsletterHtmlSanitizer' => $baseDir . '/app/Support/NewsletterHtmlSanitizer.php',
     'App\\Support\\ReferenceNumber' => $baseDir . '/app/Support/ReferenceNumber.php',
     'Attribute' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
     'Brick\\Math\\BigDecimal' => $vendorDir . '/brick/math/src/BigDecimal.php',
