@@ -123,6 +123,39 @@ class EmailWorkflowTest extends TestCase
         $this->assertDatabaseHas('newsletter_campaigns', ['id' => $campaign->id, 'status' => 'queued']);
     }
 
+    public function test_admin_can_build_a_sanitized_html_newsletter(): void
+    {
+        $admin = User::factory()->create(['is_active' => true]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.campaigns.index'))
+            ->assertOk()
+            ->assertSee('data-html-editor', false)
+            ->assertSee('&lt;/&gt; HTML', false);
+
+        $this->actingAs($admin)->post(route('admin.campaigns.store'), [
+            'name' => 'HTML campaign',
+            'subject' => 'A cleaner workplace',
+            'preview_text' => 'Professional cleaning notes',
+            'content' => '<h2>Welcome</h2><p onclick="alert(1)">A <strong>cleaner</strong> workplace.</p><a href="https://cucinow.co">Book now</a><a href="javascript:alert(1)">Unsafe</a><script>alert(1)</script>',
+        ])->assertSessionHasNoErrors()->assertSessionHas('success');
+
+        $campaign = NewsletterCampaign::where('name', 'HTML campaign')->firstOrFail();
+
+        $this->assertStringContainsString('<h2', $campaign->content);
+        $this->assertStringContainsString('<strong>cleaner</strong>', $campaign->content);
+        $this->assertStringContainsString('href="https://cucinow.co"', $campaign->content);
+        $this->assertStringNotContainsString('onclick', $campaign->content);
+        $this->assertStringNotContainsString('javascript:', $campaign->content);
+        $this->assertStringNotContainsString('<script', $campaign->content);
+
+        $subscriber = Subscriber::create(['email' => 'html@example.com', 'status' => 'subscribed', 'subscribed_at' => now()]);
+        $rendered = (new NewsletterMail($campaign, $subscriber))->render();
+
+        $this->assertStringContainsString('<strong>cleaner</strong>', $rendered);
+        $this->assertStringNotContainsString('onclick', $rendered);
+    }
+
     public function test_resend_webhook_event_updates_campaign_metrics_once(): void
     {
         $subscriber = Subscriber::create(['email' => 'reader@example.com', 'status' => 'subscribed', 'subscribed_at' => now()]);
