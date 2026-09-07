@@ -8,6 +8,10 @@
     <div style="margin-top:28px"><a href="{{ url('/#site-visit') }}" style="display:inline-block;padding:14px 20px;color:#25282d;background:#f5b800;border-radius:9px;font-size:14px;font-weight:700;text-decoration:none">Book a free site visit</a></div>
 @endsection
 @section('footer')
-    You received this because {{ $subscriber->email }} subscribed to CuciNow updates.
-    <a href="{{ $unsubscribeUrl }}" style="color:#8c6906">Unsubscribe</a>.
+    @isset($subscriber)
+        You received this because {{ $subscriber->email }} subscribed to CuciNow updates.
+        <a href="{{ $unsubscribeUrl }}" style="color:#8c6906">Unsubscribe</a>.
+    @else
+        This is a private newsletter preview sent to {{ $previewRecipient }}. Subscribers have not received this test.
+    @endisset
 @endsection
