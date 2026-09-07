@@ -7,9 +7,11 @@ use App\Jobs\SendNewsletterCampaign;
 use App\Mail\NewsletterPreviewMail;
 use App\Models\NewsletterCampaign;
 use App\Support\NewsletterHtmlSanitizer;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Throwable;
@@ -21,6 +23,29 @@ class CampaignController extends Controller
         $campaigns = NewsletterCampaign::latest()->paginate(20);
 
         return view('admin.campaigns.index', compact('campaigns'));
+    }
+
+    public function uploadImage(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'image' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048', 'dimensions:max_width=2400,max_height=2400'],
+            'alt' => ['nullable', 'string', 'max:180'],
+        ]);
+
+        $path = $data['image']->store('newsletters/'.now()->format('Y/m'), 'public');
+
+        if (! $path) {
+            abort(500, 'The newsletter image could not be stored.');
+        }
+
+        $publicUrl = Storage::disk('public')->url($path);
+
+        return response()->json([
+            'url' => str_starts_with($publicUrl, 'http://') || str_starts_with($publicUrl, 'https://')
+                ? $publicUrl
+                : url($publicUrl),
+            'alt' => trim($data['alt'] ?? ''),
+        ]);
     }
 
     public function store(Request $request, NewsletterHtmlSanitizer $sanitizer): RedirectResponse

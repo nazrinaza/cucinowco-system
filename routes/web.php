@@ -52,5 +52,6 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('/subscribers', [SubscriberController::class, 'index'])->name('subscribers.index');
     Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
     Route::post('/campaigns', [CampaignController::class, 'store'])->name('campaigns.store');
+    Route::post('/campaigns/images', [CampaignController::class, 'uploadImage'])->middleware('throttle:20,1')->name('campaigns.images.store');
     Route::post('/campaigns/{campaign}/send', [CampaignController::class, 'send'])->name('campaigns.send');
 });

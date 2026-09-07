@@ -25,9 +25,12 @@ use App\Models\Service;
 use App\Models\SiteVisitRequest;
 use App\Models\Subscriber;
 use App\Models\User;
+use App\Support\NewsletterHtmlSanitizer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 use Resend\Laravel\Events\EmailOpened;
@@ -132,6 +135,7 @@ class EmailWorkflowTest extends TestCase
             ->get(route('admin.campaigns.index'))
             ->assertOk()
             ->assertSee('data-html-editor', false)
+            ->assertSee('data-editor-image-button', false)
             ->assertSee('&lt;/&gt; HTML', false);
 
         $this->actingAs($admin)->post(route('admin.campaigns.store'), [
@@ -155,6 +159,30 @@ class EmailWorkflowTest extends TestCase
 
         $this->assertStringContainsString('<strong>cleaner</strong>', $rendered);
         $this->assertStringNotContainsString('onclick', $rendered);
+    }
+
+    public function test_admin_can_upload_a_safe_newsletter_image(): void
+    {
+        Storage::fake('public');
+        $admin = User::factory()->create(['is_active' => true]);
+
+        $response = $this->actingAs($admin)->postJson(route('admin.campaigns.images.store'), [
+            'image' => UploadedFile::fake()->image('clean-office.jpg', 1200, 630),
+            'alt' => 'A professionally cleaned office',
+        ]);
+
+        $response->assertOk()->assertJsonPath('alt', 'A professionally cleaned office');
+        $this->assertCount(1, Storage::disk('public')->allFiles('newsletters'));
+
+        $url = $response->json('url');
+        $sanitized = app(NewsletterHtmlSanitizer::class)->sanitize(
+            '<img src="'.$url.'" alt="A clean office" onerror="alert(1)"><img src="https://example.com/tracker.gif" alt="Tracker">',
+        );
+
+        $this->assertStringContainsString('src="'.$url.'"', $sanitized);
+        $this->assertStringContainsString('alt="A clean office"', $sanitized);
+        $this->assertStringNotContainsString('onerror', $sanitized);
+        $this->assertStringNotContainsString('example.com', $sanitized);
     }
 
     public function test_admin_can_send_an_immediate_newsletter_preview(): void

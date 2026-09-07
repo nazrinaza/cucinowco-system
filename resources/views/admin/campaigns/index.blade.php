@@ -57,7 +57,7 @@
                 @php($editorContent = app(\App\Support\NewsletterHtmlSanitizer::class)->sanitize(old('content', '')))
                 <label>
                     <span>Message</span>
-                    <div class="html-editor" data-html-editor>
+                    <div class="html-editor" data-html-editor data-image-upload-url="{{ route('admin.campaigns.images.store') }}">
                         <div class="html-editor-toolbar" role="toolbar" aria-label="Newsletter formatting">
                             <select data-editor-format aria-label="Text style">
                                 <option value="p">Paragraph</option>
@@ -73,6 +73,7 @@
                             <button type="button" data-editor-command="insertUnorderedList" title="Bullet list">&bull; List</button>
                             <button type="button" data-editor-command="insertOrderedList" title="Numbered list">1. List</button>
                             <button type="button" data-editor-link title="Insert link">Link</button>
+                            <button type="button" data-editor-image-button title="Upload and insert image">Image</button>
                             <button type="button" data-editor-command="insertHorizontalRule" title="Divider line">Line</button>
                             <button type="button" data-editor-command="removeFormat" title="Clear formatting">Clear</button>
                             <button class="editor-source-toggle" type="button" data-editor-source-toggle title="Edit HTML source">&lt;/&gt; HTML</button>
@@ -86,8 +87,9 @@
                             data-placeholder="Write your newsletter message..."
                         ></div>
                         <textarea class="html-editor-source" name="content" rows="14" data-editor-source hidden>{{ $editorContent }}</textarea>
+                        <input type="file" accept="image/jpeg,image/png,image/webp" data-editor-image-input hidden>
                         <div class="html-editor-foot">
-                            <span>Use simple formatting for reliable display across email apps.</span>
+                            <span data-editor-status>Images: JPG, PNG or WebP, up to 2 MB.</span>
                             <strong data-editor-count>0 characters</strong>
                         </div>
                     </div>
