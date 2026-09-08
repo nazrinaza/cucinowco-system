@@ -74,6 +74,8 @@ For staging, create a separate webhook pointing to:
 
 Enable the email sent, delivered, delayed, opened, clicked, bounced, complained, suppressed, and failed events. Copy that webhook's signing secret to `RESEND_WEBHOOK_SECRET` in the matching cPanel `.env`. CuciNow stores webhook events once and uses newsletter tags to update opens, clicks and bounce counts.
 
+In **Resend > Domains**, open the sending domain and enable open and click tracking. Configure and verify a tracking subdomain such as `links.cucinow.co` using the DNS record supplied by Resend. Without domain tracking, delivery failures still appear but open and click analytics remain at zero.
+
 ## 7. Verify
 
 - Open `https://cucinow.co/up`.
@@ -82,6 +84,7 @@ Enable the email sent, delivered, delayed, opened, clicked, bounced, complained,
 - Confirm the quote appears, then create a booking and invoice.
 - Use **Email quotation** and **Email invoice** with an address you control, then let the cron job run for up to one minute.
 - Create a one-recipient newsletter test and confirm its unsubscribe link works.
+- Send a campaign to an address you control, open it, then confirm the event appears under **Campaigns > Analytics** after Resend delivers the webhook.
 - Record a RM1 test payment entry before connecting a live payment gateway.
 
 Payment gateways remain disabled until production credentials are added. Email delivery uses Resend only after the production `.env` is configured. Never commit credentials or `.env` to GitHub.

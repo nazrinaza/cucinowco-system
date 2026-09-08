@@ -17,6 +17,7 @@ use App\Mail\SiteVisitConfirmationMail;
 use App\Mail\SubscriberWelcomeMail;
 use App\Models\Booking;
 use App\Models\Customer;
+use App\Models\EmailEvent;
 use App\Models\Invoice;
 use App\Models\NewsletterCampaign;
 use App\Models\Payment;
@@ -301,6 +302,57 @@ class EmailWorkflowTest extends TestCase
         $this->assertSame(0, $copy->click_count);
         $this->assertSame(0, $copy->bounce_count);
         $this->assertSame(0, $copy->unsubscribe_count);
+    }
+
+    public function test_campaign_analytics_reports_unique_engagement_and_delivery_problems(): void
+    {
+        $admin = User::factory()->create(['is_active' => true]);
+        $campaign = NewsletterCampaign::create([
+            'name' => 'Analytics campaign',
+            'subject' => 'Campaign performance',
+            'content' => '<p>Measure this campaign.</p>',
+            'status' => 'sent',
+            'recipient_count' => 4,
+            'sent_at' => now()->subDay(),
+        ]);
+        $eventNumber = 0;
+        $recordEvent = function (string $type, string $emailId, string $recipient) use ($campaign, &$eventNumber): void {
+            $eventNumber++;
+            EmailEvent::create([
+                'event_key' => 'analytics-event-'.$eventNumber,
+                'provider' => 'resend',
+                'event_type' => $type,
+                'provider_email_id' => $emailId,
+                'recipient' => $recipient,
+                'metadata' => ['campaign_id' => (string) $campaign->id],
+                'occurred_at' => now()->subDay()->addMinutes($eventNumber),
+            ]);
+        };
+
+        $recordEvent('email.delivered', 'email-1', 'one@example.com');
+        $recordEvent('email.delivered', 'email-2', 'two@example.com');
+        $recordEvent('email.opened', 'email-1', 'one@example.com');
+        $recordEvent('email.opened', 'email-1', 'one@example.com');
+        $recordEvent('email.clicked', 'email-1', 'one@example.com');
+        $recordEvent('email.suppressed', 'email-3', 'blocked@example.com');
+        $recordEvent('email.failed', 'email-4', 'failed@example.com');
+        $recordEvent('email.delivery_delayed', 'email-2', 'two@example.com');
+
+        $this->actingAs($admin)
+            ->get(route('admin.campaigns.analytics', $campaign))
+            ->assertOk()
+            ->assertSee('Campaign analytics')
+            ->assertSee('Unique opens')
+            ->assertSee('Blocked')
+            ->assertSee('blocked@example.com')
+            ->assertViewHas('metrics', fn (array $metrics): bool => $metrics['unique_opens'] === 1
+                && $metrics['total_opens'] === 2
+                && $metrics['unique_clicks'] === 1
+                && $metrics['delivered'] === 2
+                && $metrics['blocked'] === 1
+                && $metrics['failed'] === 1
+                && $metrics['delayed'] === 1
+                && $metrics['issues'] === 2);
     }
 
     public function test_resend_webhook_event_updates_campaign_metrics_once(): void

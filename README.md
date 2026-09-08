@@ -10,7 +10,7 @@ Mobile-first cleaning service website and operations system for CuciNow.co by Th
 - Quote pipeline and printable quotation view
 - Quote-to-booking and quote-to-invoice workflows
 - Payment recording and outstanding-balance tracking
-- Customer, staff, booking, subscriber, and newsletter campaign views
+- Customer, staff, booking, subscriber, newsletter campaign, and email analytics views
 - Database-backed queues and cPanel cron scheduling
 - GitHub-built `deploy` branch with production dependencies
 
