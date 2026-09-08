@@ -223,6 +223,86 @@ class EmailWorkflowTest extends TestCase
         Queue::assertPushed(SendNewsletterCampaign::class, fn ($job) => $job->campaignId === $campaign->id);
     }
 
+    public function test_admin_can_edit_a_draft_campaign_but_not_sent_history(): void
+    {
+        $admin = User::factory()->create(['is_active' => true]);
+        $draft = NewsletterCampaign::create([
+            'name' => 'Original draft',
+            'subject' => 'Original subject',
+            'content' => '<p>Original content.</p>',
+            'status' => 'draft',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.campaigns.edit', $draft))
+            ->assertOk()
+            ->assertSee('Edit campaign')
+            ->assertSee('Original draft')
+            ->assertSee('Original content.', false);
+
+        $this->actingAs($admin)->patch(route('admin.campaigns.update', $draft), [
+            'action' => 'draft',
+            'name' => 'Updated draft',
+            'subject' => 'Updated subject',
+            'preview_text' => 'Updated preview',
+            'content' => '<h2>Updated</h2><p onclick="alert(1)">Safe content.</p>',
+        ])->assertSessionHasNoErrors()->assertSessionHas('success');
+
+        $draft->refresh();
+        $this->assertSame('Updated draft', $draft->name);
+        $this->assertSame('draft', $draft->status);
+        $this->assertStringContainsString('<h2', $draft->content);
+        $this->assertStringNotContainsString('onclick', $draft->content);
+
+        $draft->update(['status' => 'sent', 'sent_at' => now()]);
+
+        $this->actingAs($admin)->patch(route('admin.campaigns.update', $draft), [
+            'action' => 'draft',
+            'name' => 'Do not overwrite',
+            'subject' => 'Do not overwrite',
+            'content' => '<p>Do not overwrite.</p>',
+        ])->assertRedirect(route('admin.campaigns.index'))->assertSessionHas('error');
+
+        $this->assertSame('Updated draft', $draft->refresh()->name);
+    }
+
+    public function test_admin_can_duplicate_sent_campaign_as_a_clean_editable_draft(): void
+    {
+        $admin = User::factory()->create(['is_active' => true]);
+        $sent = NewsletterCampaign::create([
+            'name' => 'August update',
+            'subject' => 'A cleaner workplace',
+            'preview_text' => 'August cleaning notes',
+            'content' => '<h2>August</h2><p>Useful content.</p>',
+            'status' => 'sent',
+            'scheduled_at' => now()->subDay(),
+            'sent_at' => now(),
+            'recipient_count' => 125,
+            'open_count' => 70,
+            'click_count' => 15,
+            'bounce_count' => 2,
+            'unsubscribe_count' => 1,
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->post(route('admin.campaigns.duplicate', $sent))
+            ->assertSessionHas('success');
+
+        $copy = NewsletterCampaign::where('name', 'Copy of August update')->firstOrFail();
+
+        $response->assertRedirect(route('admin.campaigns.edit', $copy));
+        $this->assertSame($sent->subject, $copy->subject);
+        $this->assertSame($sent->content, $copy->content);
+        $this->assertSame('draft', $copy->status);
+        $this->assertNull($copy->scheduled_at);
+        $this->assertNull($copy->sent_at);
+        $this->assertSame(0, $copy->recipient_count);
+        $this->assertSame(0, $copy->open_count);
+        $this->assertSame(0, $copy->click_count);
+        $this->assertSame(0, $copy->bounce_count);
+        $this->assertSame(0, $copy->unsubscribe_count);
+    }
+
     public function test_resend_webhook_event_updates_campaign_metrics_once(): void
     {
         $subscriber = Subscriber::create(['email' => 'reader@example.com', 'status' => 'subscribed', 'subscribed_at' => now()]);
