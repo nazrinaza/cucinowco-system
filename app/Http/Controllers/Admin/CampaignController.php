@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Jobs\SendNewsletterCampaign;
 use App\Mail\NewsletterPreviewMail;
+use App\Models\EmailEvent;
 use App\Models\NewsletterCampaign;
 use App\Support\NewsletterHtmlSanitizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -39,6 +41,80 @@ class CampaignController extends Controller
             'campaigns' => $campaigns,
             'editingCampaign' => $campaign,
         ]);
+    }
+
+    public function analytics(NewsletterCampaign $campaign): View
+    {
+        $events = EmailEvent::query()
+            ->where('provider', 'resend')
+            ->where('metadata->campaign_id', (string) $campaign->id)
+            ->orderBy('occurred_at')
+            ->get();
+
+        $unique = fn (array $types): int => $this->uniqueEventCount($events, $types);
+        $recipientCount = (int) $campaign->recipient_count;
+        $deliveredCount = $unique(['email.delivered']);
+        $uniqueOpenCount = $unique(['email.opened']);
+        $uniqueClickCount = $unique(['email.clicked']);
+        $issueCount = $unique(['email.bounced', 'email.failed', 'email.suppressed', 'email.complained']);
+        $rateBase = max($recipientCount, $deliveredCount, 1);
+
+        $metrics = [
+            'recipients' => $recipientCount,
+            'delivered' => $deliveredCount,
+            'unique_opens' => $uniqueOpenCount,
+            'total_opens' => $events->where('event_type', 'email.opened')->count(),
+            'unique_clicks' => $uniqueClickCount,
+            'total_clicks' => $events->where('event_type', 'email.clicked')->count(),
+            'bounced' => $unique(['email.bounced']),
+            'failed' => $unique(['email.failed']),
+            'blocked' => $unique(['email.suppressed']),
+            'complained' => $unique(['email.complained']),
+            'delayed' => $unique(['email.delivery_delayed']),
+            'issues' => $issueCount,
+            'open_rate' => round(($uniqueOpenCount / $rateBase) * 100, 1),
+            'click_rate' => round(($uniqueClickCount / $rateBase) * 100, 1),
+            'delivery_rate' => round(($deliveredCount / $rateBase) * 100, 1),
+            'issue_rate' => round(($issueCount / $rateBase) * 100, 1),
+        ];
+
+        $timelineStart = ($campaign->sent_at ?? $events->first()?->occurred_at ?? $campaign->created_at ?? now())
+            ->copy()
+            ->startOfDay();
+        $timeline = collect(range(0, 13))->map(function (int $offset) use ($events, $timelineStart): array {
+            $date = $timelineStart->copy()->addDays($offset);
+            $dayEvents = $events->filter(fn (EmailEvent $event): bool => $event->occurred_at?->isSameDay($date) ?? false);
+
+            return [
+                'date' => $date,
+                'opens' => $dayEvents->where('event_type', 'email.opened')->count(),
+                'clicks' => $dayEvents->where('event_type', 'email.clicked')->count(),
+                'issues' => $dayEvents->whereIn('event_type', ['email.bounced', 'email.failed', 'email.suppressed', 'email.complained'])->count(),
+            ];
+        });
+        $timelineMaximum = max(1, (int) $timeline->max(fn (array $day): int => $day['opens'] + $day['clicks'] + $day['issues']));
+
+        $problemLabels = [
+            'email.bounced' => 'Bounced',
+            'email.failed' => 'Failed',
+            'email.suppressed' => 'Blocked',
+            'email.complained' => 'Spam complaint',
+            'email.delivery_delayed' => 'Delayed',
+        ];
+        $problemEvents = $events
+            ->whereIn('event_type', array_keys($problemLabels))
+            ->sortByDesc('occurred_at')
+            ->take(20);
+
+        return view('admin.campaigns.analytics', compact(
+            'campaign',
+            'events',
+            'metrics',
+            'timeline',
+            'timelineMaximum',
+            'problemEvents',
+            'problemLabels',
+        ));
     }
 
     public function uploadImage(Request $request): JsonResponse
@@ -211,5 +287,19 @@ class CampaignController extends Controller
     private function isEditable(NewsletterCampaign $campaign): bool
     {
         return in_array($campaign->status, ['draft', 'scheduled', 'failed'], true);
+    }
+
+    /**
+     * @param  Collection<int, EmailEvent>  $events
+     * @param  array<int, string>  $types
+     */
+    private function uniqueEventCount(Collection $events, array $types): int
+    {
+        return $events
+            ->whereIn('event_type', $types)
+            ->unique(fn (EmailEvent $event): string => $event->provider_email_id
+                ?: $event->recipient
+                ?: 'event-'.$event->id)
+            ->count();
     }
 }

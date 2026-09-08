@@ -19,6 +19,9 @@
                         </span>
                         <div class="campaign-actions">
                             <span class="status status-{{ $campaign->status }}">{{ ucfirst($campaign->status) }}</span>
+                            @if($campaign->recipient_count > 0 || in_array($campaign->status, ['sending', 'sent', 'failed']))
+                                <a class="admin-button secondary" href="{{ route('admin.campaigns.analytics', $campaign) }}">Analytics</a>
+                            @endif
                             @if(in_array($campaign->status, ['draft', 'scheduled', 'failed']))
                                 <a class="admin-button secondary" href="{{ route('admin.campaigns.edit', $campaign) }}">Edit</a>
                                 <form method="post" action="{{ route('admin.campaigns.send', $campaign) }}">
