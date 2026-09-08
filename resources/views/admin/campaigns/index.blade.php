@@ -20,11 +20,16 @@
                         <div class="campaign-actions">
                             <span class="status status-{{ $campaign->status }}">{{ ucfirst($campaign->status) }}</span>
                             @if(in_array($campaign->status, ['draft', 'scheduled', 'failed']))
+                                <a class="admin-button secondary" href="{{ route('admin.campaigns.edit', $campaign) }}">Edit</a>
                                 <form method="post" action="{{ route('admin.campaigns.send', $campaign) }}">
                                     @csrf
                                     <button class="admin-button" type="submit">Send now</button>
                                 </form>
                             @endif
+                            <form method="post" action="{{ route('admin.campaigns.duplicate', $campaign) }}">
+                                @csrf
+                                <button class="admin-button dark" type="submit">Duplicate</button>
+                            </form>
                         </div>
                     </article>
                 @empty
@@ -36,25 +41,32 @@
 
         <section class="admin-card">
             <div class="card-head">
-                <div><p>HTML builder</p><h2>New campaign</h2></div>
+                <div><p>HTML builder</p><h2>{{ isset($editingCampaign) ? 'Edit campaign' : 'New campaign' }}</h2></div>
                 <span class="editor-safe-badge">Sanitized HTML</span>
             </div>
-            <form class="admin-form" method="post" action="{{ route('admin.campaigns.store') }}" data-newsletter-form>
+            @if(isset($editingCampaign))
+                <div class="campaign-edit-notice">
+                    <span>Editing <strong>{{ $editingCampaign->name }}</strong></span>
+                    <a href="{{ route('admin.campaigns.index') }}">Cancel editing</a>
+                </div>
+            @endif
+            <form class="admin-form" method="post" action="{{ isset($editingCampaign) ? route('admin.campaigns.update', $editingCampaign) : route('admin.campaigns.store') }}" data-newsletter-form>
                 @csrf
+                @if(isset($editingCampaign)) @method('patch') @endif
                 <label>
                     <span>Internal name</span>
-                    <input name="name" value="{{ old('name') }}" required placeholder="September service reminder">
+                    <input name="name" value="{{ old('name', $editingCampaign->name ?? '') }}" required placeholder="September service reminder">
                 </label>
                 <label>
                     <span>Email subject</span>
-                    <input name="subject" value="{{ old('subject') }}" required placeholder="A cleaner workplace starts here">
+                    <input name="subject" value="{{ old('subject', $editingCampaign->subject ?? '') }}" required placeholder="A cleaner workplace starts here">
                 </label>
                 <label>
                     <span>Preview text</span>
-                    <input name="preview_text" value="{{ old('preview_text') }}" placeholder="Short inbox preview shown after the subject">
+                    <input name="preview_text" value="{{ old('preview_text', $editingCampaign->preview_text ?? '') }}" placeholder="Short inbox preview shown after the subject">
                 </label>
 
-                @php($editorContent = app(\App\Support\NewsletterHtmlSanitizer::class)->sanitize(old('content', '')))
+                @php($editorContent = app(\App\Support\NewsletterHtmlSanitizer::class)->sanitize(old('content', $editingCampaign->content ?? '')))
                 <label>
                     <span>Message</span>
                     <div class="html-editor" data-html-editor data-image-upload-url="{{ route('admin.campaigns.images.store') }}">
@@ -97,12 +109,12 @@
 
                 <label>
                     <span>Schedule <em>optional</em></span>
-                    <input type="datetime-local" name="scheduled_at" value="{{ old('scheduled_at') }}">
+                    <input type="datetime-local" name="scheduled_at" value="{{ old('scheduled_at', isset($editingCampaign) && $editingCampaign->scheduled_at?->isFuture() ? $editingCampaign->scheduled_at->format('Y-m-d\\TH:i') : '') }}">
                 </label>
                 <div class="campaign-submit-actions">
-                    <button class="admin-button secondary" type="submit" name="action" value="draft">Save draft / schedule</button>
+                    <button class="admin-button secondary" type="submit" name="action" value="draft">{{ isset($editingCampaign) ? 'Update draft / schedule' : 'Save draft / schedule' }}</button>
                     <button class="admin-button dark" type="submit" name="action" value="test">Send test email</button>
-                    <button class="admin-button" type="submit" name="action" value="send">Save &amp; send now</button>
+                    <button class="admin-button" type="submit" name="action" value="send">{{ isset($editingCampaign) ? 'Update & send now' : 'Save & send now' }}</button>
                 </div>
                 <p class="muted">Test email sends immediately to {{ auth()->user()->email }}. Bulk delivery is queued for the cPanel worker to protect the server from timeouts.</p>
             </form>
