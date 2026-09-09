@@ -14,7 +14,8 @@
         "vite": "^8.0.0"
     },
     "optionalDependencies": {
-        "@laravel/multiplex": "^0.4.1"
+        "@laravel/multiplex": "^0.4.1",
+        "react": "^19.2.7"
     },
     "dependencies": {
         "fullcalendar": "^7.1.0",
