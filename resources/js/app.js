@@ -1,3 +1,10 @@
+import { Calendar } from 'fullcalendar';
+import dayGridPlugin from 'fullcalendar/daygrid';
+import classicThemePlugin from 'fullcalendar/themes/classic';
+import 'fullcalendar/skeleton.css';
+import 'fullcalendar/themes/classic/theme.css';
+import 'fullcalendar/themes/classic/palette.css';
+
 document.addEventListener('DOMContentLoaded', () => {
     const menuButton = document.querySelector('[data-menu-button]');
     const menu = document.querySelector('[data-menu]');
@@ -11,6 +18,52 @@ document.addEventListener('DOMContentLoaded', () => {
     }));
     document.querySelector('[data-admin-menu]')?.addEventListener('click', () => {
         document.querySelector('[data-admin-sidebar]')?.classList.toggle('open');
+    });
+
+    document.querySelectorAll('[data-full-calendar]').forEach((calendarElement) => {
+        const errorMessage = calendarElement.parentElement?.querySelector('[data-calendar-error]');
+        const calendar = new Calendar(calendarElement, {
+            plugins: [dayGridPlugin, classicThemePlugin],
+            themeSystem: 'classic',
+            initialView: 'dayGridMonth',
+            firstDay: 1,
+            fixedWeekCount: false,
+            showNonCurrentDates: true,
+            aspectRatio: window.matchMedia('(max-width: 600px)').matches ? 0.72 : 1.35,
+            dayMaxEvents: window.matchMedia('(max-width: 600px)').matches ? 1 : 3,
+            dayCellClassNames: 'cucinow-calendar-day',
+            dayHeaderClassNames: 'cucinow-calendar-weekday',
+            viewClassNames: 'cucinow-calendar-view',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: '',
+            },
+            buttonText: { today: 'Today' },
+            events: {
+                url: calendarElement.dataset.eventsUrl,
+                failure: () => {
+                    if (errorMessage) errorMessage.hidden = false;
+                },
+                success: () => {
+                    if (errorMessage) errorMessage.hidden = true;
+                },
+            },
+            eventDidMount: ({ event, el }) => {
+                const details = [
+                    event.extendedProps.reference,
+                    event.extendedProps.status,
+                    event.extendedProps.service,
+                    event.extendedProps.company,
+                    event.extendedProps.address,
+                ].filter(Boolean);
+
+                el.title = details.join(' · ');
+                el.setAttribute('aria-label', `${event.title}. ${details.join('. ')}`);
+            },
+        });
+
+        calendar.render();
     });
 
     document.querySelectorAll('[data-accordion]').forEach((accordion) => {

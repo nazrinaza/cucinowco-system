@@ -15,5 +15,9 @@
     },
     "optionalDependencies": {
         "@laravel/multiplex": "^0.4.1"
+    },
+    "dependencies": {
+        "fullcalendar": "^7.1.0",
+        "temporal-polyfill": "^1.0.4"
     }
 }

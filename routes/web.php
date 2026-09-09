@@ -28,6 +28,7 @@ Route::post('/admin/logout', [AuthController::class, 'destroy'])->middleware('au
 Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
     Route::get('/site-visits', [SiteVisitController::class, 'index'])->name('site-visits.index');
+    Route::get('/site-visits/calendar/events', [SiteVisitController::class, 'calendarEvents'])->name('site-visits.calendar-events');
     Route::get('/site-visits/{siteVisit}', [SiteVisitController::class, 'show'])->name('site-visits.show');
     Route::patch('/site-visits/{siteVisit}', [SiteVisitController::class, 'update'])->name('site-visits.update');
     Route::get('/quotes/create', [QuoteController::class, 'create'])->name('quotes.create');
