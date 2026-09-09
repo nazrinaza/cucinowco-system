@@ -12,6 +12,7 @@ class Booking extends Model
     protected function casts(): array
     {
         return [
+            'staff_id' => 'integer',
             'scheduled_start' => 'datetime',
             'scheduled_end' => 'datetime',
             'confirmation_sent_at' => 'datetime',
