@@ -13,6 +13,18 @@ class BookingCalendarTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_staff_assignment_matches_integer_ids_when_database_returns_strings(): void
+    {
+        $booking = new Booking;
+        $booking->setRawAttributes(['staff_id' => '3']);
+
+        $this->assertSame(3, $booking->staff_id);
+
+        $booking->setRawAttributes(['staff_id' => null]);
+
+        $this->assertNull($booking->staff_id);
+    }
+
     public function test_admin_month_calendar_marks_confirmed_and_completed_bookings(): void
     {
         $admin = User::factory()->create(['is_active' => true]);
