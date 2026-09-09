@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class QuoteController extends Controller
@@ -58,6 +59,80 @@ class QuoteController extends Controller
         $quote->update($updates);
 
         return back()->with('success', 'Quote updated.');
+    }
+
+    public function updateItems(Request $request, Quote $quote): RedirectResponse
+    {
+        $data = $request->validate([
+            'items' => ['required', 'array', 'min:1', 'max:100'],
+            'items.*' => ['required', 'array:id,description,notes,quantity,unit,unit_price'],
+            'items.*.id' => ['nullable', 'integer', 'distinct', Rule::exists('quote_items', 'id')->where('quote_id', $quote->id)],
+            'items.*.description' => ['required', 'string', 'max:255'],
+            'items.*.notes' => ['nullable', 'string', 'max:3000'],
+            'items.*.quantity' => ['required', 'numeric', 'decimal:0,2', 'min:0.01', 'max:10000'],
+            'items.*.unit' => ['required', 'string', 'max:30'],
+            'items.*.unit_price' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:1000000'],
+            'discount' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:9999999999.99'],
+        ]);
+
+        DB::transaction(function () use ($quote, $data) {
+            $quote = Quote::query()->lockForUpdate()->findOrFail($quote->id);
+
+            if ($quote->invoice()->exists() || $quote->booking()->exists()) {
+                throw ValidationException::withMessages(['items' => 'This quotation already has an invoice or booking. Create a separate quotation for additional work.']);
+            }
+
+            $subtotalCents = 0;
+            $lines = [];
+            foreach ($data['items'] as $line) {
+                $quantityHundredths = (int) round((float) $line['quantity'] * 100);
+                $rateCents = (int) round((float) $line['unit_price'] * 100);
+                // Round each line to the nearest sen before summing the quotation.
+                $amountCents = intdiv($quantityHundredths * $rateCents + 50, 100);
+                $subtotalCents += $amountCents;
+                $lines[] = [...$line, 'amount' => $amountCents / 100];
+            }
+
+            if ($subtotalCents > 999999999999) {
+                throw ValidationException::withMessages(['items' => 'The quotation total is too large. Reduce the quantities or rates.']);
+            }
+
+            $discountCents = (int) round((float) $data['discount'] * 100);
+            if ($discountCents > $subtotalCents) {
+                throw ValidationException::withMessages(['discount' => 'Discount cannot exceed the services subtotal.']);
+            }
+
+            $taxBasisPoints = (int) round((float) $quote->tax_rate * 100);
+            $taxCents = intdiv(($subtotalCents - $discountCents) * $taxBasisPoints + 5000, 10000);
+            $totalCents = $subtotalCents - $discountCents + $taxCents;
+            if (max($subtotalCents, $totalCents) > 999999999999) {
+                throw ValidationException::withMessages(['items' => 'The quotation total is too large. Reduce the quantities or rates.']);
+            }
+
+            $retainedIds = [];
+            foreach ($lines as $line) {
+                $id = $line['id'] ?? null;
+                unset($line['id']);
+                if ($id) {
+                    $item = $quote->items()->findOrFail($id);
+                    $item->update($line);
+                } else {
+                    $item = $quote->items()->create($line);
+                }
+                $retainedIds[] = $item->id;
+            }
+            $quote->items()->whereNotIn('id', $retainedIds)->delete();
+            $quote->update([
+                'subtotal' => $subtotalCents / 100,
+                'discount' => $discountCents / 100,
+                'tax_amount' => $taxCents / 100,
+                'total' => $totalCents / 100,
+                'status' => 'draft',
+                'sent_at' => null, 'viewed_at' => null, 'accepted_at' => null, 'rejected_at' => null,
+            ]);
+        });
+
+        return redirect()->route('admin.quotes.show', $quote)->with('success', 'Quotation services and totals saved as a draft. You can now email the revised quotation.');
     }
 
     public function send(Quote $quote): RedirectResponse

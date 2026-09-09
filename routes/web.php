@@ -35,6 +35,7 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::get('/quotes', [QuoteController::class, 'index'])->name('quotes.index');
     Route::get('/quotes/{quote}', [QuoteController::class, 'show'])->name('quotes.show');
     Route::patch('/quotes/{quote}', [QuoteController::class, 'update'])->name('quotes.update');
+    Route::patch('/quotes/{quote}/items', [QuoteController::class, 'updateItems'])->name('quotes.items.update');
     Route::post('/quotes/{quote}/send', [QuoteController::class, 'send'])->name('quotes.send');
     Route::post('/quotes/{quote}/convert', [QuoteController::class, 'convert'])->name('quotes.convert');
     Route::post('/quotes/{quote}/book', [QuoteController::class, 'book'])->name('quotes.book');
