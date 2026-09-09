@@ -11,6 +11,13 @@
         @foreach($quote->items as $item)
             <tr><td style="padding:13px 11px;border-bottom:1px solid #dedbd2"><strong>{{ $item->description }}</strong><br><span style="color:#73777d">{{ number_format($item->quantity, 2) }} {{ $item->unit }} @ RM {{ number_format($item->unit_price, 2) }}</span></td><td align="right" style="padding:13px 11px;border-bottom:1px solid #dedbd2">RM {{ number_format($item->amount, 2) }}</td></tr>
         @endforeach
+        <tr><td align="right" style="padding:8px 11px">Subtotal</td><td align="right" style="padding:8px 11px">RM {{ number_format($quote->subtotal, 2) }}</td></tr>
+        @if($quote->discount > 0)
+            <tr><td align="right" style="padding:8px 11px">Discount</td><td align="right" style="padding:8px 11px">− RM {{ number_format($quote->discount, 2) }}</td></tr>
+        @endif
+        @if($quote->tax_rate > 0)
+            <tr><td align="right" style="padding:8px 11px">Tax ({{ number_format($quote->tax_rate, 2) }}%)</td><td align="right" style="padding:8px 11px">RM {{ number_format($quote->tax_amount, 2) }}</td></tr>
+        @endif
         <tr><td align="right" style="padding:18px 11px;font-weight:700">Total</td><td align="right" style="padding:18px 11px;color:#8c6906;font-size:20px;font-weight:700">RM {{ number_format($quote->total, 2) }}</td></tr>
     </table>
     <div style="margin:8px 0 24px;padding:16px;background:#f7f4ec;font-size:13px;line-height:1.6"><strong>Service location</strong><br>{{ $quote->service_address }}<br>{{ $quote->postcode }} {{ $quote->city }}, {{ $quote->state }}</div>

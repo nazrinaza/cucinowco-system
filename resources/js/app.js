@@ -6,6 +6,58 @@ import 'fullcalendar/themes/classic/theme.css';
 import 'fullcalendar/themes/classic/palette.css';
 
 document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-quote-editor]').forEach((form) => {
+        const lines = form.querySelector('[data-quote-lines]');
+        const template = form.querySelector('[data-quote-line-template]');
+        const addButton = form.querySelector('[data-add-quote-line]');
+        const discount = form.querySelector('[data-quote-discount]');
+        const message = form.querySelector('[data-quote-editor-message]');
+        const currency = new Intl.NumberFormat('en-MY', { style: 'currency', currency: 'MYR' });
+        let nextIndex = Math.max(-1, ...[...lines.querySelectorAll('input[name]')].map((input) => Number(input.name.match(/^items\[(\d+)\]/)?.[1] ?? -1))) + 1;
+        const money = (cents) => currency.format(cents / 100);
+        const cents = (value) => Math.round((Number(value) || 0) * 100);
+
+        const recalculate = () => {
+            const rows = [...lines.querySelectorAll('[data-quote-line]')];
+            let subtotal = 0;
+            rows.forEach((row) => {
+                const amount = Math.round(cents(row.querySelector('[data-line-quantity]').value) * cents(row.querySelector('[data-line-rate]').value) / 100);
+                subtotal += amount;
+                row.querySelector('[data-line-amount]').textContent = money(amount);
+                row.querySelector('[data-remove-quote-line]').disabled = rows.length <= 1;
+            });
+            const discountCents = cents(discount.value);
+            const invalidDiscount = discountCents > subtotal;
+            discount.setCustomValidity(invalidDiscount ? 'Discount cannot exceed the services subtotal.' : '');
+            message.textContent = invalidDiscount ? 'Discount cannot exceed the services subtotal.' : '';
+            const taxable = Math.max(0, subtotal - discountCents);
+            const tax = Math.round(taxable * cents(form.dataset.taxRate) / 10000);
+            form.querySelector('[data-quote-subtotal]').textContent = money(subtotal);
+            form.querySelector('[data-quote-tax]').textContent = money(tax);
+            form.querySelector('[data-quote-total]').textContent = money(taxable + tax);
+            addButton.disabled = rows.length >= 100;
+        };
+
+        addButton.addEventListener('click', () => {
+            const fragment = template.content.cloneNode(true);
+            fragment.querySelectorAll('[name]').forEach((input) => {
+                input.name = input.name.replace('__INDEX__', String(nextIndex));
+            });
+            nextIndex += 1;
+            lines.append(fragment);
+            recalculate();
+            lines.lastElementChild.querySelector('[data-line-description]').focus();
+        });
+        lines.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-remove-quote-line]');
+            if (!button || lines.querySelectorAll('[data-quote-line]').length <= 1) return;
+            button.closest('[data-quote-line]').remove();
+            recalculate();
+        });
+        form.addEventListener('input', recalculate);
+        recalculate();
+    });
+
     const menuButton = document.querySelector('[data-menu-button]');
     const menu = document.querySelector('[data-menu]');
     menuButton?.addEventListener('click', () => {
