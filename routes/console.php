@@ -4,9 +4,9 @@ use App\Jobs\SendNewsletterCampaign;
 use App\Mail\InvoiceOverdueReminderMail;
 use App\Models\Invoice;
 use App\Models\NewsletterCampaign;
+use App\Support\DocumentEmailHistory;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
@@ -50,8 +50,11 @@ Schedule::call(function () {
             ->orWhere('last_reminder_sent_at', '<=', now()->subDays(7)))
         ->orderBy('id')
         ->each(function (Invoice $invoice): void {
-            $invoice->update(['last_reminder_sent_at' => now()]);
-            Mail::to($invoice->customer->email, $invoice->customer->name)
-                ->queue(new InvoiceOverdueReminderMail($invoice));
+            try {
+                app(DocumentEmailHistory::class)->queue($invoice, new InvoiceOverdueReminderMail($invoice), 'invoice_reminder');
+                $invoice->update(['last_reminder_sent_at' => now()]);
+            } catch (Throwable $exception) {
+                report($exception);
+            }
         });
 })->dailyAt('08:00')->name('mark-overdue-invoices')->withoutOverlapping();

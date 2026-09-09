@@ -10,6 +10,16 @@
     --font-sans: 'Aptos', 'Inter', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
 }
 
+.document-email-history{margin-top:24px;overflow:hidden;scroll-margin-top:24px}
+.email-history-help{margin:0;padding:16px 22px;color:#747a82;font-size:12px;line-height:1.7}
+.document-email-history table{min-width:720px}
+.document-email-history td{vertical-align:top}
+.document-email-history td:nth-child(4){min-width:220px;max-width:330px}
+.document-email-history .email-history-recipient{overflow-wrap:anywhere;max-width:220px}
+.document-email-history td small{line-height:1.6}
+.email-history-pagination{padding:0 22px 20px}
+@media print{.document-email-history{display:none!important}}
+
 .quote-item-editor{margin-bottom:22px;overflow:hidden}
 .quote-item-editor>summary{padding:20px 22px;cursor:pointer;font-size:15px;font-weight:850;background:#fff7dc}
 .quote-item-editor>summary span{display:block;margin:5px 0 0;color:#747a82;font-size:11px;font-weight:500}

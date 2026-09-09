@@ -9,6 +9,7 @@ use App\Models\Booking;
 use App\Models\Invoice;
 use App\Models\Quote;
 use App\Models\SiteVisitRequest;
+use App\Support\DocumentEmailHistory;
 use App\Support\ReferenceNumber;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -45,7 +46,10 @@ class QuoteController extends Controller
     {
         $quote->load(['customer', 'items.service', 'invoice', 'booking']);
 
-        return view('admin.quotes.show', ['quote' => $quote, 'statuses' => self::STATUSES]);
+        return view('admin.quotes.show', [
+            'quote' => $quote, 'statuses' => self::STATUSES,
+            'emailHistory' => app(DocumentEmailHistory::class)->forDocument($quote),
+        ]);
     }
 
     public function update(Request $request, Quote $quote): RedirectResponse
@@ -143,8 +147,13 @@ class QuoteController extends Controller
             return back()->with('error', 'Add a customer email address before sending this quotation.');
         }
 
-        $quote->update(['status' => 'sent', 'sent_at' => now()]);
-        Mail::to($quote->customer->email, $quote->customer->name)->queue(new QuoteMail($quote));
+        try {
+            app(DocumentEmailHistory::class)->queue($quote, new QuoteMail($quote), 'quotation');
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return back()->with('error', 'The quotation email could not be queued. Check the email history and server log before trying again.');
+        }
 
         return back()->with('success', 'Quotation email queued for delivery.');
     }

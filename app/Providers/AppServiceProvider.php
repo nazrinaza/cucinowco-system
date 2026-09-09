@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Listeners\HandleResendEmailEvent;
+use App\Listeners\RecordDocumentEmailSent;
+use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Resend\Laravel\Events\EmailBounced;
@@ -30,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Event::listen(MessageSent::class, RecordDocumentEmailSent::class);
         foreach ([
             EmailSent::class,
             EmailDelivered::class,

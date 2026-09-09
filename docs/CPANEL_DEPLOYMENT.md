@@ -74,6 +74,10 @@ For staging, create a separate webhook pointing to:
 
 Enable the email sent, delivered, delayed, opened, clicked, bounced, complained, suppressed, and failed events. Copy that webhook's signing secret to `RESEND_WEBHOOK_SECRET` in the matching cPanel `.env`. CuciNow stores webhook events once and uses newsletter tags to update opens, clicks and bounce counts.
 
+Quotation and invoice detail pages include **Email sending history**, with recipient, status, send reference, and date/time in Malaysia time. Each send request records Queued immediately; Sent to provider is recorded only after the mail transport succeeds. Delivered, bounce and open updates come from the webhook above. Invoice reminders and payment receipts are included. Refresh the page to see new events. Local `array` and `log` mailers are labelled Preview only and do not count as a send.
+
+Existing webhook events are shown when they can be linked to the document. An older `sent_at` value alone is labelled unverified; complete histories cannot be reconstructed for emails sent before tracking was enabled. This feature reuses the existing `email_events` table and adds no migration. Keep the queue cron running, and restart long-running workers when deploying changed mail code.
+
 In **Resend > Domains**, open the sending domain and enable open and click tracking. Configure and verify a tracking subdomain such as `links.cucinow.co` using the DNS record supplied by Resend. Without domain tracking, delivery failures still appear but open and click analytics remain at zero.
 
 ## 7. Verify
