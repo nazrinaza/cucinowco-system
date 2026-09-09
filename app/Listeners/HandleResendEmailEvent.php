@@ -27,6 +27,13 @@ class HandleResendEmailEvent
             (string) ($payload['created_at'] ?? $data['created_at'] ?? ''),
         ]));
         $metadata = $this->normaliseTags($data['tags'] ?? []);
+        $attempt = $metadata['delivery_attempt_id'] ?? null;
+        $previous = $attempt
+            ? EmailEvent::where('event_key', hash('sha256', $attempt.'|app.queued'))->first()
+            : ($emailId ? EmailEvent::where('provider_email_id', $emailId)->whereNotNull('metadata')->first() : null);
+        if ($previous) {
+            $metadata = [...$previous->metadata, ...$metadata];
+        }
         $recipient = is_array($data['to'] ?? null) ? ($data['to'][0] ?? null) : ($data['to'] ?? null);
 
         DB::transaction(function () use ($eventKey, $type, $emailId, $recipient, $metadata, $payload): void {
@@ -94,6 +101,6 @@ class HandleResendEmailEvent
     {
         $value = $payload['created_at'] ?? data_get($payload, 'data.created_at');
 
-        return $value ? CarbonImmutable::parse($value) : null;
+        return $value ? CarbonImmutable::parse($value)->setTimezone(config('app.timezone')) : null;
     }
 }

@@ -7,10 +7,10 @@ use App\Mail\InvoiceMail;
 use App\Mail\PaymentReceiptMail;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Support\DocumentEmailHistory;
 use App\Support\ReferenceNumber;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -27,7 +27,9 @@ class InvoiceController extends Controller
     {
         $invoice->load(['customer', 'quote', 'items', 'payments']);
 
-        return view('admin.invoices.show', compact('invoice'));
+        $emailHistory = app(DocumentEmailHistory::class)->forDocument($invoice);
+
+        return view('admin.invoices.show', compact('invoice', 'emailHistory'));
     }
 
     public function update(Request $request, Invoice $invoice): RedirectResponse
@@ -46,8 +48,13 @@ class InvoiceController extends Controller
             return back()->with('error', 'Add a customer email address before sending this invoice.');
         }
 
-        $invoice->update(['status' => $invoice->status === 'draft' ? 'sent' : $invoice->status, 'sent_at' => now()]);
-        Mail::to($invoice->customer->email, $invoice->customer->name)->queue(new InvoiceMail($invoice));
+        try {
+            app(DocumentEmailHistory::class)->queue($invoice, new InvoiceMail($invoice), 'invoice');
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return back()->with('error', 'The invoice email could not be queued. Check the email history and server log before trying again.');
+        }
 
         return back()->with('success', 'Invoice email queued for delivery.');
     }
@@ -67,8 +74,13 @@ class InvoiceController extends Controller
         $payment->load('invoice.customer');
         $receiptQueued = false;
         if ($payment->invoice->customer->email) {
-            Mail::to($payment->invoice->customer->email, $payment->invoice->customer->name)
-                ->queue(new PaymentReceiptMail($payment));
+            try {
+                app(DocumentEmailHistory::class)->queue($payment->invoice, new PaymentReceiptMail($payment), 'payment_receipt');
+            } catch (\Throwable $exception) {
+                report($exception);
+
+                return back()->with('error', 'Payment recorded, but the receipt email could not be queued. Check the email history.');
+            }
             $receiptQueued = true;
         }
 

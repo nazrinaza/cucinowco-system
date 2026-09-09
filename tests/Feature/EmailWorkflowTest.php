@@ -75,8 +75,9 @@ class EmailWorkflowTest extends TestCase
 
         $this->actingAs($admin)->post(route('admin.quotes.send', $quote))->assertSessionHas('success');
         $this->actingAs($admin)->post(route('admin.invoices.send', $invoice))->assertSessionHas('success');
-        $this->assertDatabaseHas('quotes', ['id' => $quote->id, 'status' => 'sent']);
-        $this->assertDatabaseHas('invoices', ['id' => $invoice->id, 'status' => 'sent']);
+        $this->assertDatabaseHas('quotes', ['id' => $quote->id, 'status' => 'draft', 'sent_at' => null]);
+        $this->assertDatabaseHas('invoices', ['id' => $invoice->id, 'status' => 'draft', 'sent_at' => null]);
+        $this->assertSame(2, EmailEvent::where('event_type', 'app.queued')->count());
         $this->actingAs($admin)->post(route('admin.quotes.book', $quote), ['scheduled_start' => now()->addDay()->format('Y-m-d H:i:s')])->assertSessionHas('success');
         $this->actingAs($admin)->post(route('admin.invoices.payments', $invoice), ['amount' => 100, 'method' => 'fpx', 'paid_at' => now()->format('Y-m-d H:i:s'), 'reference' => 'TEST-PAYMENT'])->assertSessionHas('success');
 

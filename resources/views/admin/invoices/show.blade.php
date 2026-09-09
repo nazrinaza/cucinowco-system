@@ -35,4 +35,5 @@
             @endif
         </aside>
     </div>
+    @include('admin.partials.email-history', ['document' => $invoice])
 </x-layouts.admin>
