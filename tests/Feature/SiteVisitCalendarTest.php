@@ -68,8 +68,9 @@ class SiteVisitCalendarTest extends TestCase
             ->assertJsonPath('0.title', 'Morning · Calendar Client')
             ->assertJsonPath('0.start', '2026-09-12')
             ->assertJsonPath('0.allDay', true)
-            ->assertJsonPath('0.backgroundColor', '#405b7f')
-            ->assertJsonPath('0.classNames.0', 'cucinow-calendar-event')
+            ->assertJsonPath('0.color', '#405b7f')
+            ->assertJsonPath('0.contrastColor', '#ffffff')
+            ->assertJsonPath('0.className', 'cucinow-calendar-event site-visit-event-scheduled')
             ->assertJsonPath('0.extendedProps.reference', 'SV-202609-SCHEDULED')
             ->assertJsonPath('0.extendedProps.service', 'Corporate Office Cleaning')
             ->assertJsonPath('0.extendedProps.status', 'Scheduled')
@@ -103,7 +104,8 @@ class SiteVisitCalendarTest extends TestCase
             ->assertOk()
             ->assertJsonCount(1)
             ->assertJsonPath('0.id', (string) $completed->id)
-            ->assertJsonPath('0.backgroundColor', '#2b8a62');
+            ->assertJsonPath('0.color', '#2b8a62')
+            ->assertJsonPath('0.className', 'cucinow-calendar-event site-visit-event-completed');
     }
 
     public function test_calendar_feed_requires_authentication_and_valid_dates(): void
