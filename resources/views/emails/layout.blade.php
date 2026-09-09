@@ -11,7 +11,9 @@
     <tr><td align="center" style="padding:28px 12px">
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:660px;background:#fffdf8;border:1px solid #dedbd2;border-radius:18px;overflow:hidden">
             <tr><td style="padding:24px 30px;background:#25282d;border-bottom:5px solid #f5b800">
-                <img src="{{ asset('images/cucinow-logo.png') }}" width="190" alt="CuciNow.co by Thursina" style="display:block;max-width:190px;height:auto">
+                <a href="https://cucinow.co" target="_blank" rel="noopener noreferrer" style="display:inline-block;text-decoration:none">
+                    <img src="{{ asset('images/cucinow-logo.png') }}" width="190" alt="CuciNow.co by Thursina" style="display:block;max-width:190px;height:auto;border:0">
+                </a>
             </td></tr>
             <tr><td style="padding:36px 30px">
                 @yield('content')
