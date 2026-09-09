@@ -17,11 +17,11 @@ class SiteVisitController extends Controller
     private const STATUSES = ['new', 'contacted', 'scheduled', 'completed', 'cancelled'];
 
     private const STATUS_COLOURS = [
-        'new' => ['background' => '#f5b800', 'border' => '#d19d00', 'text' => '#25282d'],
-        'contacted' => ['background' => '#3d7ea6', 'border' => '#2e6688', 'text' => '#ffffff'],
-        'scheduled' => ['background' => '#405b7f', 'border' => '#293f5d', 'text' => '#ffffff'],
-        'completed' => ['background' => '#2b8a62', 'border' => '#1d6b4b', 'text' => '#ffffff'],
-        'cancelled' => ['background' => '#c84538', 'border' => '#9c3027', 'text' => '#ffffff'],
+        'new' => ['background' => '#f5b800', 'text' => '#25282d'],
+        'contacted' => ['background' => '#3d7ea6', 'text' => '#ffffff'],
+        'scheduled' => ['background' => '#405b7f', 'text' => '#ffffff'],
+        'completed' => ['background' => '#2b8a62', 'text' => '#ffffff'],
+        'cancelled' => ['background' => '#c84538', 'text' => '#ffffff'],
     ];
 
     public function index(Request $request): View
@@ -60,7 +60,8 @@ class SiteVisitController extends Controller
             ->orderBy('preferred_date')
             ->get()
             ->map(function (SiteVisitRequest $siteVisit): array {
-                $colours = self::STATUS_COLOURS[$siteVisit->status] ?? self::STATUS_COLOURS['new'];
+                $status = array_key_exists($siteVisit->status, self::STATUS_COLOURS) ? $siteVisit->status : 'new';
+                $colours = self::STATUS_COLOURS[$status];
                 $timeSlot = str($siteVisit->preferred_time_slot ?: 'Time flexible')->replace('_', ' ')->title();
 
                 return [
@@ -69,10 +70,9 @@ class SiteVisitController extends Controller
                     'start' => $siteVisit->preferred_date->format('Y-m-d'),
                     'allDay' => true,
                     'url' => route('admin.site-visits.show', $siteVisit),
-                    'backgroundColor' => $colours['background'],
-                    'borderColor' => $colours['border'],
-                    'textColor' => $colours['text'],
-                    'classNames' => ['cucinow-calendar-event'],
+                    'color' => $colours['background'],
+                    'contrastColor' => $colours['text'],
+                    'className' => "cucinow-calendar-event site-visit-event-{$status}",
                     'extendedProps' => [
                         'reference' => $siteVisit->reference_number,
                         'status' => ucfirst($siteVisit->status),

@@ -31,9 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
             showNonCurrentDates: true,
             aspectRatio: window.matchMedia('(max-width: 600px)').matches ? 0.72 : 1.35,
             dayMaxEvents: window.matchMedia('(max-width: 600px)').matches ? 1 : 3,
-            dayCellClassNames: 'cucinow-calendar-day',
-            dayHeaderClassNames: 'cucinow-calendar-weekday',
-            viewClassNames: 'cucinow-calendar-view',
+            dayCellClass: 'cucinow-calendar-day',
+            dayHeaderClass: 'cucinow-calendar-weekday',
+            viewClass: 'cucinow-calendar-view',
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
