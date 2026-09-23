@@ -2,10 +2,9 @@
     <section class="hero">
         <div class="site-shell hero-grid">
             <div class="hero-copy">
-                <p class="eyebrow"><span></span> Cleaning, handled properly</p>
+                <p class="eyebrow"><span></span> FREE for Klang Valley</p>
                 <h1>Claim your <em>FREE</em> site visit</h1>
-                <p class="hero-ms">&mdash; No guesswork, just results.</p>
-                <p class="hero-ms">FREE for Klang Valley</p>
+                <h3 class="hero-ms">&mdash; No guesswork, just results.</h3>
                 <p class="hero-lead">Every space has different needs. That's why our team visits first, assesses the job, and arrives fully equipped with the right machinery and cleaning materials for your exact site.</p>
                 <div class="hero-actions">
                     <a href="#site-visit" class="button">Book my free site visit <small>No obligation &middot; Clear quotation</small></a>
@@ -26,24 +25,6 @@
     </section>
 
     <section class="trust-strip" aria-label="Service principles"><div class="site-shell"><span>Trained operations</span><span>Professional High-Powered Machinery</span><span>Scope confirmed upfront</span><span>Zero-defect mindset</span></div></section>
-
-    <section id="services" class="section-pad">
-        <div class="site-shell">
-            <div class="section-heading"><div><p class="eyebrow"><span></span> Services</p><h2>The right clean for<br>the space you run.</h2></div><p>Start with the service that best fits. We confirm size, condition, access and timing before the job.</p></div>
-            <div class="service-grid">
-                @foreach ([
-                    ['01','Office Cleaning','Workplace','Reliable workplace cleaning, from individual visits to managed service schedules.'],
-                    ['02','Grand Hall & Event','Venue & Event','Pre-event preparation and post-event reset for halls, venues and shared spaces.'],
-                    ['03','Carpet Cleaning','Specialist Cleaning','Machine shampoo cleaning for carpets and selected soft furnishings.'],
-                    ['04','Deep & Initial Clean','Detailed Cleaning','Detailed cleaning before occupancy, after renovation or for a full space reset.'],
-                    ['05','Specialist Care','Specialist Services','Disinfection and floor polishing delivered to a confirmed scope.'],
-                ] as [$number,$name,$ms,$description])
-                    <article class="service-card"><span class="service-no">{{ $number }}</span><div><p>{{ $ms }}</p><h3>{{ $name }}</h3><p>{{ $description }}</p><a href="#site-visit">Book a free site visit <span>&rarr;</span></a></div></article>
-                @endforeach
-            </div>
-            <p class="source-note">Thursina profile source: carpet cleaning, disinfection, building/contract cleaning, initial cleaning, high-rise cleaning, floor coating and polishing, landscaping and furniture supply. Grand hall packages are a CuciNow launch service.</p>
-        </div>
-    </section>
 
     @php($spaceTypes = [
         ['01','Corporate Office','Workstations, meeting rooms and shared facilities.'],
@@ -139,12 +120,12 @@
     <section id="faq" class="section-pad faq-section"><div class="site-shell faq-grid"><div><p class="eyebrow"><span></span> FAQ</p><h2>Before you book.</h2><p>Still unsure? Message us on WhatsApp and describe the space.</p></div><div class="accordion-list" data-accordion>
         @foreach ([
             ['Which areas do you cover?','Our launch focus is Klang Valley, starting from our Sungai Buloh operating base. Larger or outstation projects can be reviewed case by case.'],
-            ['Is the site visit really free?','Yes. There is no charge and no obligation for a confirmed site assessment within our service coverage. We use the visit to understand access, condition and the correct cleaning scope.'],
+            ['Is the site visit really free?','Yes. There is no charge and no obligation for a confirmed site assessment within our service coverage. For locations outside Selangor, a site visit fee may apply depending on the customer’s location. We use the visit to understand access, site condition and the correct cleaning scope.'],
             ['Do you provide cleaning equipment and chemicals?','Yes, the required method, equipment and materials are confirmed for each scope. Tell us about sensitive surfaces, pets or site restrictions.'],
-            ['Can I arrange recurring office cleaning?','Yes. Select weekly, fortnightly or monthly in the quote form, or ask for a custom contract schedule.'],
+            ['Can I arrange recurring office cleaning?','Yes. We provide dedicated daily cleaners stationed at your office to handle regular cleaning and maintenance. The service is arranged on a monthly basis, with payment billed monthly. Custom cleaning schedules can also be discussed based on your office requirements.'],
             ['Can you clean before or after an event?','Yes. CuciNow offers pre-event preparation and post-event hall or venue cleaning, subject to access and timing.'],
             ['How early should I book?','Two to five days ahead is recommended. Urgent requests are reviewed based on team availability.'],
-            ['How do payments work?','Your confirmed quotation or invoice will show the accepted methods and due date. Online FPX, e-wallet/card, bank transfer and cash can be enabled by the business.'],
+            ['How do payments work?','Your confirmed quotation or invoice will show the accepted payment methods and due date. Online FPX, e-wallet/card, bank transfer and cash can be enabled by the business. Payment by cheque is also accepted, payable to THURSINA CLEANING & SERVICES.'],
             ['Is SST included?','SST is shown only when legally applicable and the business is registered to charge it. Any applicable tax appears clearly on the final invoice.'],
         ] as [$question,$answer])<details name="cucinow-faq"><summary>{{ $question }}<span>+</span></summary><p>{{ $answer }}</p></details>@endforeach
     </div></div></section>
