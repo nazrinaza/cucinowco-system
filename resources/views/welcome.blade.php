@@ -94,7 +94,7 @@
     <section id="how-it-works" class="dark-section section-pad">
         <div class="site-shell"><div class="section-heading light"><div><p class="eyebrow"><span></span> Simple by design</p><h2>From “need cleaning”<br>to ready-to-use.</h2></div><p>No long back-and-forth. Share the essentials and our team coordinates the rest.</p></div>
             <div class="process-grid">
-                <article><span>01</span><h3>Book a free visit</h3><p>Share the service, site address and your preferred assessment time.</p></article>
+                <article><span>01</span><h3>Book a free visit</h3><p>Choose your space and clean types, then share your contact details and preferred visit time.</p></article>
                 <article><span>02</span><h3>We assess the site</h3><p>Our team reviews access, condition, measurements and the required method.</p></article>
                 <article><span>03</span><h3>Receive a clear quote</h3><p>We prepare the service scope, timing and pricing for your approval.</p></article>
                 <article><span>04</span><h3>Clean & hand over</h3><p>Our operations team completes the agreed scope and closes the job clearly.</p></article>

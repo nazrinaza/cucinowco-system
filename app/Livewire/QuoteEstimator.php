@@ -75,7 +75,7 @@ class QuoteEstimator extends Component
             $this->postcode = (string) $siteVisit->postcode;
             $this->city = (string) $siteVisit->customer->city;
             $this->state = (string) ($siteVisit->customer->state ?: 'Selangor');
-            $this->notes = (string) $siteVisit->customer_notes;
+            $this->notes = ($siteVisit->clean_types ? 'Requested clean types: '.$siteVisit->clean_types_label."\n" : '').(string) $siteVisit->customer_notes;
         }
     }
 

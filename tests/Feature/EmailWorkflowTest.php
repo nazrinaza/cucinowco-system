@@ -47,15 +47,13 @@ class EmailWorkflowTest extends TestCase
         $service = Service::create(['code' => 'office-cleaning', 'name' => 'Office Cleaning', 'unit' => 'job', 'is_active' => true]);
 
         Livewire::test(SiteVisitForm::class)
-            ->set('serviceId', $service->id)
+            ->set('cleanTypes', ['general_cleaning', 'carpet_cleaning'])
             ->set('spaceType', 'office')
             ->set('name', 'Aina Rahman')
             ->set('phone', '0123456789')
             ->set('email', 'aina@example.com')
             ->set('preferredDate', now()->addDay()->format('Y-m-d'))
             ->set('preferredTimeSlot', 'morning')
-            ->set('siteAddress', 'Example Tower, Shah Alam')
-            ->set('postcode', '40160')
             ->call('submit')
             ->assertHasNoErrors();
 

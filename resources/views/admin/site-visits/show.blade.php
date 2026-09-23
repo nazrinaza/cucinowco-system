@@ -2,13 +2,13 @@
     <x-slot:actions><div class="action-row">@if($siteVisit->quote)<a href="{{ route('admin.quotes.show', $siteVisit->quote) }}" class="admin-button">View quotation</a>@else<a href="{{ route('admin.quotes.create', ['site_visit' => $siteVisit->id]) }}" class="admin-button">Create estimate</a>@endif<a href="{{ route('admin.site-visits.index') }}" class="admin-button secondary">All requests</a></div></x-slot:actions>
     <div class="detail-grid">
         <section class="admin-card">
-            <div class="card-head"><div><p>Public request</p><h2>{{ $siteVisit->service?->name ?? 'Site assessment' }}</h2></div><span class="status status-{{ $siteVisit->status }}">{{ ucfirst($siteVisit->status) }}</span></div>
+            <div class="card-head"><div><p>Public request</p><h2>{{ $siteVisit->clean_types_label }}</h2></div><span class="status status-{{ $siteVisit->status }}">{{ ucfirst($siteVisit->status) }}</span></div>
             <dl class="detail-list">
                 <div><dt>Customer</dt><dd>{{ $siteVisit->customer->name }}<br>{{ $siteVisit->customer->company_name }}</dd></div>
                 <div><dt>Contact</dt><dd>{{ $siteVisit->customer->phone }}<br>{{ $siteVisit->customer->email ?: 'No email supplied' }}</dd></div>
-                <div><dt>Space</dt><dd>{{ str($siteVisit->space_type)->replace('_',' ')->title() }}</dd></div>
+                <div><dt>Space</dt><dd>{{ $siteVisit->space_label }}</dd></div>
                 <div><dt>Preferred visit</dt><dd>{{ $siteVisit->preferred_date?->format('d M Y') }} &middot; {{ str($siteVisit->preferred_time_slot)->title() }}</dd></div>
-                <div><dt>Site address</dt><dd>{{ $siteVisit->site_address }}<br>{{ $siteVisit->postcode }}</dd></div>
+                <div><dt>Site address</dt><dd>{{ $siteVisit->site_address ?: 'To be collected when confirming the visit.' }}<br>{{ $siteVisit->postcode }}</dd></div>
                 <div><dt>Customer notes</dt><dd>{{ $siteVisit->customer_notes ?: 'No additional notes.' }}</dd></div>
             </dl>
         </section>
