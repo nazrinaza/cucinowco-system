@@ -37,10 +37,10 @@
     @php($cleanTypes = [
         ['01','Deep Clean','A detailed reset for built-up dust, grime and overlooked areas.'],
         ['02','Tiles Cleaning','Targeted care for tiled surfaces, grout lines and embedded dirt.'],
-        ['03','Window Cleaning','Clearer glass and frames, planned around access and working height.'],
-        ['04','General Cleaning','Practical upkeep for everyday dust, surfaces and high-use areas.'],
-        ['05','Disinfect and Fragrance','Hygiene-focused treatment followed by a clean, fresh finish.'],
-        ['06','Carpet Cleaning','Machine-assisted care for carpet fibres, embedded dirt and visible wear.'],
+        ['03','Carpet Cleaning','Machine-assisted care for carpet fibres, embedded dirt and visible wear.'],
+        ['04','Window Cleaning','Clearer glass and frames, planned around access and working height.'],
+        ['05','General Cleaning','Practical upkeep for everyday dust, surfaces and high-use areas.'],
+        ['06','Disinfect and Fragrance','Hygiene-focused treatment followed by a clean, fresh finish.'],
     ])
     <section id="scope-guide" class="scope-guide section-pad">
         <div class="site-shell">
