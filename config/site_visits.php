@@ -12,9 +12,9 @@ return [
     'clean_types' => [
         'deep_clean' => 'Deep Clean',
         'tiles_cleaning' => 'Tiles Cleaning',
+        'carpet_cleaning' => 'Carpet Cleaning',
         'window_cleaning' => 'Window Cleaning',
         'general_cleaning' => 'General Cleaning',
         'disinfect_fragrance' => 'Disinfect and Fragrance',
-        'carpet_cleaning' => 'Carpet Cleaning',
     ],
 ];
