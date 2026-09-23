@@ -17,7 +17,7 @@
             @error('form')<p class="visit-form-error" role="alert">{{ $message }}</p>@enderror
             <label><span>Name</span><input type="text" wire:model="name" autocomplete="name" placeholder="Full name" required maxlength="120">@error('name')<small>{{ $message }}</small>@enderror</label>
             <div class="visit-form-grid two">
-                <label><span>Email <em>optional</em></span><input type="email" wire:model="email" autocomplete="email" placeholder="you@company.com" maxlength="160">@error('email')<small>{{ $message }}</small>@enderror</label>
+                <label><span>Email</span><input type="email" wire:model="email" autocomplete="email" placeholder="you@company.com" required maxlength="160">@error('email')<small>{{ $message }}</small>@enderror</label>
                 <label><span>Phone number</span><input type="tel" wire:model="phone" autocomplete="tel" placeholder="01X-XXXXXXX" required maxlength="30">@error('phone')<small>{{ $message }}</small>@enderror</label>
             </div>
             <label><span>Space type</span><select wire:model="spaceType" required>@foreach(config('site_visits.spaces') as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>@error('spaceType')<small>{{ $message }}</small>@enderror</label>

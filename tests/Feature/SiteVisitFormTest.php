@@ -65,6 +65,7 @@ class SiteVisitFormTest extends TestCase
         Mail::fake();
         Livewire::test(SiteVisitForm::class)
             ->set('name', 'Test Visitor')
+            ->set('email', 'visitor@example.com')
             ->set('phone', '0123456789')
             ->call('submit')->assertHasErrors(['cleanTypes'])
             ->set('cleanTypes', ['not-a-clean-type'])
@@ -85,5 +86,23 @@ class SiteVisitFormTest extends TestCase
         foreach (['companyName', 'siteAddress', 'postcode', 'notes', 'serviceId'] as $field) {
             $form->assertDontSee('wire:model="'.$field.'"', false);
         }
+    }
+
+    public function test_email_is_required_and_must_be_valid_before_creating_a_request(): void
+    {
+        Mail::fake();
+        Livewire::test(SiteVisitForm::class)
+            ->set('name', 'Test Visitor')
+            ->set('phone', '0123456789')
+            ->set('cleanTypes', ['general_cleaning'])
+            ->set('email', '')
+            ->call('submit')->assertHasErrors(['email' => 'required'])
+            ->set('email', 'invalid-email')
+            ->call('submit')->assertHasErrors(['email' => 'email'])
+            ->assertSet('submitted', false);
+
+        $this->assertDatabaseCount('site_visit_requests', 0);
+        $this->assertDatabaseCount('customers', 0);
+        Mail::assertNothingQueued();
     }
 }

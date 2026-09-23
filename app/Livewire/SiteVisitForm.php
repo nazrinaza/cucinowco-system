@@ -54,7 +54,7 @@ class SiteVisitForm extends Component
             'spaceType' => ['required', Rule::in(array_keys(config('site_visits.spaces')))],
             'name' => ['required', 'string', 'max:120'],
             'phone' => ['required', 'string', 'min:9', 'max:30'],
-            'email' => ['nullable', 'email', 'max:160'],
+            'email' => ['required', 'email', 'max:160'],
             'preferredDate' => ['required', 'date', 'after_or_equal:today'],
             'preferredTimeSlot' => ['required', Rule::in(['morning', 'afternoon', 'flexible'])],
             'website' => ['prohibited'],
