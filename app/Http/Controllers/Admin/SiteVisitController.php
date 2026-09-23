@@ -76,7 +76,7 @@ class SiteVisitController extends Controller
                     'extendedProps' => [
                         'reference' => $siteVisit->reference_number,
                         'status' => ucfirst($siteVisit->status),
-                        'service' => $siteVisit->service?->name ?? 'Service review required',
+                        'service' => $siteVisit->clean_types_label,
                         'company' => $siteVisit->customer->company_name,
                         'address' => $siteVisit->site_address,
                     ],

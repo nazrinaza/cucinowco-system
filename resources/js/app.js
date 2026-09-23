@@ -1,4 +1,5 @@
 import { Calendar } from 'fullcalendar';
+import '../css/site-visit-form.css';
 import dayGridPlugin from 'fullcalendar/daygrid';
 import classicThemePlugin from 'fullcalendar/themes/classic';
 import 'fullcalendar/skeleton.css';

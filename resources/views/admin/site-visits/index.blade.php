@@ -36,12 +36,12 @@
         <p>Request register</p>
         <h2>All site visit requests</h2>
     </div>
-    <section class="admin-card"><div class="table-wrap"><table><thead><tr><th>Request</th><th>Customer</th><th>Service</th><th>Preferred visit</th><th>Status</th><th>Quotation</th></tr></thead><tbody>
+    <section class="admin-card"><div class="table-wrap"><table><thead><tr><th>Request</th><th>Customer</th><th>Clean type</th><th>Preferred visit</th><th>Status</th><th>Quotation</th></tr></thead><tbody>
         @forelse($siteVisits as $siteVisit)
             <tr>
                 <td><a href="{{ route('admin.site-visits.show', $siteVisit) }}">{{ $siteVisit->reference_number }}</a><small>{{ $siteVisit->created_at->format('d M Y, g:i A') }}</small></td>
                 <td>{{ $siteVisit->customer->name }}<small>{{ $siteVisit->customer->company_name ?: $siteVisit->customer->phone }}</small></td>
-                <td>{{ $siteVisit->service?->name ?? 'Service review required' }}<small>{{ str($siteVisit->space_type)->replace('_',' ')->title() }}</small></td>
+                <td>{{ $siteVisit->clean_types_label }}<small>{{ $siteVisit->space_label }}</small></td>
                 <td>{{ $siteVisit->preferred_date?->format('d M Y') ?? 'Flexible' }}<small>{{ str($siteVisit->preferred_time_slot)->title() }}</small></td>
                 <td><span class="status status-{{ $siteVisit->status }}">{{ ucfirst($siteVisit->status) }}</span></td>
                 <td>@if($siteVisit->quote)<a href="{{ route('admin.quotes.show', $siteVisit->quote) }}">{{ $siteVisit->quote->quote_number }}</a>@else<a href="{{ route('admin.quotes.create', ['site_visit' => $siteVisit->id]) }}">Create estimate</a>@endif</td>
