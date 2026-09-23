@@ -3,7 +3,9 @@
         <div class="site-shell hero-grid">
             <div class="hero-copy">
                 <p class="eyebrow"><span></span> Cleaning, handled properly</p>
-                <h1>Claim Your FREE Site Visit<br><em>-No Guesswork, Just Results.</em></h1>
+                <h1>Claim your <em>FREE</em> site visit</h1>
+                <p class="hero-ms">&mdash; No guesswork, just results.</p>
+                <p class="hero-ms">FREE for Klang Valley</p>
                 <p class="hero-lead">Every space has different needs. That's why our team visits first, assesses the job, and arrives fully equipped with the right machinery and cleaning materials for your exact site.</p>
                 <div class="hero-actions">
                     <a href="#site-visit" class="button">Book my free site visit <small>No obligation &middot; Clear quotation</small></a>
