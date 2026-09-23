@@ -1,6 +1,6 @@
 # CuciNow.co
 
-Mobile-first cleaning service website and operations system for CuciNow.co by Thursina Land & Services.
+Mobile-first cleaning service website and operations system for CuciNow.co by Thursina Cleaning & Services.
 
 ## Included in the first release
 

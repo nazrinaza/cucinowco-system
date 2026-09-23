@@ -11,7 +11,7 @@
                     <a href="https://wa.me/{{ config('company.whatsapp') }}" class="text-link">Talk to our team <span>&rarr;</span></a>
                 </div>
                 <div class="hero-proof">
-                    <div><strong>2000</strong><span>Thursina established</span></div>
+                    <div><strong>2000</strong><span>Thursina experience</span></div>
                     <div><strong>2 sectors</strong><span>Government & private experience</span></div>
                     <div><strong>6 services</strong><span>Commercial &amp; specialist cleaning</span></div>
                 </div>
@@ -86,7 +86,7 @@
 
     <section id="about" class="section-pad about-section">
         <div class="site-shell about-grid">
-            <div class="about-panel"><p class="eyebrow"><span></span> Built on experience</p><h2>A new booking experience.<br>A proven operating base.</h2><p>CuciNow.co is the customer-facing cleaning platform of Thursina Land & Services, established on 17 February 2000. Thursina's company profile records experience in building maintenance, specialist machinery and service delivery for both government and private-sector projects.</p><p>The management team brings backgrounds in operations, business management, corporate communications, sales and intensive cleaning and building-maintenance training. CuciNow turns that operational experience into a clearer, mobile-first way to request, schedule and manage cleaning services.</p><a href="#site-visit" class="text-link">Book a free site visit <span>&rarr;</span></a></div>
+            <div class="about-panel"><p class="eyebrow"><span></span> Built on experience</p><h2>Built on legacy,<br>now venturing digitally.</h2><p><strong>CuciNow.co was born from the experience of Thursina Land &amp; Services.</strong> With years of hands-on work across land, building maintenance and specialist cleaning, Thursina has served both government and private-sector projects since establishment in 2000.</p><p>Building on that foundation, CuciNow.co is our new digital-first brand — bringing that same operational experience into a clearer, more modern way to book and manage cleaning services for offices, halls and event spaces. Expect ongoing updates and content as we grow this space online.</p><a href="#site-visit" class="text-link">Book a free site visit <span>&rarr;</span></a></div>
             <div class="principle-list">
                 <article><span>01</span><div><h3>Clear scope</h3><p>We confirm what is included, the working area and practical site conditions before final pricing.</p></div></article>
                 <article><span>02</span><div><h3>Fit-for-site methods</h3><p>Equipment, chemicals and manpower are matched to the service instead of using one approach everywhere.</p></div></article>

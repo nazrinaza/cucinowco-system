@@ -2,8 +2,8 @@
 
 return [
     'name' => 'CuciNow.co',
-    'legal_name' => 'Thursina Land & Services',
-    'registration_number' => '0001232756-P',
+    'legal_name' => 'Thursina Cleaning & Services',
+    'registration_number' => 'SA0636500',
     'established' => 2000,
     'phone' => env('COMPANY_PHONE', '601112428593'),
     'email' => env('COMPANY_EMAIL', 'hello@cucinow.co'),
