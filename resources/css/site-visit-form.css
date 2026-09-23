@@ -1,6 +1,6 @@
 .hero .hero-form-column{min-height:0}
 .hero-copy h3.hero-ms{font-size:clamp(21px,2.2vw,26px);line-height:1.25}
-.contact-flag{display:inline-block;margin-right:4px;font-size:14px;line-height:1;vertical-align:-1px}
+.contact-flag{display:inline-block;font-size:14px;line-height:1;vertical-align:-1px}
 @media(max-width:960px){
     .site-header .menu-button{display:block}
     .site-header .primary-nav{position:absolute;left:14px;right:14px;top:80px;display:none;align-items:stretch;flex-direction:column;gap:2px;padding:14px;background:var(--paper);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
