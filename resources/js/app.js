@@ -7,6 +7,22 @@ import 'fullcalendar/themes/classic/theme.css';
 import 'fullcalendar/themes/classic/palette.css';
 
 document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-site-photo-upload]').forEach((form) => {
+        const input = form.querySelector('input[type="file"]');
+        input?.addEventListener('change', () => {
+            input.setCustomValidity(input.files?.[0]?.size > 8 * 1024 * 1024 ? 'Choose a photo smaller than 8 MB.' : '');
+            input.reportValidity();
+        });
+    });
+    document.querySelectorAll('[data-photo-heic-preview]').forEach((image) => {
+        const showFallback = () => {
+            image.hidden = true;
+            const fallback = image.nextElementSibling;
+            if (fallback?.hasAttribute('data-photo-heic-fallback')) fallback.hidden = false;
+        };
+        image.addEventListener('error', showFallback);
+        if (image.complete && image.naturalWidth === 0) showFallback();
+    });
     document.querySelectorAll('[data-quote-editor]').forEach((form) => {
         const lines = form.querySelector('[data-quote-lines]');
         const template = form.querySelector('[data-quote-line-template]');

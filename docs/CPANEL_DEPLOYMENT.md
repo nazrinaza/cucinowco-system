@@ -56,6 +56,8 @@ Open the repository in cPanel, choose **Update from Remote**, then **Deploy HEAD
 
 ## 5. Add the cron job
 
+For site visit photo uploads, set the PHP Selector limits on the same PHP version used by the website to `upload_max_filesize=10M`, `post_max_size=12M`, and `memory_limit=256M` or higher. The app itself accepts up to 8 MB per image; the extra PHP request allowance covers multipart overhead. Enable GD and EXIF. JPG, PNG and WebP photos are resized to at most 2,000 px and saved at reduced JPEG quality where that reduces size. HEIC/HEIF files are accepted within the same 8 MB limit but kept in their original format because this shared-hosting GD installation cannot decode HEIC. Browsers without HEIC support show an open-original fallback rather than a thumbnail.
+
 In **Cron Jobs**, run this every minute after replacing the username:
 
 `/opt/alt/php83/usr/bin/php /home/YOUR_CPANEL_USER/cucinowco-system/artisan schedule:run >> /dev/null 2>&1`
