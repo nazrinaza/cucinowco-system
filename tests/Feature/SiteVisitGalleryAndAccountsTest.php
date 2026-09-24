@@ -45,7 +45,7 @@ class SiteVisitGalleryAndAccountsTest extends TestCase
             ->assertSessionHasErrors('status');
         $this->actingAs($field)->post(route('admin.site-visits.photos.store', $visit), [
             'phase' => 'after', 'photo' => UploadedFile::fake()->image('after.jpg'),
-        ])->assertSessionHasErrors('photo');
+        ])->assertSessionHasErrors('before_photo_id');
 
         $this->actingAs($field)->post(route('admin.site-visits.photos.store', $visit), [
             'phase' => 'before', 'caption' => 'Main hall', 'photo' => UploadedFile::fake()->image('before.jpg'),
@@ -62,8 +62,10 @@ class SiteVisitGalleryAndAccountsTest extends TestCase
         $this->actingAs($field)->patch(route('admin.bookings.update', $booking), ['status' => 'completed'])
             ->assertSessionHasErrors('status');
         $this->actingAs($field)->post(route('admin.site-visits.photos.store', $visit), [
-            'phase' => 'after', 'photo' => UploadedFile::fake()->image('after.jpg'),
+            'phase' => 'after', 'before_photo_id' => $before->id,
+            'photo' => UploadedFile::fake()->image('after.jpg'),
         ])->assertSessionHasNoErrors();
+        $this->assertSame($before->id, $visit->photos()->where('phase', 'after')->firstOrFail()->before_photo_id);
         $this->actingAs($field)->patch(route('admin.bookings.update', $booking), ['status' => 'completed'])
             ->assertSessionHasNoErrors();
         $this->assertSame('completed', $booking->fresh()->status);
@@ -76,6 +78,85 @@ class SiteVisitGalleryAndAccountsTest extends TestCase
 
         $this->assertSame(4, $photo->site_visit_request_id);
         $this->assertSame(7, $photo->uploaded_by_user_id);
+    }
+
+    public function test_large_png_is_resized_and_an_after_photo_must_reference_the_same_visit(): void
+    {
+        Storage::fake('local');
+        [$visit] = $this->visitWithBooking();
+        $otherCustomer = Customer::create(['name' => 'Other Client', 'phone' => '01199999999']);
+        $otherVisit = SiteVisitRequest::create([
+            'reference_number' => 'SV-GALLERY-2', 'customer_id' => $otherCustomer->id,
+            'status' => 'new', 'space_type' => 'office', 'site_address' => '',
+        ]);
+        $admin = User::factory()->create();
+
+        $this->actingAs($admin)->post(route('admin.site-visits.photos.store', $visit), [
+            'phase' => 'before', 'caption' => 'Entrance towards stage',
+            'photo' => UploadedFile::fake()->image('large.png', 3000, 1800),
+        ])->assertSessionHasNoErrors();
+        $before = $visit->photos()->firstOrFail();
+        $this->assertSame('image/jpeg', $before->mime_type);
+        $this->assertLessThanOrEqual(2000, max(getimagesize(Storage::disk('local')->path($before->path))[0], getimagesize(Storage::disk('local')->path($before->path))[1]));
+
+        $this->actingAs($admin)->post(route('admin.site-visits.photos.store', $otherVisit), [
+            'phase' => 'after', 'before_photo_id' => $before->id,
+            'photo' => UploadedFile::fake()->image('after.jpg'),
+        ])->assertSessionHasErrors('before_photo_id');
+        $this->assertDatabaseCount('site_visit_photos', 1);
+    }
+
+    public function test_heic_upload_is_preserved_and_oversized_files_are_rejected(): void
+    {
+        Storage::fake('local');
+        [$visit] = $this->visitWithBooking();
+        $admin = User::factory()->create();
+        $heic = pack('N', 24).'ftypheic'.str_repeat("\0", 12);
+
+        $this->actingAs($admin)->post(route('admin.site-visits.photos.store', $visit), [
+            'phase' => 'before', 'caption' => 'Front doorway',
+            'photo' => UploadedFile::fake()->createWithContent('camera.heic', $heic),
+        ])->assertSessionHasNoErrors();
+        $photo = $visit->photos()->firstOrFail();
+        $this->assertSame('image/heic', $photo->mime_type);
+        $this->assertStringEndsWith('.heic', $photo->path);
+        Storage::disk('local')->assertExists($photo->path);
+
+        $this->actingAs($admin)->post(route('admin.site-visits.photos.store', $visit), [
+            'phase' => 'before', 'caption' => 'Side doorway',
+            'photo' => UploadedFile::fake()->create('oversized.jpg', 8193, 'image/jpeg'),
+        ])->assertSessionHasErrors('photo');
+        $this->assertDatabaseCount('site_visit_photos', 1);
+    }
+
+    public function test_an_earlier_after_photo_can_be_paired_and_its_reference_cannot_then_be_deleted(): void
+    {
+        Storage::fake('local');
+        [$visit, $booking] = $this->visitWithBooking();
+        $admin = User::factory()->create();
+        $before = $visit->photos()->create([
+            'phase' => 'before', 'path' => 'before.jpg', 'mime_type' => 'image/jpeg',
+            'original_name' => 'before.jpg', 'caption' => 'Doorway facing desk', 'uploaded_by_user_id' => $admin->id,
+        ]);
+        $after = $visit->photos()->create([
+            'phase' => 'after', 'path' => 'after.jpg', 'mime_type' => 'image/jpeg',
+            'original_name' => 'after.jpg', 'uploaded_by_user_id' => $admin->id,
+        ]);
+        Storage::disk('local')->put('before.jpg', 'before');
+        Storage::disk('local')->put('after.jpg', 'after');
+
+        $this->actingAs($admin)->patch(route('admin.bookings.update', $booking), ['status' => 'completed'])
+            ->assertSessionHasErrors('status');
+        $this->actingAs($admin)->get(route('admin.site-visits.show', $visit))
+            ->assertOk()->assertSee('Doorway facing desk')->assertSee('Earlier after photos to pair');
+        $this->actingAs($admin)->patch(route('admin.site-visits.photos.pair', [$visit, $after]), [
+            'before_photo_id' => $before->id,
+        ])->assertSessionHasNoErrors();
+        $this->assertSame($before->id, $after->fresh()->before_photo_id);
+
+        $this->actingAs($admin)->delete(route('admin.site-visits.photos.destroy', [$visit, $before]))
+            ->assertSessionHasErrors('photo');
+        Storage::disk('local')->assertExists('before.jpg');
     }
 
     public function test_only_admin_manages_accounts_and_field_cannot_open_financial_documents(): void

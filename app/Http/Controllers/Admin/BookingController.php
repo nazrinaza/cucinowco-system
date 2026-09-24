@@ -84,8 +84,8 @@ class BookingController extends Controller
             if ($siteVisit && ! $siteVisit->photos()->where('phase', 'before')->exists()) {
                 throw ValidationException::withMessages(['status' => 'Upload a before photo on the linked site visit before starting the cleanup.']);
             }
-            if ($siteVisit && $data['status'] === 'completed' && ! $siteVisit->photos()->where('phase', 'after')->exists()) {
-                throw ValidationException::withMessages(['status' => 'Upload an after photo on the linked site visit before completing the cleanup.']);
+            if ($siteVisit && $data['status'] === 'completed' && ! $siteVisit->photos()->where('phase', 'after')->whereNotNull('before_photo_id')->exists()) {
+                throw ValidationException::withMessages(['status' => 'Upload and pair an after photo with a before angle before completing the cleanup.']);
             }
         }
         $booking->fill($data);
