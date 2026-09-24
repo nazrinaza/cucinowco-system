@@ -25,7 +25,7 @@ class InvoiceController extends Controller
 
     public function show(Invoice $invoice): View
     {
-        $invoice->load(['customer', 'quote', 'items', 'payments']);
+        $invoice->load(['customer', 'quote', 'items', 'payments', 'createdBy', 'lastEditedBy', 'sentBy']);
 
         $emailHistory = app(DocumentEmailHistory::class)->forDocument($invoice);
 
@@ -35,7 +35,7 @@ class InvoiceController extends Controller
     public function update(Request $request, Invoice $invoice): RedirectResponse
     {
         $data = $request->validate(['status' => ['required', Rule::in(['draft', 'sent', 'partial', 'paid', 'overdue', 'cancelled'])], 'due_at' => ['nullable', 'date'], 'notes' => ['nullable', 'string', 'max:3000']]);
-        $invoice->update($data);
+        $invoice->update([...$data, 'last_edited_by_user_id' => $request->user()->id]);
 
         return back()->with('success', 'Invoice updated.');
     }
@@ -50,6 +50,7 @@ class InvoiceController extends Controller
 
         try {
             app(DocumentEmailHistory::class)->queue($invoice, new InvoiceMail($invoice), 'invoice');
+            $invoice->update(['sent_by_user_id' => auth()->id()]);
         } catch (\Throwable $exception) {
             report($exception);
 
@@ -66,7 +67,7 @@ class InvoiceController extends Controller
             'method' => ['required', Rule::in(['fpx', 'ewallet', 'card', 'bank_transfer', 'cash'])],
             'paid_at' => ['required', 'date'], 'reference' => ['nullable', 'string', 'max:120'],
         ]);
-        $payment = $invoice->payments()->create([...$data, 'payment_number' => ReferenceNumber::make('PAY', Payment::class, 'payment_number'), 'status' => 'completed']);
+        $payment = $invoice->payments()->create([...$data, 'recorded_by_user_id' => $request->user()->id, 'payment_number' => ReferenceNumber::make('PAY', Payment::class, 'payment_number'), 'status' => 'completed']);
         $paid = (float) $invoice->payments()->where('status', 'completed')->sum('amount');
         $balance = max(0, (float) $invoice->total - $paid);
         $invoice->update(['amount_paid' => $paid, 'balance' => $balance, 'status' => $balance <= 0 ? 'paid' : 'partial']);

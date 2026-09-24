@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\SiteVisitRequest;
+use App\Models\SiteVisitPhoto;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -89,7 +91,7 @@ class SiteVisitController extends Controller
 
     public function show(SiteVisitRequest $siteVisit): View
     {
-        $siteVisit->load(['customer', 'service', 'quote']);
+        $siteVisit->load(['customer', 'service', 'quote.booking', 'photos.uploadedBy']);
 
         return view('admin.site-visits.show', ['siteVisit' => $siteVisit, 'statuses' => self::STATUSES]);
     }
@@ -114,6 +116,80 @@ class SiteVisitController extends Controller
         $siteVisit->update($updates);
 
         return back()->with('success', 'Site visit request updated.');
+    }
+
+    public function uploadPhoto(Request $request, SiteVisitRequest $siteVisit): RedirectResponse
+    {
+        $data = $request->validate([
+            'phase' => ['required', Rule::in(['before', 'after'])],
+            'photo' => ['required', 'file', 'mimetypes:image/jpeg,image/png,image/webp,image/heic,image/heif', 'max:8192'],
+            'caption' => ['nullable', 'string', 'max:180'],
+        ]);
+
+        if ($siteVisit->photos()->where('phase', $data['phase'])->count() >= 30) {
+            return back()->withErrors(['photo' => 'This gallery is limited to 30 photos for each stage.']);
+        }
+
+        if ($data['phase'] === 'after' && ! $siteVisit->photos()->where('phase', 'before')->exists()) {
+            return back()->withErrors(['photo' => 'Upload at least one before photo first.']);
+        }
+
+        $file = $data['photo'];
+        $path = $file->store("site-visits/{$siteVisit->id}/{$data['phase']}", 'local');
+        if (! $path) {
+            return back()->withErrors(['photo' => 'The photo could not be saved. Please try again.']);
+        }
+
+        try {
+            $siteVisit->photos()->create([
+                'phase' => $data['phase'],
+                'path' => $path,
+                'mime_type' => $file->getMimeType(),
+                'original_name' => $file->getClientOriginalName(),
+                'caption' => $data['caption'] ?? null,
+                'uploaded_by_user_id' => $request->user()->id,
+            ]);
+        } catch (\Throwable $exception) {
+            Storage::disk('local')->delete($path);
+            throw $exception;
+        }
+
+        return back()->with('success', ucfirst($data['phase']).' photo uploaded.');
+    }
+
+    public function photo(SiteVisitRequest $siteVisit, SiteVisitPhoto $photo): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        abort_unless($photo->site_visit_request_id === $siteVisit->id, 404);
+        abort_unless(Storage::disk('local')->exists($photo->path), 404);
+
+        $extension = match ($photo->mime_type) {
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+            'image/heic' => 'heic',
+            'image/heif' => 'heif',
+            default => 'bin',
+        };
+
+        return Storage::disk('local')->response($photo->path, "site-photo-{$photo->id}.{$extension}", [
+            'Content-Type' => $photo->mime_type,
+            'Content-Disposition' => 'inline',
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, max-age=300',
+        ]);
+    }
+
+    public function deletePhoto(SiteVisitRequest $siteVisit, SiteVisitPhoto $photo): RedirectResponse
+    {
+        abort_unless($photo->site_visit_request_id === $siteVisit->id, 404);
+        if ($siteVisit->quote?->booking?->status === 'completed'
+            && $siteVisit->photos()->where('phase', $photo->phase)->count() <= 1) {
+            return back()->withErrors(['photo' => 'Upload a replacement first. Completed bookings must retain before and after evidence.']);
+        }
+        Storage::disk('local')->delete($photo->path);
+        $photo->delete();
+
+        return back()->with('success', 'Photo removed.');
     }
 
     /**

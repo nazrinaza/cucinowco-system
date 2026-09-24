@@ -6,11 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Mail\BookingConfirmationMail;
 use App\Models\Booking;
 use App\Models\Staff;
+use App\Models\SiteVisitRequest;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class BookingController extends Controller
@@ -42,7 +44,7 @@ class BookingController extends Controller
         $calendarCounts = collect(['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'])
             ->mapWithKeys(fn (string $bookingStatus): array => [$bookingStatus => $monthBookings->where('status', $bookingStatus)->count()]);
 
-        $bookings = Booking::with(['customer', 'service', 'staff'])
+        $bookings = Booking::with(['customer', 'service', 'staff', 'quote.siteVisit.photos'])
             ->when($status, fn ($query, string $selectedStatus) => $query->where('status', $selectedStatus))
             ->orderByRaw('scheduled_start IS NULL')
             ->orderBy('scheduled_start')
@@ -63,10 +65,29 @@ class BookingController extends Controller
 
     public function update(Request $request, Booking $booking): RedirectResponse
     {
-        $data = $request->validate([
-            'status' => ['required', Rule::in(['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'])],
-            'staff_id' => ['nullable', 'exists:staff,id'], 'scheduled_start' => ['nullable', 'date'], 'scheduled_end' => ['nullable', 'date', 'after:scheduled_start'],
-        ]);
+        if ($request->user()->role === 'field') {
+            $request->validate(['status' => ['required', Rule::in(['in_progress', 'completed'])]]);
+            $data = ['status' => $request->input('status')];
+            if (($data['status'] === 'in_progress' && ! in_array($booking->status, ['confirmed', 'in_progress'], true))
+                || ($data['status'] === 'completed' && $booking->status !== 'in_progress')) {
+                throw ValidationException::withMessages(['status' => 'Start a confirmed job before marking it completed.']);
+            }
+        } else {
+            $data = $request->validate([
+                'status' => ['required', Rule::in(['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'])],
+                'staff_id' => ['nullable', 'exists:staff,id'], 'scheduled_start' => ['nullable', 'date'], 'scheduled_end' => ['nullable', 'date', 'after:scheduled_start'],
+            ]);
+        }
+
+        if (in_array($data['status'], ['in_progress', 'completed'], true) && $booking->quote_id) {
+            $siteVisit = SiteVisitRequest::where('quote_id', $booking->quote_id)->first();
+            if ($siteVisit && ! $siteVisit->photos()->where('phase', 'before')->exists()) {
+                throw ValidationException::withMessages(['status' => 'Upload a before photo on the linked site visit before starting the cleanup.']);
+            }
+            if ($siteVisit && $data['status'] === 'completed' && ! $siteVisit->photos()->where('phase', 'after')->exists()) {
+                throw ValidationException::withMessages(['status' => 'Upload an after photo on the linked site visit before completing the cleanup.']);
+            }
+        }
         $booking->fill($data);
         $shouldConfirm = $booking->status === 'confirmed'
             && ($booking->isDirty('status') || $booking->isDirty('scheduled_start') || $booking->isDirty('scheduled_end'));

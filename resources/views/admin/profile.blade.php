@@ -1,0 +1,6 @@
+<x-layouts.admin title="My account" heading="My account">
+    <div class="detail-grid">
+        <section class="admin-card"><div class="card-head"><div><p>Signed-in account</p><h2>{{ $user->name }}</h2></div></div><dl class="detail-list"><div><dt>Email</dt><dd>{{ $user->email }}</dd></div><div><dt>Role</dt><dd>{{ ucfirst($user->role) }}</dd></div><div><dt>Last login</dt><dd>{{ $user->last_login_at?->format('d M Y, g:i A') ?? 'Not recorded' }}</dd></div></dl></section>
+        <aside class="detail-side"><section class="admin-card"><div class="card-head"><div><p>Security</p><h2>Change password</h2></div></div><form method="post" action="{{ route('admin.profile.password') }}" class="admin-form">@csrf @method('patch')<label><span>Current password</span><input type="password" name="current_password" autocomplete="current-password" required></label><label><span>New password (12+ characters)</span><input type="password" name="password" autocomplete="new-password" minlength="12" required></label><label><span>Confirm new password</span><input type="password" name="password_confirmation" autocomplete="new-password" minlength="12" required></label><button class="admin-button" type="submit">Update password</button></form></section></aside>
+    </div>
+</x-layouts.admin>

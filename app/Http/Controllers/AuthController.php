@@ -25,7 +25,9 @@ class AuthController extends Controller
         $request->session()->regenerate();
         $request->user()->forceFill(['last_login_at' => now()])->save();
 
-        return redirect()->intended(route('admin.dashboard'));
+        return redirect()->intended($request->user()->role === 'field'
+            ? route('admin.site-visits.index')
+            : route('admin.dashboard'));
     }
 
     public function destroy(Request $request): RedirectResponse
