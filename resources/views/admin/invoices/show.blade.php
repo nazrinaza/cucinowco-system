@@ -35,5 +35,6 @@
             @endif
         </aside>
     </div>
+    <section class="admin-card document-attribution"><div class="card-head"><div><p>Account trail</p><h2>Invoice activity</h2></div></div><div class="attribution-grid"><p><span>Created by</span><strong>{{ $invoice->createdBy?->name ?? 'Legacy / system' }}</strong><small>{{ $invoice->created_at?->format('d M Y, g:i A') }}</small></p><p><span>Last edited by</span><strong>{{ $invoice->lastEditedBy?->name ?? '—' }}</strong><small>{{ $invoice->updated_at?->format('d M Y, g:i A') }}</small></p><p><span>Last emailed by</span><strong>{{ $invoice->sentBy?->name ?? 'Not yet emailed' }}</strong><small>{{ $invoice->sent_at?->format('d M Y, g:i A') }}</small></p></div></section>
     @include('admin.partials.email-history', ['document' => $invoice])
 </x-layouts.admin>

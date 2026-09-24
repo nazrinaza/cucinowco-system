@@ -5,10 +5,13 @@ use App\Http\Controllers\Admin\CampaignController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InvoiceController;
+use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\QuoteController;
 use App\Http\Controllers\Admin\SiteVisitController;
 use App\Http\Controllers\Admin\StaffController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuthController;
+use App\Http\Middleware\EnsureActiveUser;
 use App\Http\Controllers\SubscriberController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,12 +28,21 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/admin/logout', [AuthController::class, 'destroy'])->middleware('auth')->name('logout');
 
-Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
-    Route::get('/', DashboardController::class)->name('dashboard');
+Route::prefix('admin')->name('admin.')->middleware(['auth', EnsureActiveUser::class])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::patch('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::get('/site-visits', [SiteVisitController::class, 'index'])->name('site-visits.index');
     Route::get('/site-visits/calendar/events', [SiteVisitController::class, 'calendarEvents'])->name('site-visits.calendar-events');
     Route::get('/site-visits/{siteVisit}', [SiteVisitController::class, 'show'])->name('site-visits.show');
     Route::patch('/site-visits/{siteVisit}', [SiteVisitController::class, 'update'])->name('site-visits.update');
+    Route::post('/site-visits/{siteVisit}/photos', [SiteVisitController::class, 'uploadPhoto'])->middleware('throttle:20,1')->name('site-visits.photos.store');
+    Route::get('/site-visits/{siteVisit}/photos/{photo}', [SiteVisitController::class, 'photo'])->name('site-visits.photos.show');
+    Route::delete('/site-visits/{siteVisit}/photos/{photo}', [SiteVisitController::class, 'deletePhoto'])->middleware('can:manage-users')->name('site-visits.photos.destroy');
+    Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
+    Route::patch('/bookings/{booking}', [BookingController::class, 'update'])->name('bookings.update');
+
+    Route::middleware('can:manage-documents')->group(function () {
+    Route::get('/', DashboardController::class)->name('dashboard');
     Route::get('/quotes/create', [QuoteController::class, 'create'])->name('quotes.create');
     Route::get('/quotes', [QuoteController::class, 'index'])->name('quotes.index');
     Route::get('/quotes/{quote}', [QuoteController::class, 'show'])->name('quotes.show');
@@ -46,8 +58,6 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::post('/invoices/{invoice}/payments', [InvoiceController::class, 'payment'])->name('invoices.payments');
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
     Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
-    Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
-    Route::patch('/bookings/{booking}', [BookingController::class, 'update'])->name('bookings.update');
     Route::post('/bookings/{booking}/send', [BookingController::class, 'send'])->name('bookings.send');
     Route::get('/staff', [StaffController::class, 'index'])->name('staff.index');
     Route::post('/staff', [StaffController::class, 'store'])->name('staff.store');
@@ -60,4 +70,11 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
     Route::patch('/campaigns/{campaign}', [CampaignController::class, 'update'])->name('campaigns.update');
     Route::post('/campaigns/{campaign}/duplicate', [CampaignController::class, 'duplicate'])->name('campaigns.duplicate');
     Route::post('/campaigns/{campaign}/send', [CampaignController::class, 'send'])->name('campaigns.send');
+    });
+
+    Route::middleware('can:manage-users')->group(function () {
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::post('/users', [UserController::class, 'store'])->name('users.store');
+        Route::patch('/users/{user}', [UserController::class, 'update'])->name('users.update');
+    });
 });

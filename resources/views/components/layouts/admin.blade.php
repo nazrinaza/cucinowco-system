@@ -4,13 +4,17 @@
 <body class="admin-body">
     <div class="admin-shell">
         <aside class="admin-sidebar" data-admin-sidebar>
-            <a href="{{ route('admin.dashboard') }}" class="admin-brand"><img src="{{ asset('images/cucinow-logo.png') }}" alt="CuciNow.co"></a>
+            <a href="{{ auth()->user()->role === 'field' ? route('admin.site-visits.index') : route('admin.dashboard') }}" class="admin-brand"><img src="{{ asset('images/cucinow-logo.png') }}" alt="CuciNow.co"></a>
             <nav>
                 @foreach ([
                     ['admin.dashboard','Overview','OV'],['admin.site-visits.*','Site visits','SV'],['admin.quotes.*','Quotes','QU'],['admin.invoices.*','Invoices','IN'],['admin.bookings.*','Bookings','BK'],['admin.customers.*','Customers','CU'],['admin.staff.*','Staff','ST'],['admin.subscribers.*','Subscribers','SU'],['admin.campaigns.*','Campaigns','CA']
                 ] as [$route,$label,$icon])
-                    <a href="{{ route(str_replace('.*','.index',$route)) }}" @class(['active' => request()->routeIs($route)])><span>{{ $icon }}</span>{{ $label }}</a>
+                    @if(in_array($route, ['admin.site-visits.*', 'admin.bookings.*']) || auth()->user()->can('manage-documents'))
+                        <a href="{{ route(str_replace('.*','.index',$route)) }}" @class(['active' => request()->routeIs($route)])><span>{{ $icon }}</span>{{ $label }}</a>
+                    @endif
                 @endforeach
+                @can('manage-users')<a href="{{ route('admin.users.index') }}" @class(['active' => request()->routeIs('admin.users.*')])><span>US</span>Team accounts</a>@endcan
+                <a href="{{ route('admin.profile.show') }}" @class(['active' => request()->routeIs('admin.profile.*')])><span>ME</span>My account</a>
             </nav>
             <div class="admin-sidebar-foot"><p>Signed in as</p><strong>{{ auth()->user()->name }}</strong><form method="post" action="{{ route('logout') }}">@csrf<button type="submit">Sign out</button></form></div>
         </aside>

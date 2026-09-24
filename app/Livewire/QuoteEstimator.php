@@ -139,6 +139,7 @@ class QuoteEstimator extends Component
             $estimate = $this->estimate;
 
             $quote = Quote::create([
+                'created_by_user_id' => auth()->id(),
                 'quote_number' => $this->reference,
                 'customer_id' => $customer->id,
                 'source' => 'admin',

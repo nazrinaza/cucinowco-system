@@ -1,5 +1,9 @@
 <x-layouts.admin title="Site visits">
-    <x-slot:actions><a href="{{ route('admin.quotes.create') }}" class="admin-button">Create estimate</a></x-slot:actions>
+    <x-slot:actions>
+        @can('manage-documents')
+            <a href="{{ route('admin.quotes.create') }}" class="admin-button">Create estimate</a>
+        @endcan
+    </x-slot:actions>
     <form class="admin-filters" method="get">
         <input type="search" name="q" value="{{ request('q') }}" placeholder="Search reference, customer or phone">
         <select name="status"><option value="">All statuses</option>@foreach($statuses as $status)<option value="{{ $status }}" @selected(request('status')===$status)>{{ ucfirst($status) }}</option>@endforeach</select>
@@ -44,7 +48,17 @@
                 <td>{{ $siteVisit->clean_types_label }}<small>{{ $siteVisit->space_label }}</small></td>
                 <td>{{ $siteVisit->preferred_date?->format('d M Y') ?? 'Flexible' }}<small>{{ str($siteVisit->preferred_time_slot)->title() }}</small></td>
                 <td><span class="status status-{{ $siteVisit->status }}">{{ ucfirst($siteVisit->status) }}</span></td>
-                <td>@if($siteVisit->quote)<a href="{{ route('admin.quotes.show', $siteVisit->quote) }}">{{ $siteVisit->quote->quote_number }}</a>@else<a href="{{ route('admin.quotes.create', ['site_visit' => $siteVisit->id]) }}">Create estimate</a>@endif</td>
+                <td>
+                    @if(auth()->user()->can('manage-documents'))
+                        @if($siteVisit->quote)
+                            <a href="{{ route('admin.quotes.show', $siteVisit->quote) }}">{{ $siteVisit->quote->quote_number }}</a>
+                        @else
+                            <a href="{{ route('admin.quotes.create', ['site_visit' => $siteVisit->id]) }}">Create estimate</a>
+                        @endif
+                    @else
+                        {{ $siteVisit->quote?->quote_number ?? 'Pending' }}
+                    @endif
+                </td>
             </tr>
         @empty
             <tr><td colspan="6" class="empty-cell">New public site visit requests will appear here.</td></tr>

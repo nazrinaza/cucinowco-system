@@ -2,9 +2,9 @@
     @if($submitted)
         <div class="visit-success">
             <span class="success-mark">&#10003;</span>
-            <p class="eyebrow">Visit request received</p>
-            <h2>We’ll be in touch.</h2>
-            <p>Your reference is <strong>{{ $reference }}</strong>. Our team will contact you for the location and confirm your complimentary site visit.</p>
+            <h2>Site visit request received.</h2>
+            <p>Our team will be contacting you shortly to confirm the details, We are looking forward to serve you.</p>
+            <p>Reference: <strong>{{ $reference }}</strong></p>
             <a href="https://wa.me/{{ config('company.whatsapp') }}?text={{ urlencode('Hi CuciNow, my free site visit reference is '.$reference) }}" target="_blank" rel="noopener" class="button">Continue on WhatsApp</a>
         </div>
     @else

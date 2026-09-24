@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SiteVisitRequest extends Model
 {
@@ -44,5 +45,10 @@ class SiteVisitRequest extends Model
     public function quote(): BelongsTo
     {
         return $this->belongsTo(Quote::class);
+    }
+
+    public function photos(): HasMany
+    {
+        return $this->hasMany(SiteVisitPhoto::class);
     }
 }

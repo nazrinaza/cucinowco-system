@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use App\Listeners\HandleResendEmailEvent;
 use App\Listeners\RecordDocumentEmailSent;
+use App\Models\User;
 use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Resend\Laravel\Events\EmailBounced;
 use Resend\Laravel\Events\EmailClicked;
@@ -32,6 +34,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::define('manage-documents', fn (User $user) => in_array($user->role, ['admin', 'office'], true));
+        Gate::define('manage-users', fn (User $user) => $user->role === 'admin');
+
         Event::listen(MessageSent::class, RecordDocumentEmailSent::class);
         foreach ([
             EmailSent::class,

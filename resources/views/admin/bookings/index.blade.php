@@ -88,13 +88,25 @@
                     <h2>{{ $booking->customer->name }}</h2>
                     <p>{{ $booking->service?->name ?? 'Cleaning service' }}</p>
                     <small>{{ $booking->service_address }}</small>
-                    @if($booking->customer->email)
+                    @if($booking->quote?->siteVisit)
+                        <a href="{{ route('admin.site-visits.show', $booking->quote->siteVisit) }}" class="booking-photo-link">Photos: {{ $booking->quote->siteVisit->photos->where('phase', 'before')->count() }} before · {{ $booking->quote->siteVisit->photos->where('phase', 'after')->count() }} after</a>
+                    @endif
+                    @can('manage-documents')@if($booking->customer->email)
                         <form method="post" action="{{ route('admin.bookings.send',$booking) }}">
                             @csrf
                             <button class="booking-email-link" type="submit">Email confirmation{{ $booking->confirmation_sent_at ? ' again' : '' }}</button>
                         </form>
-                    @endif
+                    @endif @endcan
                 </div>
+                @if(auth()->user()->role === 'field')
+                    @if(in_array($booking->status, ['confirmed', 'in_progress'], true))
+                        <form class="booking-edit field-booking-action" method="post" action="{{ route('admin.bookings.update', $booking) }}">
+                            @csrf @method('patch')
+                            <input type="hidden" name="status" value="{{ $booking->status === 'confirmed' ? 'in_progress' : 'completed' }}">
+                            <button class="admin-button" type="submit">{{ $booking->status === 'confirmed' ? 'Start cleanup' : 'Finish cleanup' }}</button>
+                        </form>
+                    @endif
+                @else
                 <form class="booking-edit" method="post" action="{{ route('admin.bookings.update',$booking) }}">
                     @csrf @method('patch')
                     <select name="status">
@@ -112,6 +124,7 @@
                     <input type="datetime-local" name="scheduled_end" value="{{ $booking->scheduled_end?->format('Y-m-d\TH:i') }}">
                     <button class="admin-button" type="submit">Save</button>
                 </form>
+                @endif
             </article>
         @empty
             <div class="admin-card empty-cell">Bookings created from accepted quotes will appear here.</div>

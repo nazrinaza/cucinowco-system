@@ -44,7 +44,7 @@ class QuoteController extends Controller
 
     public function show(Quote $quote): View
     {
-        $quote->load(['customer', 'items.service', 'invoice', 'booking']);
+        $quote->load(['customer', 'items.service', 'invoice', 'booking', 'createdBy', 'lastEditedBy', 'sentBy']);
 
         return view('admin.quotes.show', [
             'quote' => $quote, 'statuses' => self::STATUSES,
@@ -55,7 +55,7 @@ class QuoteController extends Controller
     public function update(Request $request, Quote $quote): RedirectResponse
     {
         $data = $request->validate(['status' => ['required', Rule::in(self::STATUSES)], 'internal_notes' => ['nullable', 'string', 'max:3000']]);
-        $updates = ['status' => $data['status'], 'internal_notes' => $data['internal_notes'] ?? null];
+        $updates = ['status' => $data['status'], 'internal_notes' => $data['internal_notes'] ?? null, 'last_edited_by_user_id' => $request->user()->id];
         $timestamp = ['sent' => 'sent_at', 'viewed' => 'viewed_at', 'accepted' => 'accepted_at', 'rejected' => 'rejected_at'][$data['status']] ?? null;
         if ($timestamp) {
             $updates[$timestamp] = now();
@@ -79,7 +79,7 @@ class QuoteController extends Controller
             'discount' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:9999999999.99'],
         ]);
 
-        DB::transaction(function () use ($quote, $data) {
+        DB::transaction(function () use ($quote, $data, $request) {
             $quote = Quote::query()->lockForUpdate()->findOrFail($quote->id);
 
             if ($quote->invoice()->exists() || $quote->booking()->exists()) {
@@ -127,6 +127,7 @@ class QuoteController extends Controller
             }
             $quote->items()->whereNotIn('id', $retainedIds)->delete();
             $quote->update([
+                'last_edited_by_user_id' => $request->user()->id,
                 'subtotal' => $subtotalCents / 100,
                 'discount' => $discountCents / 100,
                 'tax_amount' => $taxCents / 100,
@@ -149,6 +150,7 @@ class QuoteController extends Controller
 
         try {
             app(DocumentEmailHistory::class)->queue($quote, new QuoteMail($quote), 'quotation');
+            $quote->update(['sent_by_user_id' => auth()->id()]);
         } catch (\Throwable $exception) {
             report($exception);
 
@@ -169,6 +171,7 @@ class QuoteController extends Controller
             $taxAmount = round(((float) $quote->subtotal - (float) $quote->discount) * $taxRate / 100, 2);
             $total = (float) $quote->subtotal - (float) $quote->discount + $taxAmount;
             $invoice = Invoice::create([
+                'created_by_user_id' => auth()->id(),
                 'invoice_number' => ReferenceNumber::make('INV', Invoice::class, 'invoice_number'),
                 'customer_id' => $quote->customer_id, 'quote_id' => $quote->id, 'status' => 'draft',
                 'issued_at' => today(), 'due_at' => today()->addDays(14), 'subtotal' => $quote->subtotal,
