@@ -106,3 +106,6 @@
 @media(max-width:780px){.site-photo-matched{padding:0 14px 14px}.site-photo-reference-choices{grid-template-columns:1fr}.site-photo-pair{grid-template-columns:1fr}.site-photo-pair .site-photo-card{max-width:none}.site-photo-pair-after .site-photo-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.site-photo-pair-after .site-photo-grid{grid-template-columns:1fr}}
 [data-photo-heic-fallback][hidden]{display:none!important}
+.site-photo-pair{grid-template-columns:repeat(2,minmax(0,1fr))}.site-photo-pair .site-photo-grid{grid-template-columns:minmax(0,1fr)}.site-photo-pair .site-photo-card{width:100%;max-width:none}.site-photo-pair .site-photo-card img,.site-photo-pair .site-photo-heic{height:160px}.site-photo-pair .site-photo-heic{min-height:0}
+@media(max-width:780px){.site-photo-pair{grid-template-columns:repeat(2,minmax(0,1fr))}.site-photo-pair-after .site-photo-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:480px){.site-photo-pair{gap:9px;padding:10px}.site-photo-pair .site-photo-card img,.site-photo-pair .site-photo-heic{height:115px}}
