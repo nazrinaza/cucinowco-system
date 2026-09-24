@@ -9,6 +9,14 @@ class SiteVisitPhoto extends Model
 {
     protected $guarded = [];
 
+    protected function casts(): array
+    {
+        return [
+            'site_visit_request_id' => 'integer',
+            'uploaded_by_user_id' => 'integer',
+        ];
+    }
+
     public function siteVisit(): BelongsTo
     {
         return $this->belongsTo(SiteVisitRequest::class, 'site_visit_request_id');

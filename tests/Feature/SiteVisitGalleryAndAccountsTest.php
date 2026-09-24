@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\Customer;
 use App\Models\Quote;
 use App\Models\SiteVisitRequest;
+use App\Models\SiteVisitPhoto;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -66,6 +67,15 @@ class SiteVisitGalleryAndAccountsTest extends TestCase
         $this->actingAs($field)->patch(route('admin.bookings.update', $booking), ['status' => 'completed'])
             ->assertSessionHasNoErrors();
         $this->assertSame('completed', $booking->fresh()->status);
+    }
+
+    public function test_photo_foreign_keys_are_integers_even_when_the_database_returns_strings(): void
+    {
+        $photo = new SiteVisitPhoto;
+        $photo->setRawAttributes(['site_visit_request_id' => '4', 'uploaded_by_user_id' => '7']);
+
+        $this->assertSame(4, $photo->site_visit_request_id);
+        $this->assertSame(7, $photo->uploaded_by_user_id);
     }
 
     public function test_only_admin_manages_accounts_and_field_cannot_open_financial_documents(): void
