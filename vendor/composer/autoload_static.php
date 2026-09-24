@@ -552,6 +552,7 @@ class ComposerStaticInitee521a8475827814193025509abf0409
         'App\\Support\\DocumentEmailHistory' => __DIR__ . '/../..' . '/app/Support/DocumentEmailHistory.php',
         'App\\Support\\NewsletterHtmlSanitizer' => __DIR__ . '/../..' . '/app/Support/NewsletterHtmlSanitizer.php',
         'App\\Support\\ReferenceNumber' => __DIR__ . '/../..' . '/app/Support/ReferenceNumber.php',
+        'App\\Support\\SitePhotoStorage' => __DIR__ . '/../..' . '/app/Support/SitePhotoStorage.php',
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Brick\\Math\\BigDecimal' => __DIR__ . '/..' . '/brick/math/src/BigDecimal.php',
         'Brick\\Math\\BigInteger' => __DIR__ . '/..' . '/brick/math/src/BigInteger.php',

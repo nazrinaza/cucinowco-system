@@ -56,6 +56,7 @@ return array(
     'App\\Support\\DocumentEmailHistory' => $baseDir . '/app/Support/DocumentEmailHistory.php',
     'App\\Support\\NewsletterHtmlSanitizer' => $baseDir . '/app/Support/NewsletterHtmlSanitizer.php',
     'App\\Support\\ReferenceNumber' => $baseDir . '/app/Support/ReferenceNumber.php',
+    'App\\Support\\SitePhotoStorage' => $baseDir . '/app/Support/SitePhotoStorage.php',
     'Attribute' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
     'Brick\\Math\\BigDecimal' => $vendorDir . '/brick/math/src/BigDecimal.php',
     'Brick\\Math\\BigInteger' => $vendorDir . '/brick/math/src/BigInteger.php',
