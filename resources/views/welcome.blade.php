@@ -130,7 +130,7 @@
         ] as [$question,$answer])<details name="cucinow-faq"><summary>{{ $question }}<span>+</span></summary><p>{{ $answer }}</p></details>@endforeach
     </div></div></section>
 
-    <section class="final-cta"><div class="site-shell final-cta-inner"><div><p>Ready when your space is.</p><h2>Clean. Organised. Ready.</h2></div><a href="#site-visit" class="button button-dark">Book my free site visit <small>No obligation &middot; Clear quotation</small></a></div></section>
+    <section class="final-cta"><div class="site-shell final-cta-inner"><div><p>Ready when your space is.</p><h2>Clean. Starts. Now.</h2></div><a href="#site-visit" class="button button-dark">Book my free site visit <small>No obligation &middot; Clear quotation</small></a></div></section>
 
     <section class="newsletter"><div class="site-shell newsletter-inner"><div><h2>Useful cleaning notes. No clutter.</h2><p>Occasional service reminders, practical tips and CuciNow updates.</p></div><form action="{{ route('newsletter.store') }}" method="post">@csrf<input name="email" type="email" required placeholder="Your email address" aria-label="Email address"><button type="submit">Subscribe</button></form>@if(session('newsletter_success'))<p class="form-success">{{ session('newsletter_success') }}</p>@endif</div></section>
 </x-layouts.public>
