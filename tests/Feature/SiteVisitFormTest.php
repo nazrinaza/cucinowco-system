@@ -77,9 +77,11 @@ class SiteVisitFormTest extends TestCase
         Mail::assertNothingQueued();
     }
 
-    public function test_form_shows_six_space_and_clean_options_without_old_fields(): void
+    public function test_form_shows_six_space_and_eight_clean_options_without_old_fields(): void
     {
         $form = Livewire::test(SiteVisitForm::class);
+        $this->assertCount(6, config('site_visits.spaces'));
+        $this->assertCount(8, config('site_visits.clean_types'));
         foreach (array_merge(config('site_visits.spaces'), config('site_visits.clean_types')) as $label) {
             $form->assertSee($label);
         }

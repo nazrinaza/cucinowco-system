@@ -28,7 +28,13 @@ class SiteVisitRequest extends Model
     public function getCleanTypesLabelAttribute(): string
     {
         return $this->clean_types
-            ? collect($this->clean_types)->map(fn ($type) => config('site_visits.clean_types.'.$type, $type))->implode(', ')
+            ? collect($this->clean_types)->map(function ($type) {
+                if ($type === 'others' && filled($this->other_clean_type)) {
+                    return 'Others: '.$this->other_clean_type;
+                }
+
+                return config('site_visits.clean_types.'.$type, $type);
+            })->implode(', ')
             : ($this->service?->name ?? 'To be confirmed');
     }
 
