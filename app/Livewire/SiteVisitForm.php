@@ -49,7 +49,7 @@ class SiteVisitForm extends Component
         }
 
         $validated = $this->validate([
-            'cleanTypes' => ['required', 'array', 'min:1', 'max:6'],
+            'cleanTypes' => ['required', 'array', 'min:1', 'max:'.count(config('site_visits.clean_types'))],
             'cleanTypes.*' => ['required', 'string', 'distinct', Rule::in(array_keys(config('site_visits.clean_types')))],
             'spaceType' => ['required', Rule::in(array_keys(config('site_visits.spaces')))],
             'name' => ['required', 'string', 'max:120'],

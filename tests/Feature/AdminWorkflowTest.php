@@ -57,6 +57,46 @@ class AdminWorkflowTest extends TestCase
             ->assertSee('Aina Rahman');
     }
 
+    public function test_admin_can_specify_an_other_clean_type_for_a_site_visit(): void
+    {
+        $user = User::factory()->create(['is_active' => true]);
+        $customer = Customer::create(['name' => 'Other Service Client', 'phone' => '0112222333']);
+        $siteVisit = SiteVisitRequest::create([
+            'reference_number' => 'SV-OTHER-CLEAN',
+            'customer_id' => $customer->id,
+            'status' => 'new',
+            'space_type' => 'office',
+            'clean_types' => ['general_cleaning', 'others'],
+            'preferred_date' => now()->addDay(),
+            'preferred_time_slot' => 'morning',
+            'site_address' => '',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('admin.site-visits.show', $siteVisit))
+            ->assertOk()
+            ->assertSee('Specify other clean type');
+
+        $this->actingAs($user)
+            ->patch(route('admin.site-visits.update', $siteVisit), [
+                'status' => 'contacted',
+                'internal_notes' => 'Confirmed during call.',
+            ])
+            ->assertSessionHasErrors('other_clean_type');
+
+        $this->actingAs($user)
+            ->patch(route('admin.site-visits.update', $siteVisit), [
+                'status' => 'contacted',
+                'other_clean_type' => 'High-level cobweb removal',
+                'internal_notes' => 'Confirmed during call.',
+            ])
+            ->assertRedirect();
+
+        $siteVisit->refresh();
+        $this->assertSame('High-level cobweb removal', $siteVisit->other_clean_type);
+        $this->assertSame('General Cleaning, Others: High-level cobweb removal', $siteVisit->clean_types_label);
+    }
+
     public function test_an_admin_can_convert_a_quote_to_an_invoice(): void
     {
         $user = User::factory()->create(['is_active' => true]);

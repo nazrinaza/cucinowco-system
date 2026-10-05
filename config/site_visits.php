@@ -16,5 +16,7 @@ return [
         'window_cleaning' => 'Window Cleaning',
         'general_cleaning' => 'General Cleaning',
         'disinfect_fragrance' => 'Disinfect and Fragrance',
+        'cobweb' => 'Cobweb',
+        'others' => 'Others',
     ],
 ];

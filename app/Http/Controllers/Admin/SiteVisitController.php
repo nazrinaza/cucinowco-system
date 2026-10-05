@@ -99,9 +99,14 @@ class SiteVisitController extends Controller
 
     public function update(Request $request, SiteVisitRequest $siteVisit): RedirectResponse
     {
+        $requiresOtherCleanType = in_array('others', $siteVisit->clean_types ?? [], true);
+
         $data = $request->validate([
             'status' => ['required', Rule::in(self::STATUSES)],
             'internal_notes' => ['nullable', 'string', 'max:3000'],
+            'other_clean_type' => $requiresOtherCleanType
+                ? ['required', 'string', 'max:180']
+                : ['nullable', 'string', 'max:180'],
         ]);
 
         $updates = $data;
