@@ -106,3 +106,46 @@ Confirm the staging `.env` contains the Resend settings from section 3 plus `QUE
 After one or two minutes, open `/home2/shahjaha/cucinow-resend-setup.log` in File Manager. When the final lines contain `SETUP COMPLETE`, remove the temporary cron job. Keep the normal `artisan schedule:run` cron from section 5 enabled.
 
 If the log reports a missing Resend package or migration, return to Git Version Control, select the `deploy` branch and use **Update from Remote**. If it reports an `.env` setting error, correct the setting without posting the API key publicly; the next cron run will retry automatically. After a successful run, submit a new site visit request or use **Email quotation/invoice** because requests created before the email feature was deployed did not create an email job.
+
+## Scheduled production launch: 12 October 2026
+
+Use this procedure when `cucinow.co` is locked to `/home2/shahjaha/public_html/cucinow.co`. It keeps the countdown online until **12 October 2026 at 12:00 PM Asia/Kuala_Lumpur (04:00 UTC)**, then atomically activates Laravel. It does not change DNS and does not expose the Laravel application root.
+
+### Prepare the production application
+
+1. In **Git Version Control**, clone the ready-built `deploy` branch to `/home2/shahjaha/cucinowco-system`.
+2. Create `/home2/shahjaha/cucinowco-system/.env` with `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=https://cucinow.co`, production database credentials, a production session cookie name, Resend credentials and `GOOGLE_TAG_ID=G-FJDN5ZSLN6`.
+3. Use **Deploy HEAD Commit** on that production checkout. The deployment must finish before enabling the launch cron.
+4. Keep the existing countdown at `/home2/shahjaha/public_html/cucinow.co`. The launch script backs up its `index.php`, `.htaccess`, favicon, robots file and web manifest before switching.
+
+### Run the pre-flight check
+
+Add this temporary cron every minute:
+
+`/opt/alt/php83/usr/bin/php /home2/shahjaha/cucinowco-system/scripts/cpanel-production-launch.php --dry-run >> /home2/shahjaha/cucinow-production-launch-preflight.log 2>&1`
+
+After one minute, confirm the log contains `PRE-FLIGHT OK`, then remove the pre-flight cron. A failed check changes no website files.
+
+### Enable the timed launch
+
+Add this cron with the schedule `* * * * *`:
+
+`/opt/alt/php83/usr/bin/php /home2/shahjaha/cucinowco-system/scripts/cpanel-production-launch.php >> /home2/shahjaha/cucinow-production-launch.log 2>&1`
+
+The script checks Malaysia time internally, so it is safe even if the cPanel server uses UTC. Before noon it only logs `Waiting`. During the first cron run at or after noon it:
+
+- validates the production checkout and environment;
+- creates a recoverable countdown backup under `/home2/shahjaha/cucinow-launch-backups`;
+- copies only Laravel's public assets into the locked document root;
+- replaces `.htaccess` and `index.php` using prepared temporary files; and
+- writes `/home2/shahjaha/.cucinow-production-launch.json` to prevent a repeated switch.
+
+When the log contains `LAUNCH COMPLETE`, remove the temporary launch cron. Purge the `cucinow.co` Cloudflare cache, then verify `/up`, `/`, `/admin/login`, a site-visit submission, email delivery and Google Analytics Realtime. Add the normal production `artisan schedule:run` cron from section 5 using `/home2/shahjaha/cucinowco-system/artisan`.
+
+### Roll back to the countdown
+
+Disable the production-launch cron first. Then add this rollback command as a temporary once-per-minute cron:
+
+`/opt/alt/php83/usr/bin/php /home2/shahjaha/cucinowco-system/scripts/cpanel-production-rollback.php >> /home2/shahjaha/cucinow-production-rollback.log 2>&1`
+
+When the log contains `ROLLBACK COMPLETE`, remove the rollback cron and purge Cloudflare. The rollback restores the backed-up countdown front controller and `.htaccess`; Laravel and its public assets remain recoverable for diagnosis.
