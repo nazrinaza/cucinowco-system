@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Mail\NewsletterMail;
 use App\Models\NewsletterCampaign;
 use App\Models\Subscriber;
+use App\Support\SubscriberSegments;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
@@ -20,23 +21,28 @@ class SendNewsletterCampaign implements ShouldQueue
 
     public function __construct(public int $campaignId) {}
 
-    public function handle(): void
+    public function handle(?SubscriberSegments $subscriberSegments = null): void
     {
+        $subscriberSegments ??= app(SubscriberSegments::class);
         $campaign = NewsletterCampaign::findOrFail($this->campaignId);
 
         if (! in_array($campaign->status, ['queued', 'sending'], true)) {
             return;
         }
 
-        $recipientCount = Subscriber::where('status', 'subscribed')->count();
+        $segments = $subscriberSegments->normalize($campaign->segments);
+        $recipientQuery = $subscriberSegments->constrain(
+            Subscriber::query()->where('status', 'subscribed'),
+            $segments,
+        );
+        $recipientCount = (clone $recipientQuery)->count();
         $campaign->update([
             'status' => 'sending',
             'recipient_count' => $recipientCount,
             'delivery_error' => null,
         ]);
 
-        Subscriber::query()
-            ->where('status', 'subscribed')
+        $recipientQuery
             ->orderBy('id')
             ->chunkById(100, function ($subscribers) use ($campaign): void {
                 foreach ($subscribers as $subscriber) {

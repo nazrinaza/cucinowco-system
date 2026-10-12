@@ -147,6 +147,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }));
     });
 
+    document.querySelectorAll('[data-subscriber-bulk-form]').forEach((form) => {
+        const selectAll = form.querySelector('[data-select-all-subscribers]');
+        const checkboxes = [...form.querySelectorAll('[data-subscriber-checkbox]')];
+        const selectedCount = form.querySelector('[data-selected-count]');
+
+        const updateSelection = () => {
+            const checked = checkboxes.filter((checkbox) => checkbox.checked).length;
+            if (selectedCount) selectedCount.textContent = String(checked);
+            if (selectAll) {
+                selectAll.checked = checkboxes.length > 0 && checked === checkboxes.length;
+                selectAll.indeterminate = checked > 0 && checked < checkboxes.length;
+            }
+        };
+
+        selectAll?.addEventListener('change', () => {
+            checkboxes.forEach((checkbox) => { checkbox.checked = selectAll.checked; });
+            updateSelection();
+        });
+        checkboxes.forEach((checkbox) => checkbox.addEventListener('change', updateSelection));
+        form.addEventListener('submit', (event) => {
+            if (checkboxes.some((checkbox) => checkbox.checked)) return;
+            event.preventDefault();
+            window.alert('Select at least one subscriber first.');
+        });
+        updateSelection();
+    });
+
     document.querySelectorAll('[data-html-editor]').forEach((editor) => {
         const canvas = editor.querySelector('[data-editor-canvas]');
         const source = editor.querySelector('[data-editor-source]');
@@ -218,6 +245,27 @@ document.addEventListener('DOMContentLoaded', () => {
             button.addEventListener('click', () => {
                 restoreSelection();
                 document.execCommand(button.dataset.editorCommand, false);
+                syncSource();
+                rememberSelection();
+            });
+        });
+
+        editor.querySelectorAll('[data-editor-merge-tag]').forEach((button) => {
+            button.addEventListener('mousedown', (event) => event.preventDefault());
+            button.addEventListener('click', () => {
+                const mergeTag = button.dataset.editorMergeTag;
+
+                if (sourceMode) {
+                    const start = source.selectionStart;
+                    const end = source.selectionEnd;
+                    source.setRangeText(mergeTag, start, end, 'end');
+                    source.focus();
+                    updateCount();
+                    return;
+                }
+
+                restoreSelection();
+                document.execCommand('insertText', false, mergeTag);
                 syncSource();
                 rememberSelection();
             });

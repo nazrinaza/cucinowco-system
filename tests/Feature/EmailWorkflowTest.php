@@ -136,6 +136,8 @@ class EmailWorkflowTest extends TestCase
             ->assertOk()
             ->assertSee('data-html-editor', false)
             ->assertSee('data-editor-image-button', false)
+            ->assertSee('data-editor-merge-tag="{Name}"', false)
+            ->assertSee('data-editor-merge-tag="{UnsubscribeURL}"', false)
             ->assertSee('&lt;/&gt; HTML', false);
 
         $this->actingAs($admin)->post(route('admin.campaigns.store'), [
@@ -159,6 +161,57 @@ class EmailWorkflowTest extends TestCase
 
         $this->assertStringContainsString('<strong>cleaner</strong>', $rendered);
         $this->assertStringNotContainsString('onclick', $rendered);
+    }
+
+    public function test_newsletter_merge_tags_personalize_subject_preview_and_content(): void
+    {
+        config(['app.url' => 'https://cucinow.co']);
+
+        $campaign = NewsletterCampaign::create([
+            'name' => 'Personalised campaign',
+            'subject' => 'A cleaner space for {FirstName}',
+            'preview_text' => 'Prepared for {Name} at {Email}',
+            'content' => '<p>Hello {FirstName},</p><p>{Name} · {Email}</p><p><a href="{WebsiteURL}">Visit CuciNow</a> · <a href="{UnsubscribeURL}">Unsubscribe</a></p>',
+            'status' => 'draft',
+        ]);
+        $subscriber = Subscriber::create([
+            'name' => 'Aina Rahman',
+            'email' => 'aina@example.com',
+            'status' => 'subscribed',
+            'subscribed_at' => now(),
+        ]);
+
+        $mail = new NewsletterMail($campaign, $subscriber);
+        $rendered = $mail->render();
+
+        $this->assertSame('A cleaner space for Aina', $mail->envelope()->subject);
+        $this->assertSame('Prepared for Aina Rahman at aina@example.com', $mail->previewLine);
+        $this->assertStringContainsString('Hello Aina,', $rendered);
+        $this->assertStringContainsString('Aina Rahman · aina@example.com', $rendered);
+        $this->assertStringContainsString('href="https://cucinow.co"', $rendered);
+        $this->assertStringContainsString('/newsletter/unsubscribe/', $rendered);
+        $this->assertStringNotContainsString('{FirstName}', $rendered);
+        $this->assertStringNotContainsString('{UnsubscribeURL}', $rendered);
+    }
+
+    public function test_newsletter_name_merge_tags_use_a_friendly_fallback(): void
+    {
+        $campaign = NewsletterCampaign::create([
+            'name' => 'Fallback campaign',
+            'subject' => 'Hello {FirstName}',
+            'content' => '<p>Hi {Name}, welcome to CuciNow.</p>',
+            'status' => 'draft',
+        ]);
+        $subscriber = Subscriber::create([
+            'email' => 'unnamed@example.com',
+            'status' => 'subscribed',
+            'subscribed_at' => now(),
+        ]);
+
+        $mail = new NewsletterMail($campaign, $subscriber);
+
+        $this->assertSame('Hello there', $mail->envelope()->subject);
+        $this->assertStringContainsString('Hi there, welcome to CuciNow.', $mail->render());
     }
 
     public function test_admin_can_upload_a_safe_newsletter_image(): void
