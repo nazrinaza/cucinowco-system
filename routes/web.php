@@ -16,6 +16,7 @@ use App\Http\Middleware\EnsureActiveUser;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
+Route::view('/resend/webhook', 'resend-webhook-status')->name('resend.webhook.status');
 Route::post('/newsletter', [SubscriberController::class, 'store'])->middleware('throttle:5,1')->name('newsletter.store');
 Route::match(['get', 'post'], '/newsletter/unsubscribe/{subscriber}', [SubscriberController::class, 'unsubscribe'])
     ->middleware('signed')
