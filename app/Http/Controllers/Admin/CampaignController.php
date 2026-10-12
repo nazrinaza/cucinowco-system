@@ -8,6 +8,7 @@ use App\Mail\NewsletterPreviewMail;
 use App\Models\EmailEvent;
 use App\Models\NewsletterCampaign;
 use App\Support\NewsletterHtmlSanitizer;
+use App\Support\SubscriberSegments;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,8 +25,9 @@ class CampaignController extends Controller
     public function index(): View
     {
         $campaigns = NewsletterCampaign::latest()->paginate(20);
+        $segments = app(SubscriberSegments::class)->all();
 
-        return view('admin.campaigns.index', compact('campaigns'));
+        return view('admin.campaigns.index', compact('campaigns', 'segments'));
     }
 
     public function edit(NewsletterCampaign $campaign): View|RedirectResponse
@@ -36,10 +38,12 @@ class CampaignController extends Controller
         }
 
         $campaigns = NewsletterCampaign::latest()->paginate(20);
+        $segments = app(SubscriberSegments::class)->all();
 
         return view('admin.campaigns.index', [
             'campaigns' => $campaigns,
             'editingCampaign' => $campaign,
+            'segments' => $segments,
         ]);
     }
 
@@ -153,7 +157,7 @@ class CampaignController extends Controller
 
             try {
                 Mail::to($recipient, $request->user()->name)
-                    ->send(new NewsletterPreviewMail($campaign, $recipient));
+                    ->send(new NewsletterPreviewMail($campaign, $recipient, $request->user()->name));
             } catch (Throwable $exception) {
                 report($exception);
 
@@ -195,7 +199,7 @@ class CampaignController extends Controller
 
             try {
                 Mail::to($recipient, $request->user()->name)
-                    ->send(new NewsletterPreviewMail($preview, $recipient));
+                    ->send(new NewsletterPreviewMail($preview, $recipient, $request->user()->name));
             } catch (Throwable $exception) {
                 report($exception);
 
@@ -265,7 +269,7 @@ class CampaignController extends Controller
             'content' => $sanitizer->sanitize($request->string('content')->toString()),
         ]);
 
-        return $request->validate([
+        $data = $request->validate([
             'action' => ['required', Rule::in(['draft', 'send', 'test'])],
             'name' => ['required', 'string', 'max:150'],
             'subject' => ['required', 'string', 'max:180'],
@@ -281,7 +285,13 @@ class CampaignController extends Controller
                 },
             ],
             'scheduled_at' => ['nullable', 'date', 'after:now'],
+            'segments' => ['nullable', 'array', 'max:20'],
+            'segments.*' => ['required', 'string', 'max:50'],
         ]);
+
+        $data['segments'] = app(SubscriberSegments::class)->normalize($data['segments'] ?? []);
+
+        return $data;
     }
 
     private function isEditable(NewsletterCampaign $campaign): bool

@@ -10,6 +10,9 @@
                         <span>
                             <strong>{{ $campaign->name }}</strong>
                             <small>{{ $campaign->subject }}</small>
+                            <span class="campaign-segment-summary">
+                                @forelse($campaign->segments ?? [] as $segment)<em>{{ $segment }}</em>@empty<em>All subscribers</em>@endforelse
+                            </span>
                             @if($campaign->status === 'sent')
                                 <small>{{ number_format($campaign->recipient_count) }} recipients &middot; {{ number_format($campaign->open_count) }} opens &middot; {{ number_format($campaign->click_count) }} clicks</small>
                             @elseif($campaign->scheduled_at)
@@ -69,6 +72,19 @@
                     <input name="preview_text" value="{{ old('preview_text', $editingCampaign->preview_text ?? '') }}" placeholder="Short inbox preview shown after the subject">
                 </label>
 
+                @php($selectedSegments = old('segments', $editingCampaign->segments ?? []))
+                <fieldset class="admin-form-fieldset">
+                    <legend>Audience segments</legend>
+                    <div class="campaign-segment-options">
+                        @forelse($segments as $segment)
+                            <label class="campaign-segment-option"><input type="checkbox" name="segments[]" value="{{ $segment }}" @checked(in_array($segment, $selectedSegments, true))><span>{{ $segment }}</span></label>
+                        @empty
+                            <p class="campaign-audience-note">No segments exist yet. Create groups from the Subscribers page.</p>
+                        @endforelse
+                    </div>
+                    <p class="campaign-audience-note">No selection sends to all active subscribers. Selecting multiple groups includes subscribers from any selected group once.</p>
+                </fieldset>
+
                 @php($editorContent = app(\App\Support\NewsletterHtmlSanitizer::class)->sanitize(old('content', $editingCampaign->content ?? '')))
                 <label>
                     <span>Message</span>
@@ -93,6 +109,12 @@
                             <button type="button" data-editor-command="removeFormat" title="Clear formatting">Clear</button>
                             <button class="editor-source-toggle" type="button" data-editor-source-toggle title="Edit HTML source">&lt;/&gt; HTML</button>
                         </div>
+                        <div class="editor-merge-tags" aria-label="Personalisation shortcodes">
+                            <span>Personalise:</span>
+                            @foreach(\App\Support\NewsletterMergeTags::TAGS as $mergeTag)
+                                <button type="button" data-editor-merge-tag="{{ $mergeTag }}" title="Insert {{ $mergeTag }}">{{ $mergeTag }}</button>
+                            @endforeach
+                        </div>
                         <div
                             class="html-editor-canvas"
                             contenteditable="true"
@@ -104,7 +126,7 @@
                         <textarea class="html-editor-source" name="content" rows="14" data-editor-source hidden>{{ $editorContent }}</textarea>
                         <input type="file" accept="image/jpeg,image/png,image/webp" data-editor-image-input hidden>
                         <div class="html-editor-foot">
-                            <span data-editor-status>Images: JPG, PNG or WebP, up to 2 MB.</span>
+                            <span data-editor-status>Shortcodes also work in the subject and preview text. Images: JPG, PNG or WebP, up to 2 MB.</span>
                             <strong data-editor-count>0 characters</strong>
                         </div>
                     </div>

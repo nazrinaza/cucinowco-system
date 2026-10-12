@@ -3,6 +3,8 @@
 namespace App\Mail;
 
 use App\Models\NewsletterCampaign;
+use App\Support\NewsletterHtmlSanitizer;
+use App\Support\NewsletterMergeTags;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Mail\Mailables\Headers;
@@ -10,14 +12,32 @@ use Illuminate\Support\Str;
 
 class NewsletterPreviewMail extends CuciNowMailable
 {
+    public string $subjectLine;
+
+    public string $previewLine;
+
+    public string $htmlContent;
+
     public function __construct(
         public NewsletterCampaign $campaign,
         public string $previewRecipient,
-    ) {}
+        public ?string $previewName = null,
+    ) {
+        $mergeTags = new NewsletterMergeTags(
+            $this->previewName,
+            $this->previewRecipient,
+            rtrim((string) config('app.url'), '/'),
+        );
+        $this->subjectLine = $mergeTags->renderText($campaign->subject);
+        $this->previewLine = $mergeTags->renderText($campaign->preview_text ?: $campaign->subject);
+        $this->htmlContent = $mergeTags->renderHtml(
+            app(NewsletterHtmlSanitizer::class)->sanitize($campaign->content),
+        );
+    }
 
     public function envelope(): Envelope
     {
-        return $this->brandedEnvelope('[TEST] '.$this->campaign->subject, [
+        return $this->brandedEnvelope('[TEST] '.$this->subjectLine, [
             'category' => 'newsletter_preview',
         ]);
     }
