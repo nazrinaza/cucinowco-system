@@ -434,6 +434,14 @@ class EmailWorkflowTest extends TestCase
         $this->postJson('/resend/webhook', ['type' => 'email.opened', 'data' => []])->assertForbidden();
     }
 
+    public function test_resend_webhook_browser_visit_shows_a_safe_status_page(): void
+    {
+        $this->get('/resend/webhook')
+            ->assertOk()
+            ->assertSee('Webhook endpoint is ready.')
+            ->assertSee('Status: Ready to receive events');
+    }
+
     public function test_customer_email_templates_render_with_business_details(): void
     {
         $customer = Customer::create(['name' => 'Aina Rahman', 'phone' => '0111111111', 'email' => 'aina@example.com']);
