@@ -167,9 +167,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         checkboxes.forEach((checkbox) => checkbox.addEventListener('change', updateSelection));
         form.addEventListener('submit', (event) => {
-            if (checkboxes.some((checkbox) => checkbox.checked)) return;
-            event.preventDefault();
-            window.alert('Select at least one subscriber first.');
+            if (!checkboxes.some((checkbox) => checkbox.checked)) {
+                event.preventDefault();
+                window.alert('Select at least one subscriber first.');
+                return;
+            }
+
+            if (event.submitter?.matches('[data-subscriber-bulk-delete]') && !window.confirm('Delete the selected subscribers permanently?')) {
+                event.preventDefault();
+            }
         });
         updateSelection();
     });

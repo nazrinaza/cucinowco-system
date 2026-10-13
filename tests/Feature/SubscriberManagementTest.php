@@ -54,6 +54,26 @@ class SubscriberManagementTest extends TestCase
         $this->assertSame(1, Subscriber::where('email', 'existing@example.com')->count());
     }
 
+    public function test_admin_can_filter_and_bulk_delete_bounced_subscribers(): void
+    {
+        $admin = User::factory()->create(['is_active' => true]);
+        $bounced = Subscriber::create(['email' => 'bounced@example.com', 'status' => 'bounced', 'subscribed_at' => now()]);
+        $subscribed = Subscriber::create(['email' => 'active@example.com', 'status' => 'subscribed', 'subscribed_at' => now()]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.subscribers.index', ['status' => 'bounced']))
+            ->assertOk()
+            ->assertSee('bounced@example.com')
+            ->assertDontSee('active@example.com');
+
+        $this->actingAs($admin)->delete(route('admin.subscribers.bulk-destroy'), [
+            'subscriber_ids' => [$bounced->id],
+        ])->assertSessionHasNoErrors()->assertSessionHas('success');
+
+        $this->assertDatabaseMissing('subscribers', ['id' => $bounced->id]);
+        $this->assertDatabaseHas('subscribers', ['id' => $subscribed->id]);
+    }
+
     public function test_admin_can_import_subscribers_and_merge_segments(): void
     {
         $admin = User::factory()->create(['is_active' => true]);
