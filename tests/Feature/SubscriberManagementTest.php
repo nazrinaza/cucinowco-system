@@ -16,6 +16,44 @@ class SubscriberManagementTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_admin_can_manually_add_and_delete_a_subscriber(): void
+    {
+        $admin = User::factory()->create(['is_active' => true]);
+
+        $this->actingAs($admin)->post(route('admin.subscribers.store'), [
+            'name' => '  Aina Rahman  ',
+            'email' => 'AINA@example.com',
+            'phone' => '  +60 11-1234 5678  ',
+            'status' => 'subscribed',
+            'segment' => 'Corporate Clients',
+        ])->assertSessionHasNoErrors()->assertSessionHas('success');
+
+        $subscriber = Subscriber::where('email', 'aina@example.com')->firstOrFail();
+        $this->assertSame('Aina Rahman', $subscriber->name);
+        $this->assertSame('+60 11-1234 5678', $subscriber->phone);
+        $this->assertSame('manual', $subscriber->source);
+        $this->assertSame(['Corporate Clients'], $subscriber->segments);
+
+        $this->actingAs($admin)
+            ->delete(route('admin.subscribers.destroy', $subscriber))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseMissing('subscribers', ['id' => $subscriber->id]);
+    }
+
+    public function test_manual_subscriber_email_must_be_unique(): void
+    {
+        $admin = User::factory()->create(['is_active' => true]);
+        Subscriber::create(['email' => 'existing@example.com', 'status' => 'subscribed', 'subscribed_at' => now()]);
+
+        $this->actingAs($admin)->post(route('admin.subscribers.store'), [
+            'email' => 'EXISTING@example.com',
+            'status' => 'subscribed',
+        ])->assertSessionHasErrors('email');
+
+        $this->assertSame(1, Subscriber::where('email', 'existing@example.com')->count());
+    }
+
     public function test_admin_can_import_subscribers_and_merge_segments(): void
     {
         $admin = User::factory()->create(['is_active' => true]);

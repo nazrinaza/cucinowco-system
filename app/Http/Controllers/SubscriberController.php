@@ -44,6 +44,36 @@ class SubscriberController extends Controller
         return view('admin.subscribers.index', compact('subscribers', 'segments'));
     }
 
+    public function adminStore(Request $request, SubscriberSegments $subscriberSegments): RedirectResponse
+    {
+        $request->merge(['email' => Str::lower(trim((string) $request->input('email')))]);
+        $data = $request->validate([
+            'name' => ['nullable', 'string', 'max:120'],
+            'email' => ['required', 'email', 'max:160', Rule::unique('subscribers', 'email')],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'status' => ['required', Rule::in(['subscribed', 'unsubscribed'])],
+            'segment' => ['nullable', 'string', 'max:50', 'not_regex:/[|;,]/'],
+        ]);
+        $segments = $subscriberSegments->normalize($data['segment'] ?? null);
+
+        if (($data['segment'] ?? '') !== '' && $segments === []) {
+            return back()->withInput()->with('error', 'Enter a valid segment name.');
+        }
+
+        $subscriber = Subscriber::create([
+            'name' => Str::limit(Str::squish(strip_tags((string) ($data['name'] ?? ''))), 120, '') ?: null,
+            'email' => $data['email'],
+            'phone' => Str::limit(Str::squish(strip_tags((string) ($data['phone'] ?? ''))), 30, '') ?: null,
+            'status' => $data['status'],
+            'source' => 'manual',
+            'segments' => $segments,
+            'subscribed_at' => now(),
+            'unsubscribed_at' => $data['status'] === 'unsubscribed' ? now() : null,
+        ]);
+
+        return back()->with('success', "Subscriber {$subscriber->email} added.");
+    }
+
     public function import(Request $request, SubscriberSegments $subscriberSegments): RedirectResponse
     {
         $data = $request->validate([
@@ -200,6 +230,14 @@ class SubscriberController extends Controller
         });
 
         return back()->with('success', ucfirst($data['segment_action'])." segment ‘{$segment}’ for {$subscribers->count()} subscriber(s).");
+    }
+
+    public function destroy(Subscriber $subscriber): RedirectResponse
+    {
+        $email = $subscriber->email;
+        $subscriber->delete();
+
+        return back()->with('success', "Subscriber {$email} deleted.");
     }
 
     public function unsubscribe(Request $request, Subscriber $subscriber): View|Response

@@ -24,6 +24,19 @@
 
     <div class="subscriber-tools-grid">
         <section class="admin-card">
+            <div class="card-head"><div><p>Manual entry</p><h2>Add a subscriber</h2></div></div>
+            <form class="admin-form" method="post" action="{{ route('admin.subscribers.store') }}">
+                @csrf
+                <label><span>Name</span><input name="name" value="{{ old('name') }}" maxlength="120" autocomplete="name" placeholder="Subscriber name"></label>
+                <label><span>Email</span><input type="email" name="email" value="{{ old('email') }}" maxlength="160" autocomplete="email" placeholder="name@example.com" required></label>
+                <label><span>Phone</span><input name="phone" value="{{ old('phone') }}" maxlength="30" autocomplete="tel" placeholder="+60 11-1234 5678"></label>
+                <label><span>Status</span><select name="status" required><option value="subscribed" @selected(old('status', 'subscribed') === 'subscribed')>Subscribed</option><option value="unsubscribed" @selected(old('status') === 'unsubscribed')>Unsubscribed</option></select></label>
+                <label><span>Segment</span><input name="segment" value="{{ old('segment') }}" list="subscriber-segments" maxlength="50" placeholder="e.g. Corporate"></label>
+                <button class="admin-button" type="submit">Add subscriber</button>
+            </form>
+        </section>
+
+        <section class="admin-card">
             <div class="card-head"><div><p>Import</p><h2>Add or update subscribers</h2></div></div>
             <form class="admin-form" method="post" action="{{ route('admin.subscribers.import') }}" enctype="multipart/form-data">
                 @csrf
@@ -63,7 +76,7 @@
             </div>
             <div class="table-wrap">
                 <table>
-                    <thead><tr><th><input type="checkbox" data-select-all-subscribers aria-label="Select all subscribers on this page"></th><th>Subscriber</th><th>Segments</th><th>Status</th><th>Source</th><th>Joined</th></tr></thead>
+                    <thead><tr><th><input type="checkbox" data-select-all-subscribers aria-label="Select all subscribers on this page"></th><th>Subscriber</th><th>Segments</th><th>Status</th><th>Source</th><th>Joined</th><th>Action</th></tr></thead>
                     <tbody>
                     @forelse($subscribers as $subscriber)
                         <tr>
@@ -73,15 +86,20 @@
                             <td><span class="status status-{{ $subscriber->status }}">{{ ucfirst($subscriber->status) }}</span></td>
                             <td>{{ str($subscriber->source)->replace('_', ' ')->title() }}</td>
                             <td>{{ $subscriber->subscribed_at?->format('d M Y') }}</td>
+                            <td><button class="subscriber-delete-button" type="submit" form="delete-subscriber-{{ $subscriber->id }}" onclick="return confirm('Delete this subscriber permanently?')">Delete</button></td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="empty-cell">No subscribers match this view.</td></tr>
+                        <tr><td colspan="7" class="empty-cell">No subscribers match this view.</td></tr>
                     @endforelse
                     </tbody>
                 </table>
             </div>
         </section>
     </form>
+
+    @foreach($subscribers as $subscriber)
+        <form id="delete-subscriber-{{ $subscriber->id }}" method="post" action="{{ route('admin.subscribers.destroy', $subscriber) }}">@csrf @method('delete')</form>
+    @endforeach
 
     <div class="pagination-wrap">{{ $subscribers->links() }}</div>
 </x-layouts.admin>
