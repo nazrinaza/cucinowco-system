@@ -68,6 +68,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', EnsureActiveUser::cl
         Route::post('/subscribers/import', [SubscriberController::class, 'import'])->name('subscribers.import');
         Route::get('/subscribers/export', [SubscriberController::class, 'export'])->name('subscribers.export');
         Route::patch('/subscribers/segments', [SubscriberController::class, 'updateSegments'])->name('subscribers.segments');
+        Route::delete('/subscribers', [SubscriberController::class, 'bulkDestroy'])->name('subscribers.bulk-destroy');
         Route::delete('/subscribers/{subscriber}', [SubscriberController::class, 'destroy'])->name('subscribers.destroy');
         Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
         Route::post('/campaigns', [CampaignController::class, 'store'])->name('campaigns.store');

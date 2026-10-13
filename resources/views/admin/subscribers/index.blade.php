@@ -9,6 +9,7 @@
             <option value="">All statuses</option>
             <option value="subscribed" @selected(request('status') === 'subscribed')>Subscribed</option>
             <option value="unsubscribed" @selected(request('status') === 'unsubscribed')>Unsubscribed</option>
+            <option value="bounced" @selected(request('status') === 'bounced')>Bounced</option>
         </select>
         <select name="segment">
             <option value="">All segments</option>
@@ -73,6 +74,7 @@
                     @foreach($segments as $segment)<option value="{{ $segment }}">@endforeach
                 </datalist>
                 <button class="admin-button" type="submit">Apply to selected</button>
+                <button class="subscriber-bulk-delete" type="submit" formaction="{{ route('admin.subscribers.bulk-destroy') }}" formmethod="post" name="_method" value="delete" formnovalidate data-subscriber-bulk-delete>Delete selected</button>
             </div>
             <div class="table-wrap">
                 <table>

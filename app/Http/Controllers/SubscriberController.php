@@ -240,6 +240,17 @@ class SubscriberController extends Controller
         return back()->with('success', "Subscriber {$email} deleted.");
     }
 
+    public function bulkDestroy(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'subscriber_ids' => ['required', 'array', 'min:1', 'max:500'],
+            'subscriber_ids.*' => ['required', 'integer', 'distinct', Rule::exists('subscribers', 'id')],
+        ]);
+        $deleted = Subscriber::whereKey($data['subscriber_ids'])->delete();
+
+        return back()->with('success', "Deleted {$deleted} subscriber(s).");
+    }
+
     public function unsubscribe(Request $request, Subscriber $subscriber): View|Response
     {
         $subscriber->update([
@@ -265,7 +276,7 @@ class SubscriberController extends Controller
                 });
             })
             ->when(
-                in_array($request->string('status')->toString(), ['subscribed', 'unsubscribed'], true),
+                in_array($request->string('status')->toString(), ['subscribed', 'unsubscribed', 'bounced'], true),
                 fn (Builder $query): Builder => $query->where('status', $request->string('status')->toString()),
             );
 
