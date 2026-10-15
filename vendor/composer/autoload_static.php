@@ -515,6 +515,7 @@ class ComposerStaticInitee521a8475827814193025509abf0409
         'App\\Http\\Controllers\\Admin\\UserController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/UserController.php',
         'App\\Http\\Controllers\\AuthController' => __DIR__ . '/../..' . '/app/Http/Controllers/AuthController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
+        'App\\Http\\Controllers\\ServicePageController' => __DIR__ . '/../..' . '/app/Http/Controllers/ServicePageController.php',
         'App\\Http\\Controllers\\SubscriberController' => __DIR__ . '/../..' . '/app/Http/Controllers/SubscriberController.php',
         'App\\Http\\Middleware\\EnsureActiveUser' => __DIR__ . '/../..' . '/app/Http/Middleware/EnsureActiveUser.php',
         'App\\Jobs\\SendNewsletterCampaign' => __DIR__ . '/../..' . '/app/Jobs/SendNewsletterCampaign.php',
