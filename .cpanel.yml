@@ -4,6 +4,7 @@ deployment:
     - '/usr/bin/find storage bootstrap/cache -type d -exec /bin/chmod 775 {} \;'
     - '/usr/bin/find storage bootstrap/cache -type f ! -name .gitignore -exec /bin/chmod 664 {} \;'
     - '/opt/alt/php83/usr/bin/php artisan optimize:clear'
+    - '/opt/alt/php83/usr/bin/php scripts/cpanel-sync-public.php'
     - '/bin/grep -Eq "^APP_KEY=[[:space:]]*$" .env && /opt/alt/php83/usr/bin/php artisan key:generate --force || /bin/true'
     - '/opt/alt/php83/usr/bin/php artisan migrate --force'
     - '/opt/alt/php83/usr/bin/php artisan db:seed --force'
