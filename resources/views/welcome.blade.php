@@ -1,10 +1,71 @@
-<x-layouts.public>
+@php
+    $faqs = [
+        ['Which areas do you cover?','Our launch focus is Klang Valley, starting from our Sungai Buloh operating base. Larger or outstation projects can be reviewed case by case.'],
+        ['Is the site visit really free?','Yes. There is no charge and no obligation for a confirmed site assessment within our service coverage. For locations outside Selangor, a site visit fee may apply depending on the customer’s location. We use the visit to understand access, site condition and the correct cleaning scope.'],
+        ['Do you provide cleaning equipment and chemicals?','Yes, the required method, equipment and materials are confirmed for each scope. Tell us about sensitive surfaces, pets or site restrictions.'],
+        ['Can I arrange recurring office cleaning?','Yes. We provide dedicated daily cleaners stationed at your office to handle regular cleaning and maintenance. The service is arranged on a monthly basis, with payment billed monthly. Custom cleaning schedules can also be discussed based on your office requirements.'],
+        ['Can you clean before or after an event?','Yes. CuciNow offers pre-event preparation and post-event hall or venue cleaning, subject to access and timing.'],
+        ['How early should I book?','Two to five days ahead is recommended. Urgent requests are reviewed based on team availability.'],
+        ['How do payments work?','Your confirmed quotation or invoice will show the accepted payment methods and due date. Online FPX, e-wallet/card, bank transfer and cash can be enabled by the business. Payment by cheque is also accepted, payable to THURSINA CLEANING & SERVICES.'],
+        ['Is SST included?','SST is shown only when legally applicable and the business is registered to charge it. Any applicable tax appears clearly on the final invoice.'],
+    ];
+    $homeUrl = route('home');
+    $homeSchema = [
+        '@context' => 'https://schema.org',
+        '@graph' => [
+            [
+                '@type' => ['LocalBusiness', 'Organization'],
+                '@id' => $homeUrl.'#business',
+                'name' => 'CuciNow.co',
+                'legalName' => config('company.legal_name'),
+                'identifier' => config('company.registration_number'),
+                'url' => $homeUrl,
+                'logo' => asset('images/cucinow-logo.png'),
+                'image' => asset('images/og-cucinow.png'),
+                'telephone' => '+60 11-1242 8593',
+                'email' => config('company.email'),
+                'foundingDate' => (string) config('company.established'),
+                'address' => [
+                    '@type' => 'PostalAddress',
+                    'streetAddress' => 'No.48A, Jalan BRP 1/2 Bukit Rahman Putra',
+                    'addressLocality' => 'Sungai Buloh',
+                    'addressRegion' => 'Selangor',
+                    'addressCountry' => 'MY',
+                ],
+                'areaServed' => [
+                    ['@type' => 'AdministrativeArea', 'name' => 'Klang Valley'],
+                    ['@type' => 'State', 'name' => 'Selangor'],
+                    ['@type' => 'City', 'name' => 'Kuala Lumpur'],
+                ],
+            ],
+            [
+                '@type' => 'WebSite',
+                '@id' => $homeUrl.'#website',
+                'url' => $homeUrl,
+                'name' => 'CuciNow.co',
+                'publisher' => ['@id' => $homeUrl.'#business'],
+                'inLanguage' => 'en-MY',
+            ],
+            [
+                '@type' => 'FAQPage',
+                '@id' => $homeUrl.'#faq',
+                'mainEntity' => collect($faqs)->map(fn ($faq) => [
+                    '@type' => 'Question',
+                    'name' => $faq[0],
+                    'acceptedAnswer' => ['@type' => 'Answer', 'text' => $faq[1]],
+                ])->all(),
+            ],
+        ],
+    ];
+@endphp
+
+<x-layouts.public :canonical="$homeUrl" :structured-data="$homeSchema" :preload-image="asset('images/hero-cleaning.webp')">
     <section class="hero">
         <div class="site-shell hero-grid">
             <div class="hero-copy">
-                <p class="eyebrow"><span></span> FREE for Klang Valley</p>
-                <h1>Claim your <em>FREE</em> site visit</h1>
-                <h3 class="hero-ms">&mdash; No guesswork, just results.</h3>
+                <p class="eyebrow"><span></span> Commercial cleaning &middot; Klang Valley</p>
+                <h1>Commercial cleaning for offices, halls &amp; large spaces.</h1>
+                <h2 class="hero-ms">Claim your <em>FREE</em> site visit &mdash; no guesswork, just results.</h2>
                 <p class="hero-lead">Every space has different needs. That's why our team visits first, assesses the job, and arrives fully equipped with the right machinery and cleaning materials for your exact site.</p>
                 <div class="hero-actions">
                     <a href="#site-visit" class="button">Book my free site visit <small>No obligation &middot; Clear quotation</small></a>
@@ -27,20 +88,20 @@
     <section class="trust-strip" aria-label="Service principles"><div class="site-shell"><span>Trained operations</span><span>Professional High-Powered Machinery</span><span>Scope confirmed upfront</span><span>Zero-defect mindset</span></div></section>
 
     @php($spaceTypes = [
-        ['01','Corporate Office','Workstations, meeting rooms and shared facilities.'],
-        ['02','Grand Hall','Large-capacity spaces that need planned teams and machinery.'],
-        ['03','Hotel / Ballroom','Guest-facing spaces where timing and presentation matter.'],
-        ['04','Event Place','Pre-event preparation or a thorough post-event reset.'],
-        ['05','Factory / Warehouse','Operational areas with access, safety and surface considerations.'],
-        ['06','Universities','Academic, administrative and shared campus spaces.'],
+        ['01','Corporate Office','Workstations, meeting rooms and shared facilities.','office-cleaning'],
+        ['02','Grand Hall','Large-capacity spaces that need planned teams and machinery.','grand-hall-event-cleaning'],
+        ['03','Hotel / Ballroom','Guest-facing spaces where timing and presentation matter.','hotel-ballroom-cleaning'],
+        ['04','Event Place','Pre-event preparation or a thorough post-event reset.','grand-hall-event-cleaning'],
+        ['05','Factory / Warehouse','Operational areas with access, safety and surface considerations.','factory-warehouse-cleaning'],
+        ['06','Universities','Academic, administrative and shared campus spaces.','university-cleaning'],
     ])
     @php($cleanTypes = [
-        ['01','Deep Clean','A detailed reset for built-up dust, grime and overlooked areas.'],
-        ['02','Tiles Cleaning','Targeted care for tiled surfaces, grout lines and embedded dirt.'],
-        ['03','Carpet Cleaning','Machine-assisted care for carpet fibres, embedded dirt and visible wear.'],
-        ['04','Window Cleaning','Clearer glass and frames, planned around access and working height.'],
-        ['05','General Cleaning','Practical upkeep for everyday dust, surfaces and high-use areas.'],
-        ['06','Disinfect and Fragrance','Hygiene-focused treatment followed by a clean, fresh finish.'],
+        ['01','Deep Clean','A detailed reset for built-up dust, grime and overlooked areas.','deep-cleaning'],
+        ['02','Tiles Cleaning','Targeted care for tiled surfaces, grout lines and embedded dirt.','tile-floor-cleaning'],
+        ['03','Carpet Cleaning','Machine-assisted care for carpet fibres, embedded dirt and visible wear.','carpet-cleaning'],
+        ['04','Window Cleaning','Clearer glass and frames, planned around access and working height.','window-cleaning'],
+        ['05','General Cleaning','Practical upkeep for everyday dust, surfaces and high-use areas.','office-cleaning'],
+        ['06','Disinfect and Fragrance','Hygiene-focused treatment followed by a clean, fresh finish.','disinfection-fragrance'],
     ])
     <section id="scope-guide" class="scope-guide section-pad">
         <div class="site-shell">
@@ -52,16 +113,16 @@
                 <section class="scope-panel space-panel" aria-labelledby="space-type-heading">
                     <header class="scope-panel-head"><div><span>01</span><p>Choose the environment</p></div><h3 id="space-type-heading">Space Type</h3></header>
                     <div class="space-type-grid">
-                        @foreach($spaceTypes as [$number,$name,$description])
-                            <article class="space-type-card"><span>{{ $number }}</span><h4>{{ $name }}</h4><p>{{ $description }}</p></article>
+                        @foreach($spaceTypes as [$number,$name,$description,$service])
+                            <a href="{{ route('services.show', $service) }}" class="space-type-card"><span>{{ $number }}</span><h4>{{ $name }}</h4><p>{{ $description }}</p><b>Explore service &rarr;</b></a>
                         @endforeach
                     </div>
                 </section>
                 <section class="scope-panel clean-panel" aria-labelledby="clean-type-heading">
                     <header class="scope-panel-head"><div><span>02</span><p>Define the result</p></div><h3 id="clean-type-heading">Clean Type</h3></header>
                     <div class="clean-type-list">
-                        @foreach($cleanTypes as [$number,$name,$description])
-                            <article><span>{{ $number }}</span><div><h4>{{ $name }}</h4><p>{{ $description }}</p></div></article>
+                        @foreach($cleanTypes as [$number,$name,$description,$service])
+                            <a href="{{ route('services.show', $service) }}"><span>{{ $number }}</span><div><h4>{{ $name }}</h4><p>{{ $description }}</p></div><b aria-hidden="true">&rarr;</b></a>
                         @endforeach
                     </div>
                 </section>
@@ -86,7 +147,7 @@
 
     <section id="about" class="section-pad about-section">
         <div class="site-shell about-grid">
-            <div class="about-panel"><p class="eyebrow"><span></span> Built on experience</p><h2>Built on legacy,<br>now venturing digitally.</h2><p><strong>CuciNow.co was born from the experience of Thursina Land &amp; Services.</strong> With years of hands-on work across land, building maintenance and specialist cleaning, Thursina has served both government and private-sector projects since establishment in 2000.</p><p>Building on that foundation, CuciNow.co is our new digital-first brand — bringing that same operational experience into a clearer, more modern way to book and manage cleaning services for offices, halls and event spaces. Expect ongoing updates and content as we grow this space online.</p><a href="#site-visit" class="text-link">Book a free site visit <span>&rarr;</span></a></div>
+            <div class="about-panel"><p class="eyebrow"><span></span> Built on experience</p><h2>Built on legacy,<br>now venturing digitally.</h2><p><strong>CuciNow.co was born from the experience of Thursina Cleaning &amp; Services.</strong> With years of hands-on work across land, building maintenance and specialist cleaning, Thursina has served both government and private-sector projects since establishment in 2000.</p><p>Building on that foundation, CuciNow.co is our new digital-first brand — bringing that same operational experience into a clearer, more modern way to book and manage cleaning services for offices, halls and event spaces. Expect ongoing updates and content as we grow this space online.</p><a href="#site-visit" class="text-link">Book a free site visit <span>&rarr;</span></a></div>
             <div class="principle-list">
                 <article><span>01</span><div><h3>Clear scope</h3><p>We confirm what is included, the working area and practical site conditions before final pricing.</p></div></article>
                 <article><span>02</span><div><h3>Fit-for-site methods</h3><p>Equipment, chemicals and manpower are matched to the service instead of using one approach everywhere.</p></div></article>
@@ -108,7 +169,7 @@
                 @foreach([false,true] as $duplicate)
                     <div class="experience-logo-set" @if($duplicate) aria-hidden="true" @endif>
                         @foreach($clients as [$file,$client])
-                            <figure class="experience-logo"><img src="{{ asset('images/clients/'.$file) }}" alt="{{ $duplicate ? '' : $client.' logo' }}" decoding="async"></figure>
+                            <figure class="experience-logo"><img src="{{ asset('images/clients/'.$file) }}" alt="{{ $duplicate ? '' : $client.' logo' }}" loading="lazy" decoding="async" width="240" height="135"></figure>
                         @endforeach
                     </div>
                 @endforeach
@@ -118,16 +179,7 @@
     </section>
 
     <section id="faq" class="section-pad faq-section"><div class="site-shell faq-grid"><div><p class="eyebrow"><span></span> FAQ</p><h2>Before you book.</h2><p>Still unsure? Message us on WhatsApp and describe the space.</p></div><div class="accordion-list" data-accordion>
-        @foreach ([
-            ['Which areas do you cover?','Our launch focus is Klang Valley, starting from our Sungai Buloh operating base. Larger or outstation projects can be reviewed case by case.'],
-            ['Is the site visit really free?','Yes. There is no charge and no obligation for a confirmed site assessment within our service coverage. For locations outside Selangor, a site visit fee may apply depending on the customer’s location. We use the visit to understand access, site condition and the correct cleaning scope.'],
-            ['Do you provide cleaning equipment and chemicals?','Yes, the required method, equipment and materials are confirmed for each scope. Tell us about sensitive surfaces, pets or site restrictions.'],
-            ['Can I arrange recurring office cleaning?','Yes. We provide dedicated daily cleaners stationed at your office to handle regular cleaning and maintenance. The service is arranged on a monthly basis, with payment billed monthly. Custom cleaning schedules can also be discussed based on your office requirements.'],
-            ['Can you clean before or after an event?','Yes. CuciNow offers pre-event preparation and post-event hall or venue cleaning, subject to access and timing.'],
-            ['How early should I book?','Two to five days ahead is recommended. Urgent requests are reviewed based on team availability.'],
-            ['How do payments work?','Your confirmed quotation or invoice will show the accepted payment methods and due date. Online FPX, e-wallet/card, bank transfer and cash can be enabled by the business. Payment by cheque is also accepted, payable to THURSINA CLEANING & SERVICES.'],
-            ['Is SST included?','SST is shown only when legally applicable and the business is registered to charge it. Any applicable tax appears clearly on the final invoice.'],
-        ] as [$question,$answer])<details name="cucinow-faq"><summary>{{ $question }}<span>+</span></summary><p>{{ $answer }}</p></details>@endforeach
+        @foreach ($faqs as [$question,$answer])<details name="cucinow-faq"><summary>{{ $question }}<span>+</span></summary><p>{{ $answer }}</p></details>@endforeach
     </div></div></section>
 
     <section class="final-cta"><div class="site-shell final-cta-inner"><div><p>Ready when your space is.</p><h2>Clean. Starts. Now.</h2></div><a href="#site-visit" class="button button-dark">Book my free site visit <small>No obligation &middot; Clear quotation</small></a></div></section>

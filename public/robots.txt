@@ -1,2 +1,6 @@
 User-agent: *
-Disallow:
+Disallow: /admin/
+Disallow: /newsletter/
+Disallow: /resend/
+
+Sitemap: https://cucinow.co/sitemap.xml
