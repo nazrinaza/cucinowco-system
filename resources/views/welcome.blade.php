@@ -114,7 +114,7 @@
                     <header class="scope-panel-head"><div><span>01</span><p>Choose the environment</p></div><h3 id="space-type-heading">Space Type</h3></header>
                     <div class="space-type-grid">
                         @foreach($spaceTypes as [$number,$name,$description,$service])
-                            <a href="{{ route('services.show', $service) }}" class="space-type-card"><span>{{ $number }}</span><h4>{{ $name }}</h4><p>{{ $description }}</p><b>Explore service &rarr;</b></a>
+                            <a href="{{ url('/services/'.$service) }}" class="space-type-card"><span>{{ $number }}</span><h4>{{ $name }}</h4><p>{{ $description }}</p><b>Explore service &rarr;</b></a>
                         @endforeach
                     </div>
                 </section>
@@ -122,7 +122,7 @@
                     <header class="scope-panel-head"><div><span>02</span><p>Define the result</p></div><h3 id="clean-type-heading">Clean Type</h3></header>
                     <div class="clean-type-list">
                         @foreach($cleanTypes as [$number,$name,$description,$service])
-                            <a href="{{ route('services.show', $service) }}"><span>{{ $number }}</span><div><h4>{{ $name }}</h4><p>{{ $description }}</p></div><b aria-hidden="true">&rarr;</b></a>
+                            <a href="{{ url('/services/'.$service) }}"><span>{{ $number }}</span><div><h4>{{ $name }}</h4><p>{{ $description }}</p></div><b aria-hidden="true">&rarr;</b></a>
                         @endforeach
                     </div>
                 </section>
