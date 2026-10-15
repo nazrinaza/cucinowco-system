@@ -27,6 +27,7 @@ For the primary domain, set the same document root in **Domains** if cPanel allo
 Using **File Manager**, copy `.env.example` to `.env` in the application root. Update at least:
 
 - `APP_ENV=production`, `APP_DEBUG=false`, and `APP_URL=https://cucinow.co`
+- `CPANEL_PUBLIC_ROOT=/home2/shahjaha/public_html/cucinow.co` when the domain uses a locked document root outside the repository
 - `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD`
 - `ADMIN_EMAIL` and a strong, unique `ADMIN_PASSWORD`
 - company phone, email, WhatsApp, address, and outgoing mail settings
@@ -53,6 +54,8 @@ Keep `SST_ENABLED=false` until Thursina's current Service Tax registration is co
 ## 4. Deploy
 
 Open the repository in cPanel, choose **Update from Remote**, then **Deploy HEAD Commit**. The deployment tasks apply database changes, create the admin account, prepare storage, and optimize the app.
+
+For the production checkout, deployment also synchronizes compiled CSS, JavaScript and other public assets into the separate `CPANEL_PUBLIC_ROOT`. The sync copies the Vite manifest last so visitors never receive references to partially copied assets. It does not replace the live `index.php`, `.htaccess` or uploaded storage.
 
 ## 5. Add the cron job
 
