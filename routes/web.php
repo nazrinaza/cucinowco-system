@@ -11,11 +11,25 @@ use App\Http\Controllers\Admin\SiteVisitController;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ServicePageController;
 use App\Http\Controllers\SubscriberController;
 use App\Http\Middleware\EnsureActiveUser;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
+Route::get('/services/{service}', [ServicePageController::class, 'show'])
+    ->whereIn('service', array_keys(config('cleaning-services')))
+    ->name('services.show');
+Route::get('/sitemap.xml', function () {
+    $urls = collect(config('cleaning-services'))
+        ->keys()
+        ->map(fn (string $service) => route('services.show', $service))
+        ->prepend(route('home'));
+
+    return response()
+        ->view('sitemap', compact('urls'))
+        ->header('Content-Type', 'application/xml; charset=UTF-8');
+})->name('sitemap');
 Route::view('/resend/webhook', 'resend-webhook-status')->name('resend.webhook.status');
 Route::post('/newsletter', [SubscriberController::class, 'store'])->middleware('throttle:5,1')->name('newsletter.store');
 Route::match(['get', 'post'], '/newsletter/unsubscribe/{subscriber}', [SubscriberController::class, 'unsubscribe'])
