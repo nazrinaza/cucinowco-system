@@ -87,6 +87,7 @@
                     <span class="status status-{{ $booking->status }}">{{ str($booking->status)->replace('_',' ')->title() }}</span>
                     <h2>{{ $booking->customer->name }}</h2>
                     <p>{{ $booking->service?->name ?? 'Cleaning service' }}</p>
+                    <x-lead-source :label="$booking->referral_label" />
                     <small>{{ $booking->service_address }}</small>
                     @if($booking->quote?->siteVisit)
                         <a href="{{ route('admin.site-visits.show', $booking->quote->siteVisit) }}" class="booking-photo-link">Photos: {{ $booking->quote->siteVisit->photos->where('phase', 'before')->count() }} before · {{ $booking->quote->siteVisit->photos->where('phase', 'after')->count() }} after</a>

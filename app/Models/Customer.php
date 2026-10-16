@@ -28,4 +28,13 @@ class Customer extends Model
     {
         return $this->hasMany(Invoice::class);
     }
+
+    public function getReferralLabelAttribute(): string
+    {
+        $siteVisit = $this->relationLoaded('siteVisitRequests')
+            ? $this->siteVisitRequests->sortByDesc('created_at')->first()
+            : $this->siteVisitRequests()->with('referralSource')->latest()->first();
+
+        return $siteVisit?->referral_label ?? 'Direct';
+    }
 }

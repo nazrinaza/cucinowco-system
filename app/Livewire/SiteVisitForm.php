@@ -5,7 +5,9 @@ namespace App\Livewire;
 use App\Mail\NewSiteVisitNotificationMail;
 use App\Mail\SiteVisitConfirmationMail;
 use App\Models\Customer;
+use App\Models\ReferralSource;
 use App\Models\SiteVisitRequest;
+use App\Support\ClientIpResolver;
 use App\Support\ReferenceNumber;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -60,7 +62,13 @@ class SiteVisitForm extends Component
             'website' => ['prohibited'],
         ]);
 
-        $siteVisit = DB::transaction(function () use ($validated) {
+        $referral = ReferralSource::query()
+            ->whereKey(session('cucinow.referral_source_id'))
+            ->where('is_active', true)
+            ->first();
+        $clientIp = app(ClientIpResolver::class)->resolve(request());
+
+        $siteVisit = DB::transaction(function () use ($validated, $referral, $clientIp) {
             $customer = Customer::query()->firstOrNew(['phone' => $validated['phone']]);
             $customer->fill([
                 'name' => $validated['name'],
@@ -70,20 +78,28 @@ class SiteVisitForm extends Component
 
             $this->reference = ReferenceNumber::make('SV', SiteVisitRequest::class, 'reference_number');
 
-            return SiteVisitRequest::create([
+            $siteVisit = SiteVisitRequest::create([
                 'reference_number' => $this->reference,
                 'customer_id' => $customer->id,
                 'clean_types' => array_values($validated['cleanTypes']),
                 'source' => 'website',
+                'referral_source_id' => $referral?->id,
+                'referral_code' => $referral?->code ?? 'direct',
+                'landing_url' => session('cucinow.referral_landing_url'),
+                'referral_landed_at' => session('cucinow.referral_landed_at'),
+                'client_ip' => $clientIp,
                 'status' => 'new',
                 'space_type' => $validated['spaceType'],
                 'preferred_date' => $validated['preferredDate'],
                 'preferred_time_slot' => $validated['preferredTimeSlot'],
                 'site_address' => '',
             ]);
+            $referral?->increment('lead_count');
+
+            return $siteVisit;
         });
 
-        $siteVisit->load(['customer', 'service']);
+        $siteVisit->load(['customer', 'service', 'referralSource']);
 
         if ($siteVisit->customer->email) {
             Mail::to($siteVisit->customer->email, $siteVisit->customer->name)

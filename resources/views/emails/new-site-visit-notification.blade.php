@@ -8,6 +8,7 @@
     <table role="presentation" width="100%" cellspacing="0" cellpadding="8" style="margin-bottom:24px;border-collapse:collapse;font-size:13px">
         <tr><td style="color:#73777d;border-bottom:1px solid #dedbd2">Space / clean type</td><td style="border-bottom:1px solid #dedbd2"><strong>{{ $siteVisit->space_label }}<br>{{ $siteVisit->clean_types_label }}</strong></td></tr>
         <tr><td style="color:#73777d;border-bottom:1px solid #dedbd2">Preferred</td><td style="border-bottom:1px solid #dedbd2">{{ $siteVisit->preferred_date?->format('d M Y') }} &middot; {{ str($siteVisit->preferred_time_slot)->replace('_', ' ')->title() }}</td></tr>
+        <tr><td style="color:#73777d;border-bottom:1px solid #dedbd2">Lead source</td><td style="border-bottom:1px solid #dedbd2">{{ $siteVisit->referral_label }} ({{ $siteVisit->referral_code ?: 'direct' }})</td></tr>
         <tr><td style="color:#73777d;border-bottom:1px solid #dedbd2">Contact</td><td style="border-bottom:1px solid #dedbd2">{{ $siteVisit->customer->phone }}<br>{{ $siteVisit->customer->email }}</td></tr>
         <tr><td style="color:#73777d">Location</td><td>{{ $siteVisit->site_address ?: 'To be collected when confirming the visit.' }} {{ $siteVisit->postcode }}</td></tr>
     </table>

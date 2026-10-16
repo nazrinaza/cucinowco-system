@@ -25,8 +25,8 @@ class DashboardController extends Controller
             'subscribers' => Subscriber::where('status', 'subscribed')->count(),
         ];
 
-        $recentQuotes = Quote::with('customer')->latest()->limit(6)->get();
-        $upcomingBookings = Booking::with(['customer', 'service', 'staff'])->where('scheduled_start', '>=', now())->orderBy('scheduled_start')->limit(6)->get();
+        $recentQuotes = Quote::with(['customer', 'siteVisit.referralSource'])->latest()->limit(6)->get();
+        $upcomingBookings = Booking::with(['customer', 'service', 'staff', 'quote.siteVisit.referralSource'])->where('scheduled_start', '>=', now())->orderBy('scheduled_start')->limit(6)->get();
 
         return view('admin.dashboard', compact('metrics', 'recentQuotes', 'upcomingBookings'));
     }

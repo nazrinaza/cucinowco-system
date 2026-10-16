@@ -59,4 +59,9 @@ class Invoice extends Model
     {
         return $this->belongsTo(User::class, 'sent_by_user_id');
     }
+
+    public function getReferralLabelAttribute(): string
+    {
+        return $this->quote?->referral_label ?? 'Direct';
+    }
 }

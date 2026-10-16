@@ -17,12 +17,29 @@ class SiteVisitRequest extends Model
             'preferred_date' => 'date',
             'contacted_at' => 'datetime',
             'completed_at' => 'datetime',
+            'referral_landed_at' => 'datetime',
         ];
     }
 
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function referralSource(): BelongsTo
+    {
+        return $this->belongsTo(ReferralSource::class);
+    }
+
+    public function getReferralLabelAttribute(): string
+    {
+        if ($this->referral_code === 'direct' || blank($this->referral_code)) {
+            return 'Direct';
+        }
+
+        return $this->referralSource
+            ? $this->referralSource->name.' · '.str($this->referralSource->channel)->replace('_', ' ')->title()
+            : str($this->referral_code)->replace(['-', '_'], ' ')->title();
     }
 
     public function getCleanTypesLabelAttribute(): string

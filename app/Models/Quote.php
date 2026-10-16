@@ -46,6 +46,11 @@ class Quote extends Model
         return $this->hasOne(SiteVisitRequest::class);
     }
 
+    public function getReferralLabelAttribute(): string
+    {
+        return $this->siteVisit?->referral_label ?? 'Direct';
+    }
+
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by_user_id');

@@ -3,13 +3,13 @@
 namespace Tests\Feature;
 
 use App\Livewire\SiteVisitForm;
-use App\Models\Service;
-use App\Models\Customer;
-use App\Models\SiteVisitRequest;
-use App\Mail\SiteVisitConfirmationMail;
 use App\Mail\NewSiteVisitNotificationMail;
-use Illuminate\Support\Facades\Mail;
+use App\Mail\SiteVisitConfirmationMail;
+use App\Models\Customer;
+use App\Models\Service;
+use App\Models\SiteVisitRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -47,7 +47,7 @@ class SiteVisitFormTest extends TestCase
         ]);
         $this->assertDatabaseHas('site_visit_requests', [
             'service_id' => null, 'source' => 'website', 'status' => 'new',
-            'space_type' => 'office', 'site_address' => '',
+            'space_type' => 'office', 'site_address' => '', 'referral_code' => 'direct',
         ]);
         $this->assertDatabaseCount('quotes', 0);
         $visit = SiteVisitRequest::firstOrFail();

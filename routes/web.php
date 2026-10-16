@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\QuoteController;
+use App\Http\Controllers\Admin\ReferralSourceController;
 use App\Http\Controllers\Admin\SiteVisitController;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\UserController;
@@ -92,6 +93,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', EnsureActiveUser::cl
         Route::patch('/campaigns/{campaign}', [CampaignController::class, 'update'])->name('campaigns.update');
         Route::post('/campaigns/{campaign}/duplicate', [CampaignController::class, 'duplicate'])->name('campaigns.duplicate');
         Route::post('/campaigns/{campaign}/send', [CampaignController::class, 'send'])->name('campaigns.send');
+        Route::get('/referrals', [ReferralSourceController::class, 'index'])->name('referrals.index');
+        Route::post('/referrals', [ReferralSourceController::class, 'store'])->name('referrals.store');
+        Route::patch('/referrals/{referral}', [ReferralSourceController::class, 'update'])->name('referrals.update');
     });
 
     Route::middleware('can:manage-users')->group(function () {

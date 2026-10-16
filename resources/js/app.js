@@ -1,4 +1,5 @@
 import { Calendar } from 'fullcalendar';
+import QRCode from 'qrcode';
 import '../css/site-visit-form.css';
 import dayGridPlugin from 'fullcalendar/daygrid';
 import classicThemePlugin from 'fullcalendar/themes/classic';
@@ -7,6 +8,57 @@ import 'fullcalendar/themes/classic/theme.css';
 import 'fullcalendar/themes/classic/palette.css';
 
 document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-referral-qr]').forEach(async (card) => {
+        const canvas = card.querySelector('canvas');
+        const loading = card.querySelector('[data-qr-loading]');
+        const download = card.querySelector('[data-download-referral]');
+        const copy = card.querySelector('[data-copy-referral]');
+        const url = card.dataset.referralUrl;
+
+        if (!canvas || !url) return;
+
+        try {
+            await QRCode.toCanvas(canvas, url, {
+                width: 720,
+                margin: 2,
+                errorCorrectionLevel: 'H',
+                color: { dark: '#2d3036ff', light: '#ffffffff' },
+            });
+
+            const context = canvas.getContext('2d');
+            const size = 168;
+            const position = (canvas.width - size) / 2;
+            context.fillStyle = '#ffffff';
+            context.beginPath();
+            context.roundRect(position - 9, position - 9, size + 18, size + 18, 28);
+            context.fill();
+            context.strokeStyle = '#f5b800';
+            context.lineWidth = 7;
+            context.stroke();
+
+            const logo = new Image();
+            logo.src = card.dataset.referralLogo;
+            await logo.decode();
+            context.drawImage(logo, position, position, size, size);
+
+            if (download) download.href = canvas.toDataURL('image/png');
+            if (loading) loading.hidden = true;
+        } catch (error) {
+            if (loading) loading.textContent = 'QR preview unavailable. Refresh to retry.';
+        }
+
+        copy?.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(url);
+                const original = copy.textContent;
+                copy.textContent = 'Copied';
+                window.setTimeout(() => { copy.textContent = original; }, 1500);
+            } catch (error) {
+                window.prompt('Copy this referral link:', url);
+            }
+        });
+    });
+
     document.querySelectorAll('[data-site-photo-upload]').forEach((form) => {
         const input = form.querySelector('input[type="file"]');
         input?.addEventListener('change', () => {
@@ -125,6 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     event.extendedProps.service,
                     event.extendedProps.company,
                     event.extendedProps.address,
+                    event.extendedProps.source,
                 ].filter(Boolean);
 
                 el.title = details.join(' · ');
