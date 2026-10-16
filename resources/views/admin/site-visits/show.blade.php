@@ -6,6 +6,8 @@
             <dl class="detail-list">
                 <div><dt>Customer</dt><dd>{{ $siteVisit->customer->name }}<br>{{ $siteVisit->customer->company_name }}</dd></div>
                 <div><dt>Contact</dt><dd>{{ $siteVisit->customer->phone }}<br>{{ $siteVisit->customer->email ?: 'No email supplied' }}</dd></div>
+                <div><dt>Lead source</dt><dd><x-lead-source :label="$siteVisit->referral_label" /><br><small>{{ $siteVisit->referral_code ?: 'direct' }}@if($siteVisit->referral_landed_at) · {{ $siteVisit->referral_landed_at->format('d M Y, g:i A') }}@endif</small></dd></div>
+                <div><dt>Submission IP</dt><dd>{{ $siteVisit->client_ip ?: 'Not captured' }}</dd></div>
                 <div><dt>Space</dt><dd>{{ $siteVisit->space_label }}</dd></div>
                 <div><dt>Preferred visit</dt><dd>{{ $siteVisit->preferred_date?->format('d M Y') }} &middot; {{ str($siteVisit->preferred_time_slot)->title() }}</dd></div>
                 <div><dt>Site address</dt><dd>{{ $siteVisit->site_address ?: 'To be collected when confirming the visit.' }}<br>{{ $siteVisit->postcode }}</dd></div>

@@ -18,14 +18,14 @@ class InvoiceController extends Controller
 {
     public function index(Request $request): View
     {
-        $invoices = Invoice::with('customer')->when($request->string('status')->toString(), fn ($q, $status) => $q->where('status', $status))->latest()->paginate(20)->withQueryString();
+        $invoices = Invoice::with(['customer', 'quote.siteVisit.referralSource'])->when($request->string('status')->toString(), fn ($q, $status) => $q->where('status', $status))->latest()->paginate(20)->withQueryString();
 
         return view('admin.invoices.index', compact('invoices'));
     }
 
     public function show(Invoice $invoice): View
     {
-        $invoice->load(['customer', 'quote', 'items', 'payments', 'createdBy', 'lastEditedBy', 'sentBy']);
+        $invoice->load(['customer', 'quote.siteVisit.referralSource', 'items', 'payments', 'createdBy', 'lastEditedBy', 'sentBy']);
 
         $emailHistory = app(DocumentEmailHistory::class)->forDocument($invoice);
 

@@ -39,4 +39,9 @@ class Booking extends Model
     {
         return $this->belongsTo(Staff::class);
     }
+
+    public function getReferralLabelAttribute(): string
+    {
+        return $this->quote?->referral_label ?? 'Direct';
+    }
 }

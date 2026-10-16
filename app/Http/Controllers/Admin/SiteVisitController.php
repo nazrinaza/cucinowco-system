@@ -3,17 +3,20 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\SiteVisitRequest;
+use App\Models\ReferralSource;
 use App\Models\SiteVisitPhoto;
+use App\Models\SiteVisitRequest;
 use App\Support\SitePhotoStorage;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SiteVisitController extends Controller
 {
@@ -32,15 +35,20 @@ class SiteVisitController extends Controller
         $filters = $request->validate([
             'status' => ['nullable', Rule::in(self::STATUSES)],
             'q' => ['nullable', 'string', 'max:150'],
+            'source' => ['nullable', 'string', 'max:80'],
         ]);
 
         $siteVisits = $this->filteredQuery($filters)
-            ->with(['customer', 'service', 'quote'])
+            ->with(['customer', 'service', 'quote', 'referralSource'])
             ->latest()
             ->paginate(20)
             ->withQueryString();
 
-        return view('admin.site-visits.index', ['siteVisits' => $siteVisits, 'statuses' => self::STATUSES]);
+        return view('admin.site-visits.index', [
+            'siteVisits' => $siteVisits,
+            'statuses' => self::STATUSES,
+            'referralSources' => ReferralSource::orderBy('name')->get(['name', 'code']),
+        ]);
     }
 
     public function calendarEvents(Request $request): JsonResponse
@@ -50,13 +58,14 @@ class SiteVisitController extends Controller
             'end' => ['required', 'date', 'after:start'],
             'status' => ['nullable', Rule::in(self::STATUSES)],
             'q' => ['nullable', 'string', 'max:150'],
+            'source' => ['nullable', 'string', 'max:80'],
         ]);
 
         $rangeStart = CarbonImmutable::parse($filters['start'])->toDateString();
         $rangeEnd = CarbonImmutable::parse($filters['end'])->toDateString();
 
         $events = $this->filteredQuery($filters)
-            ->with(['customer:id,name,company_name', 'service:id,name'])
+            ->with(['customer:id,name,company_name', 'service:id,name', 'referralSource:id,name,channel'])
             ->whereNotNull('preferred_date')
             ->whereDate('preferred_date', '>=', $rangeStart)
             ->whereDate('preferred_date', '<', $rangeEnd)
@@ -82,6 +91,7 @@ class SiteVisitController extends Controller
                         'service' => $siteVisit->clean_types_label,
                         'company' => $siteVisit->customer->company_name,
                         'address' => $siteVisit->site_address,
+                        'source' => $siteVisit->referral_label,
                     ],
                 ];
             })
@@ -92,7 +102,7 @@ class SiteVisitController extends Controller
 
     public function show(SiteVisitRequest $siteVisit): View
     {
-        $siteVisit->load(['customer', 'service', 'quote.booking', 'photos.uploadedBy', 'photos.beforeReference']);
+        $siteVisit->load(['customer', 'service', 'quote.booking', 'referralSource', 'photos.uploadedBy', 'photos.beforeReference']);
 
         return view('admin.site-visits.show', ['siteVisit' => $siteVisit, 'statuses' => self::STATUSES]);
     }
@@ -130,7 +140,7 @@ class SiteVisitController extends Controller
             'phase' => ['required', Rule::in(['before', 'after'])],
             'photo' => ['required', 'file', 'max:'.SitePhotoStorage::MAX_UPLOAD_KB,
                 function (string $attribute, mixed $value, \Closure $fail) use ($photoStorage): void {
-                    if ($value instanceof \Illuminate\Http\UploadedFile && ! $photoStorage->detectedMime($value)) {
+                    if ($value instanceof UploadedFile && ! $photoStorage->detectedMime($value)) {
                         $fail('Choose a valid JPG, PNG, WebP, HEIC or HEIF image.');
                     }
                 }],
@@ -182,7 +192,7 @@ class SiteVisitController extends Controller
         return back()->with('success', 'After photo paired with its before angle.');
     }
 
-    public function photo(SiteVisitRequest $siteVisit, SiteVisitPhoto $photo): \Symfony\Component\HttpFoundation\StreamedResponse
+    public function photo(SiteVisitRequest $siteVisit, SiteVisitPhoto $photo): StreamedResponse
     {
         abort_unless($photo->site_visit_request_id === $siteVisit->id, 404);
         abort_unless(Storage::disk('local')->exists($photo->path), 404);
@@ -221,12 +231,17 @@ class SiteVisitController extends Controller
     }
 
     /**
-     * @param  array{status?: string|null, q?: string|null}  $filters
+     * @param  array{status?: string|null, q?: string|null, source?: string|null}  $filters
      */
     private function filteredQuery(array $filters): Builder
     {
         return SiteVisitRequest::query()
             ->when($filters['status'] ?? null, fn (Builder $query, string $status) => $query->where('status', $status))
+            ->when($filters['source'] ?? null, function (Builder $query, string $source): void {
+                $source === 'direct'
+                    ? $query->whereNull('referral_source_id')
+                    : $query->where('referral_code', $source);
+            })
             ->when($filters['q'] ?? null, fn (Builder $query, string $term) => $query->where(fn (Builder $nested) => $nested
                 ->where('reference_number', 'like', "%{$term}%")
                 ->orWhereHas('customer', fn (Builder $customer) => $customer

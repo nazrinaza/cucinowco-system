@@ -7,6 +7,7 @@
     <form class="admin-filters" method="get">
         <input type="search" name="q" value="{{ request('q') }}" placeholder="Search reference, customer or phone">
         <select name="status"><option value="">All statuses</option>@foreach($statuses as $status)<option value="{{ $status }}" @selected(request('status')===$status)>{{ ucfirst($status) }}</option>@endforeach</select>
+        <select name="source"><option value="">All lead sources</option><option value="direct" @selected(request('source')==='direct')>Direct</option>@foreach($referralSources as $source)<option value="{{ $source->code }}" @selected(request('source')===$source->code)>{{ $source->name }} · {{ $source->code }}</option>@endforeach</select>
         <button type="submit">Filter</button>
     </form>
 
@@ -29,7 +30,7 @@
             <div
                 class="site-visit-calendar"
                 data-full-calendar
-                data-events-url="{{ route('admin.site-visits.calendar-events', array_filter(['status' => request('status'), 'q' => request('q')])) }}"
+                data-events-url="{{ route('admin.site-visits.calendar-events', array_filter(['status' => request('status'), 'source' => request('source'), 'q' => request('q')])) }}"
             ></div>
             <p class="site-visit-calendar-error" data-calendar-error hidden>Calendar data could not be loaded. Refresh this page to try again.</p>
             <noscript><p class="site-visit-calendar-error">JavaScript is required for the calendar. The complete site visit list remains available below.</p></noscript>
@@ -40,11 +41,12 @@
         <p>Request register</p>
         <h2>All site visit requests</h2>
     </div>
-    <section class="admin-card"><div class="table-wrap"><table><thead><tr><th>Request</th><th>Customer</th><th>Clean type</th><th>Preferred visit</th><th>Status</th><th>Quotation</th></tr></thead><tbody>
+    <section class="admin-card"><div class="table-wrap"><table><thead><tr><th>Request</th><th>Customer</th><th>Source</th><th>Clean type</th><th>Preferred visit</th><th>Status</th><th>Quotation</th></tr></thead><tbody>
         @forelse($siteVisits as $siteVisit)
             <tr>
                 <td><a href="{{ route('admin.site-visits.show', $siteVisit) }}">{{ $siteVisit->reference_number }}</a><small>{{ $siteVisit->created_at->format('d M Y, g:i A') }}</small></td>
                 <td>{{ $siteVisit->customer->name }}<small>{{ $siteVisit->customer->company_name ?: $siteVisit->customer->phone }}</small></td>
+                <td><x-lead-source :label="$siteVisit->referral_label" /><small>{{ $siteVisit->referral_code ?: 'direct' }}</small></td>
                 <td>{{ $siteVisit->clean_types_label }}<small>{{ $siteVisit->space_label }}</small></td>
                 <td>{{ $siteVisit->preferred_date?->format('d M Y') ?? 'Flexible' }}<small>{{ str($siteVisit->preferred_time_slot)->title() }}</small></td>
                 <td><span class="status status-{{ $siteVisit->status }}">{{ ucfirst($siteVisit->status) }}</span></td>
@@ -61,7 +63,7 @@
                 </td>
             </tr>
         @empty
-            <tr><td colspan="6" class="empty-cell">New public site visit requests will appear here.</td></tr>
+            <tr><td colspan="7" class="empty-cell">New public site visit requests will appear here.</td></tr>
         @endforelse
     </tbody></table></div></section>
     <div class="pagination-wrap">{{ $siteVisits->links() }}</div>

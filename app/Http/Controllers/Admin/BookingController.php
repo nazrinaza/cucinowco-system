@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\BookingConfirmationMail;
 use App\Models\Booking;
-use App\Models\Staff;
 use App\Models\SiteVisitRequest;
+use App\Models\Staff;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -44,7 +44,7 @@ class BookingController extends Controller
         $calendarCounts = collect(['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'])
             ->mapWithKeys(fn (string $bookingStatus): array => [$bookingStatus => $monthBookings->where('status', $bookingStatus)->count()]);
 
-        $bookings = Booking::with(['customer', 'service', 'staff', 'quote.siteVisit.photos'])
+        $bookings = Booking::with(['customer', 'service', 'staff', 'quote.siteVisit.referralSource', 'quote.siteVisit.photos'])
             ->when($status, fn ($query, string $selectedStatus) => $query->where('status', $selectedStatus))
             ->orderByRaw('scheduled_start IS NULL')
             ->orderBy('scheduled_start')

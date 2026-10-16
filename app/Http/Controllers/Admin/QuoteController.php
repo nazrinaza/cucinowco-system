@@ -26,7 +26,7 @@ class QuoteController extends Controller
     public function create(Request $request): View
     {
         $siteVisit = $request->integer('site_visit')
-            ? SiteVisitRequest::with(['customer', 'service'])->findOrFail($request->integer('site_visit'))
+            ? SiteVisitRequest::with(['customer', 'service', 'referralSource'])->findOrFail($request->integer('site_visit'))
             : null;
 
         return view('admin.quotes.create', compact('siteVisit'));
@@ -34,7 +34,7 @@ class QuoteController extends Controller
 
     public function index(Request $request): View
     {
-        $quotes = Quote::with('customer')
+        $quotes = Quote::with(['customer', 'siteVisit.referralSource'])
             ->when($request->string('status')->toString(), fn ($q, $status) => $q->where('status', $status))
             ->when($request->string('q')->toString(), fn ($q, $term) => $q->where(fn ($nested) => $nested->where('quote_number', 'like', "%{$term}%")->orWhereHas('customer', fn ($customer) => $customer->where('name', 'like', "%{$term}%")->orWhere('phone', 'like', "%{$term}%"))))
             ->latest()->paginate(20)->withQueryString();
@@ -44,7 +44,7 @@ class QuoteController extends Controller
 
     public function show(Quote $quote): View
     {
-        $quote->load(['customer', 'items.service', 'invoice', 'booking', 'createdBy', 'lastEditedBy', 'sentBy']);
+        $quote->load(['customer', 'items.service', 'invoice', 'booking', 'siteVisit.referralSource', 'createdBy', 'lastEditedBy', 'sentBy']);
 
         return view('admin.quotes.show', [
             'quote' => $quote, 'statuses' => self::STATUSES,
