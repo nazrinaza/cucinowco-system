@@ -22,9 +22,12 @@ class SeoFoundationTest extends TestCase
     public function test_each_configured_service_has_an_indexable_page(): void
     {
         foreach (config('cleaning-services') as $slug => $service) {
+            $this->assertFileExists(public_path($service['hero_image']));
+
             $this->get(route('services.show', $slug))
                 ->assertOk()
                 ->assertSee($service['name'])
+                ->assertSee(asset($service['hero_image']))
                 ->assertSee('<link rel="canonical" href="'.route('services.show', $slug).'">', false)
                 ->assertSee('"@type":"Service"', false)
                 ->assertSee('BreadcrumbList');
