@@ -91,7 +91,7 @@
         ['01','Corporate Office','Workstations, meeting rooms and shared facilities.','office-cleaning'],
         ['02','Grand Hall','Large-capacity spaces that need planned teams and machinery.','grand-hall-event-cleaning'],
         ['03','Hotel / Ballroom','Guest-facing spaces where timing and presentation matter.','hotel-ballroom-cleaning'],
-        ['04','Event Place','Pre-event preparation or a thorough post-event reset.','grand-hall-event-cleaning'],
+        ['04','Event Place','Pre-event preparation or a thorough post-event reset.','event-place-cleaning'],
         ['05','Factory / Warehouse','Operational areas with access, safety and surface considerations.','factory-warehouse-cleaning'],
         ['06','Universities','Academic, administrative and shared campus spaces.','university-cleaning'],
     ])
@@ -100,7 +100,7 @@
         ['02','Tiles Cleaning','Targeted care for tiled surfaces, grout lines and embedded dirt.','tile-floor-cleaning'],
         ['03','Carpet Cleaning','Machine-assisted care for carpet fibres, embedded dirt and visible wear.','carpet-cleaning'],
         ['04','Window Cleaning','Clearer glass and frames, planned around access and working height.','window-cleaning'],
-        ['05','General Cleaning','Practical upkeep for everyday dust, surfaces and high-use areas.','office-cleaning'],
+        ['05','General Cleaning','Practical upkeep for everyday dust, surfaces and high-use areas.','general-cleaning'],
         ['06','Disinfect and Fragrance','Hygiene-focused treatment followed by a clean, fresh finish.','disinfection-fragrance'],
     ])
     <section id="scope-guide" class="scope-guide section-pad">

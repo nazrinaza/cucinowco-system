@@ -3,6 +3,7 @@
 return [
     'office-cleaning' => [
         'name' => 'Office Cleaning',
+        'hero_image' => 'images/service-headers/corporate-office-cleaning.webp',
         'short_description' => 'Planned commercial cleaning for offices, meeting rooms and shared workplace facilities.',
         'headline' => 'Professional office cleaning shaped around your workplace.',
         'intro' => 'CuciNow.co plans office cleaning around occupancy, access, working hours and the condition of each area. A site assessment helps us match the manpower, machinery and materials to your actual workplace instead of offering a one-size-fits-all package.',
@@ -12,6 +13,7 @@ return [
     ],
     'daily-office-cleaners' => [
         'name' => 'Dedicated Daily Office Cleaners',
+        'hero_image' => 'images/service-headers/corporate-office-interior.webp',
         'short_description' => 'Monthly arrangements for cleaners stationed at your office for regular upkeep.',
         'headline' => 'A dependable daily cleaning presence for your office.',
         'intro' => 'For workplaces that need consistent upkeep, CuciNow.co can arrange dedicated cleaners on a monthly basis. The working schedule, routine duties, supervision and reporting expectations are agreed after understanding your office size, operating hours and daily footfall.',
@@ -21,6 +23,7 @@ return [
     ],
     'grand-hall-event-cleaning' => [
         'name' => 'Grand Hall & Event Cleaning',
+        'hero_image' => 'images/service-headers/event-place.webp',
         'short_description' => 'Pre-event preparation and post-event reset for halls and event venues.',
         'headline' => 'Large-space cleaning planned around your event schedule.',
         'intro' => 'Grand halls and event venues require coordinated teams, clear access windows and the right machinery. We assess the floor area, guest facilities, loading access and turnaround time before confirming a practical cleaning scope.',
@@ -28,8 +31,19 @@ return [
         'includes' => ['Pre-event presentation cleaning', 'Post-event waste and surface reset', 'Floor and carpet cleaning options', 'Washroom and common-area cleaning', 'Time-sensitive team coordination'],
         'related' => ['hotel-ballroom-cleaning', 'carpet-cleaning', 'tile-floor-cleaning'],
     ],
+    'event-place-cleaning' => [
+        'name' => 'Event Place Cleaning',
+        'hero_image' => 'images/service-headers/event-place.webp',
+        'short_description' => 'Pre-event preparation and post-event cleaning for event venues and function spaces.',
+        'headline' => 'Event-space cleaning coordinated around your programme.',
+        'intro' => 'Event places need a clear cleaning window before guests arrive and a practical reset plan after the programme ends. CuciNow.co assesses access, floor condition, guest facilities, waste handling and turnaround time before confirming the team, machinery and cleaning scope.',
+        'spaces' => ['Event venues', 'Wedding and celebration spaces', 'Exhibition areas', 'Multi-purpose function spaces'],
+        'includes' => ['Pre-event presentation cleaning', 'Post-event surface and waste reset', 'Floor and carpet cleaning options', 'Washroom and common-area attention', 'Time-sensitive team coordination'],
+        'related' => ['grand-hall-event-cleaning', 'hotel-ballroom-cleaning', 'carpet-cleaning'],
+    ],
     'hotel-ballroom-cleaning' => [
         'name' => 'Hotel & Ballroom Cleaning',
+        'hero_image' => 'images/service-headers/event-place.webp',
         'short_description' => 'Presentation-focused cleaning for ballrooms, function rooms and guest-facing areas.',
         'headline' => 'Presentation-ready cleaning for ballrooms and hospitality spaces.',
         'intro' => 'Hospitality spaces need careful coordination because presentation, timing and guest movement matter. CuciNow.co reviews the required finish, access constraints, sensitive surfaces and handover time before preparing the quotation.',
@@ -39,6 +53,7 @@ return [
     ],
     'factory-warehouse-cleaning' => [
         'name' => 'Factory & Warehouse Cleaning',
+        'hero_image' => 'images/service-headers/factory-warehouse.webp',
         'short_description' => 'Site-assessed cleaning for operational, storage and industrial work areas.',
         'headline' => 'Industrial-space cleaning built around access and safety.',
         'intro' => 'Factories and warehouses differ greatly in surface condition, stored materials, equipment movement and safety controls. We begin with a site visit so the proposed method respects operational restrictions and targets the areas that matter most.',
@@ -48,6 +63,7 @@ return [
     ],
     'university-cleaning' => [
         'name' => 'University & Campus Cleaning',
+        'hero_image' => 'images/service-headers/universities.webp',
         'short_description' => 'Planned cleaning for academic buildings, administrative areas and shared campus facilities.',
         'headline' => 'Campus cleaning planned around people, facilities and timetables.',
         'intro' => 'Universities bring together lecture rooms, offices, common areas and high-traffic facilities with different cleaning demands. CuciNow.co assesses access, operating schedules, surface conditions and priority areas before proposing the manpower, machinery and method for each campus scope.',
@@ -57,6 +73,7 @@ return [
     ],
     'carpet-cleaning' => [
         'name' => 'Commercial Carpet Cleaning',
+        'hero_image' => 'images/service-headers/carpet-cleaning.webp',
         'short_description' => 'Machine-assisted cleaning for commercial carpets and high-use carpeted areas.',
         'headline' => 'Commercial carpet cleaning matched to fibre, soil and site use.',
         'intro' => 'Carpet condition, fibre type, staining, furniture and drying time all affect the correct cleaning approach. Our team assesses the area first and recommends a practical machine-assisted method for the expected result.',
@@ -66,6 +83,7 @@ return [
     ],
     'tile-floor-cleaning' => [
         'name' => 'Tile & Floor Cleaning',
+        'hero_image' => 'images/service-headers/tile-floor-cleaning.webp',
         'short_description' => 'Targeted machine-assisted cleaning for tiled floors, grout and high-traffic surfaces.',
         'headline' => 'Floor care selected for the surface—not guessed.',
         'intro' => 'Different floor finishes respond to different machinery, pads and cleaning agents. A site assessment lets us review the tile or floor type, embedded dirt, grout condition, traffic level and access before recommending the scope.',
@@ -75,6 +93,7 @@ return [
     ],
     'window-cleaning' => [
         'name' => 'Commercial Window Cleaning',
+        'hero_image' => 'images/service-headers/window-cleaning.webp',
         'short_description' => 'Planned cleaning for accessible commercial glass, frames and window areas.',
         'headline' => 'Clearer commercial glass with access planned upfront.',
         'intro' => 'Window-cleaning requirements depend on height, access, surrounding activity and the condition of the glass and frames. We inspect these practical details before confirming what can be cleaned safely and effectively.',
@@ -84,6 +103,7 @@ return [
     ],
     'deep-cleaning' => [
         'name' => 'Commercial Deep Cleaning',
+        'hero_image' => 'images/service-headers/deep-cleaning.webp',
         'short_description' => 'A detailed reset for built-up dust, grime and areas missed during routine upkeep.',
         'headline' => 'A deeper reset for demanding commercial spaces.',
         'intro' => 'Deep cleaning targets accumulated soil and overlooked areas that routine maintenance may not address. We define the exact rooms, surfaces, access limitations and expected finish during the site assessment so the quotation is clear.',
@@ -91,8 +111,19 @@ return [
         'includes' => ['Detailed accessible-surface cleaning', 'Built-up dust and cobweb removal', 'Floor-care options', 'High-touch and overlooked-area attention', 'Room-by-room scope confirmation'],
         'related' => ['office-cleaning', 'tile-floor-cleaning', 'disinfection-fragrance'],
     ],
+    'general-cleaning' => [
+        'name' => 'Commercial General Cleaning',
+        'hero_image' => 'images/service-headers/general-cleaning.webp',
+        'short_description' => 'Practical routine cleaning for everyday dust, surfaces and high-use commercial areas.',
+        'headline' => 'Reliable general cleaning for day-to-day presentation.',
+        'intro' => 'General cleaning keeps frequently used spaces presentable through an agreed routine scope. We assess the site, footfall, access, surfaces and priority areas before recommending the right team, frequency, equipment and cleaning materials.',
+        'spaces' => ['Corporate offices', 'Shared commercial facilities', 'Event and hospitality spaces', 'Academic and administrative buildings'],
+        'includes' => ['Accessible-surface and furniture cleaning', 'Routine floor-care options', 'Washroom and pantry attention', 'Waste collection within scope', 'Frequency and checklist planning'],
+        'related' => ['office-cleaning', 'daily-office-cleaners', 'deep-cleaning'],
+    ],
     'disinfection-fragrance' => [
         'name' => 'Disinfection & Fragrance Treatment',
+        'hero_image' => 'images/service-headers/disinfection-fragrance.webp',
         'short_description' => 'Hygiene-focused treatment followed by a clean, fresh finish for agreed areas.',
         'headline' => 'A hygiene-focused treatment planned for your space.',
         'intro' => 'Disinfection and fragrance treatments work best when the product, target surfaces, occupancy and ventilation are properly understood. We confirm the required areas and any site sensitivities before recommending the method.',

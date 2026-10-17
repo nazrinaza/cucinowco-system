@@ -30,7 +30,7 @@
 @endphp
 
 <x-layouts.public :$title :$description :$canonical :structured-data="$schema">
-    <section class="service-hero section-pad">
+    <section class="service-hero section-pad" style="--service-hero-image: url('{{ asset($details['hero_image']) }}')">
         <div class="site-shell service-hero-grid">
             <div>
                 <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="{{ route('home') }}">Home</a><span>/</span><span>{{ $details['name'] }}</span></nav>
