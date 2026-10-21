@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\NewsletterCampaign;
+use App\Support\EmailPlainText;
 use App\Support\NewsletterHtmlSanitizer;
 use App\Support\NewsletterMergeTags;
 use Illuminate\Mail\Mailables\Content;
@@ -17,6 +18,8 @@ class NewsletterPreviewMail extends CuciNowMailable
     public string $previewLine;
 
     public string $htmlContent;
+
+    public string $plainTextContent;
 
     public function __construct(
         public NewsletterCampaign $campaign,
@@ -33,6 +36,7 @@ class NewsletterPreviewMail extends CuciNowMailable
         $this->htmlContent = $mergeTags->renderHtml(
             app(NewsletterHtmlSanitizer::class)->sanitize($campaign->content),
         );
+        $this->plainTextContent = EmailPlainText::fromHtml($this->htmlContent);
     }
 
     public function envelope(): Envelope
@@ -44,7 +48,14 @@ class NewsletterPreviewMail extends CuciNowMailable
 
     public function content(): Content
     {
-        return new Content(view: 'emails.newsletter');
+        return $this->brandedContent('emails.newsletter', implode("\n", [
+            '[TEST] '.$this->subjectLine,
+            '',
+            $this->plainTextContent,
+            '',
+            'Book a free site visit: '.url('/#site-visit'),
+            "This is a private newsletter preview sent to {$this->previewRecipient}.",
+        ]));
     }
 
     public function headers(): Headers

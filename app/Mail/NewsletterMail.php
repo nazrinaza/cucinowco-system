@@ -4,6 +4,7 @@ namespace App\Mail;
 
 use App\Models\NewsletterCampaign;
 use App\Models\Subscriber;
+use App\Support\EmailPlainText;
 use App\Support\NewsletterHtmlSanitizer;
 use App\Support\NewsletterMergeTags;
 use Illuminate\Mail\Mailables\Content;
@@ -21,6 +22,8 @@ class NewsletterMail extends CuciNowMailable
 
     public string $htmlContent;
 
+    public string $plainTextContent;
+
     public function __construct(
         public NewsletterCampaign $campaign,
         public Subscriber $subscriber,
@@ -32,6 +35,7 @@ class NewsletterMail extends CuciNowMailable
         $this->htmlContent = $mergeTags->renderHtml(
             app(NewsletterHtmlSanitizer::class)->sanitize($campaign->content),
         );
+        $this->plainTextContent = EmailPlainText::fromHtml($this->htmlContent);
     }
 
     public function envelope(): Envelope
@@ -45,7 +49,14 @@ class NewsletterMail extends CuciNowMailable
 
     public function content(): Content
     {
-        return new Content(view: 'emails.newsletter');
+        return $this->brandedContent('emails.newsletter', implode("\n", [
+            $this->subjectLine,
+            '',
+            $this->plainTextContent,
+            '',
+            'Book a free site visit: '.url('/#site-visit'),
+            "Unsubscribe: {$this->unsubscribeUrl}",
+        ]));
     }
 
     public function headers(): Headers

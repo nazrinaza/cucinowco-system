@@ -21,7 +21,21 @@ class QuoteMail extends CuciNowMailable
 
     public function content(): Content
     {
-        return new Content(view: 'emails.quote');
+        $items = $this->quote->items
+            ->map(fn ($item): string => "- {$item->description}: RM ".number_format($item->amount, 2))
+            ->implode("\n");
+
+        return $this->brandedContent('emails.quote', implode("\n", [
+            "Quotation {$this->quote->quote_number}",
+            "Prepared for {$this->quote->customer->name}",
+            'Valid until: '.$this->quote->valid_until?->format('d M Y'),
+            '',
+            $items,
+            '',
+            'Total: RM '.number_format($this->quote->total, 2),
+            "Service location: {$this->quote->service_address}, {$this->quote->postcode} {$this->quote->city}, {$this->quote->state}",
+            'Discuss this quotation: '.route('whatsapp.redirect', ['text' => 'Hi CuciNow, I would like to discuss quotation '.$this->quote->quote_number]),
+        ]));
     }
 
     public function headers(): Headers

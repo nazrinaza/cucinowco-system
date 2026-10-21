@@ -194,6 +194,8 @@ class EmailWorkflowTest extends TestCase
                 $this->assertSame('Hello Aina', $message['subject']);
                 $this->assertStringContainsString('Hi Aina Rahman.', $message['html']);
                 $this->assertStringContainsString('/newsletter/unsubscribe/', $message['html']);
+                $this->assertStringContainsString('Hi Aina Rahman.', $message['text']);
+                $this->assertStringContainsString('/newsletter/unsubscribe/', $message['text']);
                 $this->assertSame('List-Unsubscribe=One-Click', $message['headers']['List-Unsubscribe-Post']);
                 $this->assertSame([
                     ['name' => 'category', 'value' => 'newsletter'],

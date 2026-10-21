@@ -21,7 +21,15 @@ class NewSiteVisitNotificationMail extends CuciNowMailable
 
     public function content(): Content
     {
-        return new Content(view: 'emails.new-site-visit-notification');
+        return $this->brandedContent('emails.new-site-visit-notification', implode("\n", [
+            "New site visit request: {$this->siteVisit->reference_number}",
+            "Customer: {$this->siteVisit->customer->name}",
+            "Space type: {$this->siteVisit->space_label}",
+            "Clean type: {$this->siteVisit->clean_types_label}",
+            'Preferred: '.$this->siteVisit->preferred_date?->format('d M Y').' - '.str($this->siteVisit->preferred_time_slot)->replace('_', ' ')->title(),
+            "Contact: {$this->siteVisit->customer->phone} / {$this->siteVisit->customer->email}",
+            'Review request: '.route('admin.site-visits.show', $this->siteVisit),
+        ]));
     }
 
     public function headers(): Headers

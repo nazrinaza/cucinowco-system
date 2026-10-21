@@ -21,7 +21,21 @@ class BookingConfirmationMail extends CuciNowMailable
 
     public function content(): Content
     {
-        return new Content(view: 'emails.booking-confirmation');
+        $service = $this->booking->service?->name ?? $this->booking->quote?->items?->first()?->description ?? 'Cleaning service';
+        $time = $this->booking->scheduled_start?->format('g:i A');
+        if ($this->booking->scheduled_end) {
+            $time .= ' - '.$this->booking->scheduled_end->format('g:i A');
+        }
+
+        return $this->brandedContent('emails.booking-confirmation', implode("\n", [
+            "Booking confirmed: {$this->booking->booking_number}",
+            "Hello {$this->booking->customer->name}, your CuciNow cleaning appointment has been scheduled.",
+            "Service: {$service}",
+            'Date: '.$this->booking->scheduled_start?->format('l, d M Y'),
+            "Time: {$time}",
+            "Location: {$this->booking->service_address}",
+            'Manage via WhatsApp: '.route('whatsapp.redirect', ['text' => 'Hi CuciNow, I am contacting you about booking '.$this->booking->booking_number]),
+        ]));
     }
 
     public function headers(): Headers

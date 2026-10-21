@@ -46,6 +46,16 @@ class NewsletterBatchSender
             'reply_to' => [config('company.email')],
             'subject' => $mail->subjectLine,
             'html' => $mail->render(),
+            'text' => view('emails.plain', [
+                'plainText' => implode("\n", [
+                    $mail->subjectLine,
+                    '',
+                    $mail->plainTextContent,
+                    '',
+                    'Book a free site visit: '.url('/#site-visit'),
+                    "Unsubscribe: {$mail->unsubscribeUrl}",
+                ]),
+            ])->render(),
             'headers' => [
                 'List-Unsubscribe' => "<{$mail->unsubscribeUrl}>",
                 'List-Unsubscribe-Post' => 'List-Unsubscribe=One-Click',
