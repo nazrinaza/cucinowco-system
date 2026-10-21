@@ -21,7 +21,12 @@ class InvoiceOverdueReminderMail extends CuciNowMailable
 
     public function content(): Content
     {
-        return new Content(view: 'emails.invoice-overdue-reminder');
+        return $this->brandedContent('emails.invoice-overdue-reminder', implode("\n", [
+            "Payment reminder: invoice {$this->invoice->invoice_number}",
+            'Our records show a remaining balance that was due on '.$this->invoice->due_at?->format('d M Y').'. If payment has already been made, please disregard this reminder.',
+            'Balance due: RM '.number_format($this->invoice->balance, 2),
+            'Contact accounts: '.route('whatsapp.redirect', ['text' => 'Hi CuciNow, I am contacting you about payment for invoice '.$this->invoice->invoice_number]),
+        ]));
     }
 
     public function headers(): Headers

@@ -6,6 +6,7 @@ use App\Support\DocumentEmailHistory;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Address;
+use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Mail\Mailables\Headers;
 use Illuminate\Queue\SerializesModels;
@@ -50,5 +51,14 @@ abstract class CuciNowMailable extends Mailable
             'Resend-Idempotency-Key' => $idempotencyKey,
             ...$additional,
         ]);
+    }
+
+    protected function brandedContent(string $view, string $plainText): Content
+    {
+        return new Content(
+            view: $view,
+            text: 'emails.plain',
+            with: ['plainText' => trim($plainText)],
+        );
     }
 }

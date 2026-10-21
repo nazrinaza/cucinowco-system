@@ -21,7 +21,22 @@ class InvoiceMail extends CuciNowMailable
 
     public function content(): Content
     {
-        return new Content(view: 'emails.invoice');
+        $items = $this->invoice->items
+            ->map(fn ($item): string => "- {$item->description}: RM ".number_format($item->amount, 2))
+            ->implode("\n");
+
+        return $this->brandedContent('emails.invoice', implode("\n", [
+            "Invoice {$this->invoice->invoice_number}",
+            'Issued: '.$this->invoice->issued_at?->format('d M Y'),
+            'Due: '.$this->invoice->due_at?->format('d M Y'),
+            '',
+            $items,
+            '',
+            'Total: RM '.number_format($this->invoice->total, 2),
+            'Balance due: RM '.number_format($this->invoice->balance, 2),
+            "Payment terms: {$this->invoice->payment_terms}",
+            'Contact accounts: '.route('whatsapp.redirect', ['text' => 'Hi CuciNow, I am contacting you about invoice '.$this->invoice->invoice_number]),
+        ]));
     }
 
     public function headers(): Headers

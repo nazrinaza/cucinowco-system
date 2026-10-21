@@ -21,7 +21,15 @@ class PaymentReceiptMail extends CuciNowMailable
 
     public function content(): Content
     {
-        return new Content(view: 'emails.payment-receipt');
+        return $this->brandedContent('emails.payment-receipt', implode("\n", [
+            'Payment received. Thank you.',
+            "Receipt: {$this->payment->payment_number}",
+            "Invoice: {$this->payment->invoice->invoice_number}",
+            'Paid on: '.$this->payment->paid_at->format('d M Y, g:i A'),
+            'Method: '.str($this->payment->method)->replace('_', ' ')->title(),
+            'Amount: RM '.number_format($this->payment->amount, 2),
+            'Remaining invoice balance: RM '.number_format($this->payment->invoice->balance, 2),
+        ]));
     }
 
     public function headers(): Headers

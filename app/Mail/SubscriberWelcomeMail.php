@@ -27,7 +27,12 @@ class SubscriberWelcomeMail extends CuciNowMailable
 
     public function content(): Content
     {
-        return new Content(view: 'emails.subscriber-welcome');
+        return $this->brandedContent('emails.subscriber-welcome', implode("\n", [
+            'Welcome to CuciNow updates.',
+            'Thank you for subscribing. We will occasionally send practical cleaning guidance, service reminders and CuciNow updates.',
+            'Explore CuciNow: '.url('/#site-visit'),
+            "Unsubscribe: {$this->unsubscribeUrl}",
+        ]));
     }
 
     public function headers(): Headers
