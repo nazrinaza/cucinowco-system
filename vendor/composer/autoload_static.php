@@ -555,6 +555,7 @@ class ComposerStaticInitee521a8475827814193025509abf0409
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',
         'App\\Support\\ClientIpResolver' => __DIR__ . '/../..' . '/app/Support/ClientIpResolver.php',
         'App\\Support\\DocumentEmailHistory' => __DIR__ . '/../..' . '/app/Support/DocumentEmailHistory.php',
+        'App\\Support\\NewsletterBatchSender' => __DIR__ . '/../..' . '/app/Support/NewsletterBatchSender.php',
         'App\\Support\\NewsletterHtmlSanitizer' => __DIR__ . '/../..' . '/app/Support/NewsletterHtmlSanitizer.php',
         'App\\Support\\NewsletterMergeTags' => __DIR__ . '/../..' . '/app/Support/NewsletterMergeTags.php',
         'App\\Support\\ReferenceNumber' => __DIR__ . '/../..' . '/app/Support/ReferenceNumber.php',
