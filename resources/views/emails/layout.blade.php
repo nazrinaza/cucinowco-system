@@ -23,7 +23,7 @@
                 {{ config('company.address') }}<br>
                 <a href="mailto:{{ config('company.email') }}" style="color:#8c6906">{{ config('company.email') }}</a>
                 &nbsp;&middot;&nbsp;
-                <a href="https://wa.me/{{ config('company.whatsapp') }}" style="color:#8c6906">WhatsApp +60 11-1242 8593</a>
+                <a href="{{ route('whatsapp.redirect') }}" style="color:#8c6906">WhatsApp +60 11-1242 8593</a>
                 @hasSection('footer')
                     <div style="margin-top:16px;padding-top:14px;border-top:1px solid #dedbd2">@yield('footer')</div>
                 @endif

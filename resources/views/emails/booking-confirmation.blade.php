@@ -12,5 +12,5 @@
         <tr><td style="color:#73777d">Location</td><td>{{ $booking->service_address }}</td></tr>
     </table>
     <p style="margin:0 0 24px;color:#73777d;font-size:12px;line-height:1.6">Please ensure the team can access the service area at the confirmed time. Contact us if the schedule or access details change.</p>
-    <a href="https://wa.me/{{ config('company.whatsapp') }}?text={{ urlencode('Hi CuciNow, I am contacting you about booking '.$booking->booking_number) }}" style="display:inline-block;padding:14px 20px;color:#25282d;background:#f5b800;border-radius:9px;font-size:14px;font-weight:700;text-decoration:none">Manage via WhatsApp</a>
+    <a href="{{ route('whatsapp.redirect', ['text' => 'Hi CuciNow, I am contacting you about booking '.$booking->booking_number]) }}" style="display:inline-block;padding:14px 20px;color:#25282d;background:#f5b800;border-radius:9px;font-size:14px;font-weight:700;text-decoration:none">Manage via WhatsApp</a>
 @endsection

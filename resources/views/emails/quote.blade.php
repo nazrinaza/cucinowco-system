@@ -22,5 +22,5 @@
     </table>
     <div style="margin:8px 0 24px;padding:16px;background:#f7f4ec;font-size:13px;line-height:1.6"><strong>Service location</strong><br>{{ $quote->service_address }}<br>{{ $quote->postcode }} {{ $quote->city }}, {{ $quote->state }}</div>
     <p style="margin:0 0 24px;color:#73777d;font-size:12px;line-height:1.6">Final scope, timing, availability and price are subject to confirmation by CuciNow. Reply to this email or contact us on WhatsApp to accept or discuss this quotation.</p>
-    <a href="https://wa.me/{{ config('company.whatsapp') }}?text={{ urlencode('Hi CuciNow, I would like to discuss quotation '.$quote->quote_number) }}" style="display:inline-block;padding:14px 20px;color:#25282d;background:#f5b800;border-radius:9px;font-size:14px;font-weight:700;text-decoration:none">Discuss this quotation</a>
+    <a href="{{ route('whatsapp.redirect', ['text' => 'Hi CuciNow, I would like to discuss quotation '.$quote->quote_number]) }}" style="display:inline-block;padding:14px 20px;color:#25282d;background:#f5b800;border-radius:9px;font-size:14px;font-weight:700;text-decoration:none">Discuss this quotation</a>
 @endsection

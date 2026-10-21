@@ -14,10 +14,14 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ServicePageController;
 use App\Http\Controllers\SubscriberController;
+use App\Http\Controllers\WhatsAppRedirectController;
 use App\Http\Middleware\EnsureActiveUser;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
+Route::get('/whatsapp', WhatsAppRedirectController::class)
+    ->middleware('throttle:60,1')
+    ->name('whatsapp.redirect');
 Route::get('/services/{service}', [ServicePageController::class, 'show'])
     ->whereIn('service', array_keys(config('cleaning-services')))
     ->name('services.show');

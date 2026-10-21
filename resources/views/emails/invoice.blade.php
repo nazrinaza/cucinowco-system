@@ -19,5 +19,5 @@
         <tr style="background:#f5b800"><td align="right" style="font-weight:700">Balance due</td><td align="right" style="font-size:18px;font-weight:700">RM {{ number_format($invoice->balance, 2) }}</td></tr>
     </table>
     <div style="margin-bottom:24px;padding:16px;background:#f7f4ec;font-size:13px;line-height:1.6"><strong>Payment terms</strong><br>{{ $invoice->payment_terms }}@if($invoice->notes)<br><br>{{ $invoice->notes }}@endif</div>
-    <a href="https://wa.me/{{ config('company.whatsapp') }}?text={{ urlencode('Hi CuciNow, I am contacting you about invoice '.$invoice->invoice_number) }}" style="display:inline-block;padding:14px 20px;color:#25282d;background:#f5b800;border-radius:9px;font-size:14px;font-weight:700;text-decoration:none">Contact accounts</a>
+    <a href="{{ route('whatsapp.redirect', ['text' => 'Hi CuciNow, I am contacting you about invoice '.$invoice->invoice_number]) }}" style="display:inline-block;padding:14px 20px;color:#25282d;background:#f5b800;border-radius:9px;font-size:14px;font-weight:700;text-decoration:none">Contact accounts</a>
 @endsection
