@@ -26,6 +26,7 @@ use App\Models\Service;
 use App\Models\SiteVisitRequest;
 use App\Models\Subscriber;
 use App\Models\User;
+use App\Support\NewsletterBatchSender;
 use App\Support\NewsletterHtmlSanitizer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -34,6 +35,8 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
+use Mockery;
+use Resend\Contracts\Client as ResendClient;
 use Resend\Laravel\Events\EmailOpened;
 use Tests\TestCase;
 
@@ -99,20 +102,105 @@ class EmailWorkflowTest extends TestCase
         $this->assertDatabaseHas('subscribers', ['id' => $subscriber->id, 'status' => 'unsubscribed']);
     }
 
-    public function test_campaign_dispatch_queues_one_email_per_active_subscriber(): void
+    public function test_campaign_dispatch_submits_active_subscribers_as_a_batch(): void
     {
-        Mail::fake();
         Subscriber::create(['email' => 'one@example.com', 'status' => 'subscribed', 'subscribed_at' => now()]);
         Subscriber::create(['email' => 'two@example.com', 'status' => 'subscribed', 'subscribed_at' => now()]);
         Subscriber::create(['email' => 'off@example.com', 'status' => 'unsubscribed', 'subscribed_at' => now()]);
         $campaign = NewsletterCampaign::create(['name' => 'Test', 'subject' => 'A cleaner workspace', 'content' => 'Campaign content', 'status' => 'queued']);
+        $batchSender = Mockery::mock(NewsletterBatchSender::class);
+        $batchSender->shouldReceive('send')
+            ->once()
+            ->withArgs(fn ($sentCampaign, $subscribers, $batchNumber): bool => $sentCampaign->is($campaign)
+                && $subscribers->pluck('email')->all() === ['one@example.com', 'two@example.com']
+                && $batchNumber === 1);
 
-        (new SendNewsletterCampaign($campaign->id))->handle();
+        (new SendNewsletterCampaign($campaign->id))->handle(batchSender: $batchSender);
 
-        Mail::assertQueued(NewsletterMail::class, 2);
         $campaign->refresh();
         $this->assertSame('sent', $campaign->status);
         $this->assertSame(2, $campaign->recipient_count);
+        $this->assertNotNull($campaign->sent_at);
+    }
+
+    public function test_campaign_dispatch_splits_large_lists_into_resend_sized_batches(): void
+    {
+        config(['newsletter.batch_size' => 100]);
+        Subscriber::insert(collect(range(1, 205))->map(fn (int $number): array => [
+            'email' => "subscriber{$number}@example.com",
+            'status' => 'subscribed',
+            'source' => 'test',
+            'subscribed_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ])->all());
+        $campaign = NewsletterCampaign::create(['name' => 'Large list', 'subject' => 'Subject', 'content' => 'Content', 'status' => 'queued']);
+        $batchSizes = [];
+        $batchNumbers = [];
+        $batchSender = Mockery::mock(NewsletterBatchSender::class);
+        $batchSender->shouldReceive('send')
+            ->times(3)
+            ->andReturnUsing(function ($sentCampaign, $subscribers, $batchNumber) use (&$batchSizes, &$batchNumbers, $campaign): void {
+                $this->assertTrue($sentCampaign->is($campaign));
+                $batchSizes[] = $subscribers->count();
+                $batchNumbers[] = $batchNumber;
+            });
+
+        (new SendNewsletterCampaign($campaign->id))->handle(batchSender: $batchSender);
+
+        $this->assertSame([100, 100, 5], $batchSizes);
+        $this->assertSame([1, 2, 3], $batchNumbers);
+        $this->assertSame(205, $campaign->refresh()->recipient_count);
+        $this->assertSame('sent', $campaign->status);
+    }
+
+    public function test_newsletter_batch_sender_preserves_personalisation_unsubscribe_and_analytics_tags(): void
+    {
+        config([
+            'app.url' => 'https://cucinow.co',
+            'mail.from.address' => 'hello@cucinow.co',
+            'mail.from.name' => 'CuciNow.co by Thursina',
+            'company.email' => 'hello@cucinow.co',
+        ]);
+        $campaign = NewsletterCampaign::create([
+            'name' => 'Personalised batch',
+            'subject' => 'Hello {FirstName}',
+            'preview_text' => 'Prepared for {Email}',
+            'content' => '<p>Hi {Name}.</p>',
+            'status' => 'sending',
+        ]);
+        $subscriber = Subscriber::create([
+            'name' => 'Aina Rahman',
+            'email' => 'aina@example.com',
+            'status' => 'subscribed',
+            'subscribed_at' => now(),
+        ]);
+        $batchService = Mockery::mock();
+        $batchService->shouldReceive('send')
+            ->once()
+            ->withArgs(function (array $messages, array $options) use ($campaign, $subscriber): bool {
+                $this->assertCount(1, $messages);
+                $message = $messages[0];
+                $this->assertSame('CuciNow.co by Thursina <hello@cucinow.co>', $message['from']);
+                $this->assertSame(['aina@example.com'], $message['to']);
+                $this->assertSame('Hello Aina', $message['subject']);
+                $this->assertStringContainsString('Hi Aina Rahman.', $message['html']);
+                $this->assertStringContainsString('/newsletter/unsubscribe/', $message['html']);
+                $this->assertSame('List-Unsubscribe=One-Click', $message['headers']['List-Unsubscribe-Post']);
+                $this->assertSame([
+                    ['name' => 'category', 'value' => 'newsletter'],
+                    ['name' => 'campaign_id', 'value' => (string) $campaign->id],
+                    ['name' => 'subscriber_id', 'value' => (string) $subscriber->id],
+                ], $message['tags']);
+                $this->assertSame("newsletter-campaign-{$campaign->id}-batch-1", $options['idempotency_key']);
+                $this->assertSame('strict', $options['batch_validation']);
+
+                return true;
+            });
+        $resend = Mockery::mock(ResendClient::class);
+        $resend->shouldReceive('batch')->once()->andReturn($batchService);
+
+        (new NewsletterBatchSender($resend))->send($campaign, collect([$subscriber]), 1);
     }
 
     public function test_admin_send_now_queues_campaign_dispatch_job(): void
@@ -123,7 +211,7 @@ class EmailWorkflowTest extends TestCase
 
         $this->actingAs($admin)->post(route('admin.campaigns.send', $campaign))->assertSessionHas('success');
 
-        Queue::assertPushed(SendNewsletterCampaign::class, fn ($job) => $job->campaignId === $campaign->id);
+        Queue::assertPushed(SendNewsletterCampaign::class, fn ($job) => $job->campaignId === $campaign->id && $job->queue === 'newsletters');
         $this->assertDatabaseHas('newsletter_campaigns', ['id' => $campaign->id, 'status' => 'queued']);
     }
 
@@ -273,7 +361,7 @@ class EmailWorkflowTest extends TestCase
 
         $this->assertSame('queued', $campaign->status);
         $this->assertNull($campaign->scheduled_at);
-        Queue::assertPushed(SendNewsletterCampaign::class, fn ($job) => $job->campaignId === $campaign->id);
+        Queue::assertPushed(SendNewsletterCampaign::class, fn ($job) => $job->campaignId === $campaign->id && $job->queue === 'newsletters');
     }
 
     public function test_admin_can_edit_a_draft_campaign_but_not_sent_history(): void

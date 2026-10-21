@@ -41,6 +41,8 @@ MAIL_FROM_NAME="CuciNow.co by Thursina"
 RESEND_API_KEY=re_your_production_key
 RESEND_WEBHOOK_SECRET=whsec_your_signing_secret
 NOTIFICATION_EMAIL=hello@cucinow.co
+NEWSLETTER_QUEUE=newsletters
+NEWSLETTER_BATCH_SIZE=100
 ```
 
 Use an address on the verified domain for `MAIL_FROM_ADDRESS`. `NOTIFICATION_EMAIL` receives internal alerts for new site visit requests. Never add the real API key or webhook secret to GitHub.
@@ -65,7 +67,7 @@ In **Cron Jobs**, run this every minute after replacing the username:
 
 `/opt/alt/php83/usr/bin/php /home/YOUR_CPANEL_USER/cucinowco-system/artisan schedule:run >> /dev/null 2>&1`
 
-This processes queued emails in short, shared-hosting-safe batches, dispatches scheduled newsletters, and sends overdue invoice reminders no more than once every seven days.
+This processes queued emails in short, shared-hosting-safe batches, dispatches scheduled newsletters, and sends overdue invoice reminders no more than once every seven days. Newsletter campaigns use a separate `newsletters` queue and Resend's Batch API. Up to 100 individually addressed messages are submitted per API request, while quotations, invoices and booking emails remain on the higher-priority `default` queue.
 
 ## 6. Connect the Resend webhook
 
@@ -93,7 +95,18 @@ In **Resend > Domains**, open the sending domain and enable open and click track
 - Confirm the quote appears, then create a booking and invoice.
 - Use **Email quotation** and **Email invoice** with an address you control, then let the cron job run for up to one minute.
 - Create a one-recipient newsletter test and confirm its unsubscribe link works.
-- Send a campaign to an address you control, open it, then confirm the event appears under **Campaigns > Analytics** after Resend delivers the webhook.
+- Create a temporary subscriber segment such as `Batch-Test` containing only two or three email addresses you control.
+- Send a campaign to `Batch-Test`. Before the cron runs, phpMyAdmin should show no more than one campaign job in the `newsletters` queue—not one job per recipient:
+
+```sql
+SELECT queue, COUNT(*) AS pending
+FROM jobs
+GROUP BY queue;
+```
+
+- Allow the cron to run for up to one minute. Confirm all test addresses receive individually personalised messages and working unsubscribe links.
+- Open and click a test message, then confirm the events appear under **Campaigns > Analytics** after Resend delivers the webhook.
+- Confirm the campaign changes from `Queued` to `Sending` and finally `Sent`. A failed Resend request should change it to `Failed` after the configured retries and preserve the error in campaign history.
 - Record a RM1 test payment entry before connecting a live payment gateway.
 
 Payment gateways remain disabled until production credentials are added. Email delivery uses Resend only after the production `.env` is configured. Never commit credentials or `.env` to GitHub.

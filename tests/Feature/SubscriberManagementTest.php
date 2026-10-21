@@ -3,13 +3,13 @@
 namespace Tests\Feature;
 
 use App\Jobs\SendNewsletterCampaign;
-use App\Mail\NewsletterMail;
 use App\Models\NewsletterCampaign;
 use App\Models\Subscriber;
 use App\Models\User;
+use App\Support\NewsletterBatchSender;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Mail;
+use Mockery;
 use Tests\TestCase;
 
 class SubscriberManagementTest extends TestCase
@@ -147,7 +147,6 @@ CSV;
 
     public function test_segmented_campaign_only_queues_matching_subscribers_once(): void
     {
-        Mail::fake();
         $vip = Subscriber::create(['email' => 'vip@example.com', 'status' => 'subscribed', 'segments' => ['VIP', 'Corporate'], 'subscribed_at' => now()]);
         Subscriber::create(['email' => 'general@example.com', 'status' => 'subscribed', 'segments' => ['General'], 'subscribed_at' => now()]);
         Subscriber::create(['email' => 'off@example.com', 'status' => 'unsubscribed', 'segments' => ['VIP'], 'subscribed_at' => now()]);
@@ -158,11 +157,16 @@ CSV;
             'segments' => ['VIP', 'Corporate'],
             'status' => 'queued',
         ]);
+        $batchSender = Mockery::mock(NewsletterBatchSender::class);
+        $batchSender->shouldReceive('send')
+            ->once()
+            ->withArgs(fn ($sentCampaign, $subscribers, $batchNumber): bool => $sentCampaign->is($campaign)
+                && $subscribers->count() === 1
+                && $subscribers->first()->is($vip)
+                && $batchNumber === 1);
 
-        (new SendNewsletterCampaign($campaign->id))->handle();
+        (new SendNewsletterCampaign($campaign->id))->handle(batchSender: $batchSender);
 
-        Mail::assertQueued(NewsletterMail::class, 1);
-        Mail::assertQueued(NewsletterMail::class, fn (NewsletterMail $mail): bool => $mail->subscriber->is($vip));
         $this->assertSame(1, $campaign->refresh()->recipient_count);
     }
 }
