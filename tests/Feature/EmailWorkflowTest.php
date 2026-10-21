@@ -44,6 +44,14 @@ class EmailWorkflowTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_branded_whatsapp_link_redirects_to_the_company_number(): void
+    {
+        config(['company.whatsapp' => '601112428593']);
+
+        $this->get(route('whatsapp.redirect', ['text' => 'Hello CuciNow']))
+            ->assertRedirect('https://wa.me/601112428593?text=Hello%20CuciNow');
+    }
+
     public function test_site_visit_submission_queues_customer_and_team_emails(): void
     {
         Mail::fake();

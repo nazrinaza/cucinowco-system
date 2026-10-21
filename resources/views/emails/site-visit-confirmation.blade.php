@@ -11,5 +11,5 @@
             <span style="color:#73777d;font-size:13px;line-height:1.7">{{ $siteVisit->space_label }}<br>{{ $siteVisit->clean_types_label }}<br>{{ $siteVisit->preferred_date?->format('d M Y') }} &middot; {{ str($siteVisit->preferred_time_slot)->replace('_', ' ')->title() }}<br>{{ $siteVisit->site_address ?: 'Location to be confirmed with you.' }} {{ $siteVisit->postcode }}</span>
         </td></tr>
     </table>
-    <a href="https://wa.me/{{ config('company.whatsapp') }}?text={{ urlencode('Hi CuciNow, my free site visit reference is '.$siteVisit->reference_number) }}" style="display:inline-block;padding:14px 20px;color:#25282d;background:#f5b800;border-radius:9px;font-size:14px;font-weight:700;text-decoration:none">Continue on WhatsApp</a>
+    <a href="{{ route('whatsapp.redirect', ['text' => 'Hi CuciNow, my free site visit reference is '.$siteVisit->reference_number]) }}" style="display:inline-block;padding:14px 20px;color:#25282d;background:#f5b800;border-radius:9px;font-size:14px;font-weight:700;text-decoration:none">Continue on WhatsApp</a>
 @endsection
