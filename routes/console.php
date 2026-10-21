@@ -29,7 +29,7 @@ Schedule::call(function () {
         });
 })->everyMinute()->name('queue-due-newsletters')->withoutOverlapping();
 
-Schedule::command('queue:work database --stop-when-empty --max-time=50 --tries=3')
+Schedule::command('queue:work database --queue=default,newsletters --stop-when-empty --max-time=50 --max-jobs=25 --tries=3')
     ->everyMinute()
     ->withoutOverlapping();
 

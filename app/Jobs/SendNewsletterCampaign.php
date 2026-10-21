@@ -2,13 +2,12 @@
 
 namespace App\Jobs;
 
-use App\Mail\NewsletterMail;
 use App\Models\NewsletterCampaign;
 use App\Models\Subscriber;
+use App\Support\NewsletterBatchSender;
 use App\Support\SubscriberSegments;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Mail;
 use Throwable;
 
 class SendNewsletterCampaign implements ShouldQueue
@@ -19,11 +18,17 @@ class SendNewsletterCampaign implements ShouldQueue
 
     public int $timeout = 50;
 
-    public function __construct(public int $campaignId) {}
-
-    public function handle(?SubscriberSegments $subscriberSegments = null): void
+    public function __construct(public int $campaignId)
     {
+        $this->onQueue((string) config('newsletter.queue', 'newsletters'));
+    }
+
+    public function handle(
+        ?SubscriberSegments $subscriberSegments = null,
+        ?NewsletterBatchSender $batchSender = null,
+    ): void {
         $subscriberSegments ??= app(SubscriberSegments::class);
+        $batchSender ??= app(NewsletterBatchSender::class);
         $campaign = NewsletterCampaign::findOrFail($this->campaignId);
 
         if (! in_array($campaign->status, ['queued', 'sending'], true)) {
@@ -42,13 +47,13 @@ class SendNewsletterCampaign implements ShouldQueue
             'delivery_error' => null,
         ]);
 
+        $batchSize = max(1, min(100, (int) config('newsletter.batch_size', 100)));
+        $batchNumber = 0;
+
         $recipientQuery
             ->orderBy('id')
-            ->chunkById(100, function ($subscribers) use ($campaign): void {
-                foreach ($subscribers as $subscriber) {
-                    Mail::to($subscriber->email, $subscriber->name)
-                        ->queue(new NewsletterMail($campaign, $subscriber));
-                }
+            ->chunkById($batchSize, function ($subscribers) use ($campaign, $batchSender, &$batchNumber): void {
+                $batchSender->send($campaign, $subscribers, ++$batchNumber);
             });
 
         $campaign->update(['status' => 'sent', 'sent_at' => now()]);
