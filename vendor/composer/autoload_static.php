@@ -518,6 +518,7 @@ class ComposerStaticInitee521a8475827814193025509abf0409
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
         'App\\Http\\Controllers\\ServicePageController' => __DIR__ . '/../..' . '/app/Http/Controllers/ServicePageController.php',
         'App\\Http\\Controllers\\SubscriberController' => __DIR__ . '/../..' . '/app/Http/Controllers/SubscriberController.php',
+        'App\\Http\\Controllers\\WhatsAppRedirectController' => __DIR__ . '/../..' . '/app/Http/Controllers/WhatsAppRedirectController.php',
         'App\\Http\\Middleware\\CaptureReferral' => __DIR__ . '/../..' . '/app/Http/Middleware/CaptureReferral.php',
         'App\\Http\\Middleware\\EnsureActiveUser' => __DIR__ . '/../..' . '/app/Http/Middleware/EnsureActiveUser.php',
         'App\\Jobs\\SendNewsletterCampaign' => __DIR__ . '/../..' . '/app/Jobs/SendNewsletterCampaign.php',

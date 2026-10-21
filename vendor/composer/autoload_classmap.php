@@ -22,6 +22,7 @@ return array(
     'App\\Http\\Controllers\\Controller' => $baseDir . '/app/Http/Controllers/Controller.php',
     'App\\Http\\Controllers\\ServicePageController' => $baseDir . '/app/Http/Controllers/ServicePageController.php',
     'App\\Http\\Controllers\\SubscriberController' => $baseDir . '/app/Http/Controllers/SubscriberController.php',
+    'App\\Http\\Controllers\\WhatsAppRedirectController' => $baseDir . '/app/Http/Controllers/WhatsAppRedirectController.php',
     'App\\Http\\Middleware\\CaptureReferral' => $baseDir . '/app/Http/Middleware/CaptureReferral.php',
     'App\\Http\\Middleware\\EnsureActiveUser' => $baseDir . '/app/Http/Middleware/EnsureActiveUser.php',
     'App\\Jobs\\SendNewsletterCampaign' => $baseDir . '/app/Jobs/SendNewsletterCampaign.php',
