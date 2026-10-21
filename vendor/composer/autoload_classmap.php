@@ -60,6 +60,7 @@ return array(
     'App\\Providers\\AppServiceProvider' => $baseDir . '/app/Providers/AppServiceProvider.php',
     'App\\Support\\ClientIpResolver' => $baseDir . '/app/Support/ClientIpResolver.php',
     'App\\Support\\DocumentEmailHistory' => $baseDir . '/app/Support/DocumentEmailHistory.php',
+    'App\\Support\\EmailPlainText' => $baseDir . '/app/Support/EmailPlainText.php',
     'App\\Support\\NewsletterBatchSender' => $baseDir . '/app/Support/NewsletterBatchSender.php',
     'App\\Support\\NewsletterHtmlSanitizer' => $baseDir . '/app/Support/NewsletterHtmlSanitizer.php',
     'App\\Support\\NewsletterMergeTags' => $baseDir . '/app/Support/NewsletterMergeTags.php',
