@@ -54,7 +54,7 @@ class NewsletterMail extends CuciNowMailable
             '',
             $this->plainTextContent,
             '',
-            'Book a free site visit: '.url('/#site-visit'),
+            'Book a free site visit: '.route('home', ['ref' => 'newsletter']).'#site-visit',
             "Unsubscribe: {$this->unsubscribeUrl}",
         ]));
     }
