@@ -1,11 +1,12 @@
 @extends('emails.layout')
 @section('title', $subjectLine)
 @section('preview', $previewLine)
+@section('header-link', route('home', ['ref' => 'newsletter']))
 @section('content')
     @if($campaign->preview_text)<p style="margin:0 0 10px;color:#8c6906;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">{{ $previewLine }}</p>@endif
     <h1 style="margin:0 0 22px;font-size:30px;line-height:1.15">{{ $subjectLine }}</h1>
     <div style="color:#4c5159;font-size:15px;line-height:1.75">{!! $htmlContent !!}</div>
-    <div style="margin-top:28px"><a href="{{ url('/#site-visit') }}" style="display:inline-block;padding:14px 20px;color:#25282d;background:#f5b800;border-radius:9px;font-size:14px;font-weight:700;text-decoration:none">Book a free site visit</a></div>
+    <div style="margin-top:28px"><a href="{{ route('home', ['ref' => 'newsletter']).'#site-visit' }}" style="display:inline-block;padding:14px 20px;color:#25282d;background:#f5b800;border-radius:9px;font-size:14px;font-weight:700;text-decoration:none">Book a free site visit</a></div>
 @endsection
 @section('footer')
     @isset($subscriber)

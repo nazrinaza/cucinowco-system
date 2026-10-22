@@ -194,8 +194,11 @@ class EmailWorkflowTest extends TestCase
                 $this->assertSame('Hello Aina', $message['subject']);
                 $this->assertStringContainsString('Hi Aina Rahman.', $message['html']);
                 $this->assertStringContainsString('/newsletter/unsubscribe/', $message['html']);
+                $this->assertStringContainsString('?ref=newsletter', $message['html']);
+                $this->assertStringContainsString('?ref=newsletter#site-visit', $message['html']);
                 $this->assertStringContainsString('Hi Aina Rahman.', $message['text']);
                 $this->assertStringContainsString('/newsletter/unsubscribe/', $message['text']);
+                $this->assertStringContainsString('?ref=newsletter#site-visit', $message['text']);
                 $this->assertSame('List-Unsubscribe=One-Click', $message['headers']['List-Unsubscribe-Post']);
                 $this->assertSame([
                     ['name' => 'category', 'value' => 'newsletter'],
@@ -286,7 +289,8 @@ class EmailWorkflowTest extends TestCase
         $this->assertSame('Prepared for Aina Rahman at aina@example.com', $mail->previewLine);
         $this->assertStringContainsString('Hello Aina,', $rendered);
         $this->assertStringContainsString('Aina Rahman · aina@example.com', $rendered);
-        $this->assertStringContainsString('href="https://cucinow.co"', $rendered);
+        $this->assertStringContainsString('?ref=newsletter"', $rendered);
+        $this->assertStringContainsString('?ref=newsletter#site-visit"', $rendered);
         $this->assertStringContainsString('/newsletter/unsubscribe/', $rendered);
         $this->assertStringNotContainsString('{FirstName}', $rendered);
         $this->assertStringNotContainsString('{UnsubscribeURL}', $rendered);
