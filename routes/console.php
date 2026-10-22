@@ -27,11 +27,11 @@ Schedule::call(function () {
                 SendNewsletterCampaign::dispatch($campaign->id);
             }
         });
-})->everyMinute()->name('queue-due-newsletters')->withoutOverlapping();
+})->everyMinute()->name('queue-due-newsletters')->withoutOverlapping(2);
 
 Schedule::command('queue:work database --queue=default,newsletters --stop-when-empty --max-time=50 --max-jobs=25 --tries=3')
     ->everyMinute()
-    ->withoutOverlapping();
+    ->withoutOverlapping(2);
 
 Schedule::call(function () {
     Invoice::query()

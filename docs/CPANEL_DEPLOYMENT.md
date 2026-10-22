@@ -72,6 +72,12 @@ In **Cron Jobs**, run this every minute after replacing the username:
 
 This processes queued emails in short, shared-hosting-safe batches, dispatches scheduled newsletters, and sends overdue invoice reminders no more than once every seven days. Newsletter campaigns use a separate `newsletters` queue and Resend's Batch API. Up to 100 individually addressed messages are submitted per API request, while quotations, invoices and booking emails remain on the higher-priority `default` queue.
 
+If campaign jobs exist in the `jobs` table with `attempts = 0` and `reserved_at = NULL`, the cron worker has not started them. Temporarily replace `/dev/null` in the cron with `/home/YOUR_CPANEL_USER/cucinow-schedule.log`, then clear stale scheduler locks once with `artisan schedule:clear-cache`. To process existing jobs immediately, run the same short-lived worker used by the scheduler:
+
+`/opt/alt/php83/usr/bin/php /home/YOUR_CPANEL_USER/cucinowco-system/artisan queue:work database --queue=default,newsletters --stop-when-empty --max-time=50 --max-jobs=25 --tries=3 >> /home/YOUR_CPANEL_USER/cucinow-queue-recovery.log 2>&1`
+
+Remove the temporary recovery cron after the log reports that the jobs were processed. Scheduled newsletter and worker mutexes expire after two minutes so a killed shared-hosting process cannot block delivery for the scheduler's default 24-hour overlap period.
+
 ## 6. Connect the Resend webhook
 
 In **Resend > Webhooks**, add the production endpoint:
