@@ -37,19 +37,20 @@ class HandleResendEmailEvent
         $recipient = is_array($data['to'] ?? null) ? ($data['to'][0] ?? null) : ($data['to'] ?? null);
 
         DB::transaction(function () use ($eventKey, $type, $emailId, $recipient, $metadata, $payload): void {
-            $emailEvent = EmailEvent::firstOrCreate(
-                ['event_key' => $eventKey],
-                [
-                    'provider' => 'resend',
-                    'event_type' => $type,
-                    'provider_email_id' => $emailId,
-                    'recipient' => $recipient,
-                    'metadata' => $metadata,
-                    'occurred_at' => $this->eventTime($payload),
-                ],
-            );
+            $now = now();
+            $inserted = DB::table('email_events')->insertOrIgnore([
+                'event_key' => $eventKey,
+                'provider' => 'resend',
+                'event_type' => $type,
+                'provider_email_id' => $emailId,
+                'recipient' => $recipient,
+                'metadata' => json_encode($metadata, JSON_THROW_ON_ERROR),
+                'occurred_at' => $this->eventTime($payload),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
 
-            if (! $emailEvent->wasRecentlyCreated) {
+            if ($inserted === 0) {
                 return;
             }
 
