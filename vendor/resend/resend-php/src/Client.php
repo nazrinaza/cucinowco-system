@@ -19,11 +19,13 @@ use Resend\Service\ServiceFactory;
  * @property Service\Domain $domains
  * @property Service\Email $emails
  * @property Service\Event $events
+ * @property Service\Inbox $inboxes
  * @property Service\Log $logs
  * @property Service\Segment $segments
  * @property Service\Suppression $suppressions
  * @property Service\Template $templates
  * @property Service\Topic $topics
+ * @property Service\Usage $usage
  * @property Service\Webhook $webhooks
  */
 class Client implements ClientContract

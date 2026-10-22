@@ -22,11 +22,13 @@ class ServiceFactory
         'domains' => Domain::class,
         'emails' => Email::class,
         'events' => Event::class,
+        'inboxes' => Inbox::class,
         'logs' => Log::class,
         'segments' => Segment::class,
         'suppressions' => Suppression::class,
         'templates' => Template::class,
         'topics' => Topic::class,
+        'usage' => Usage::class,
         'webhooks' => Webhook::class,
     ];
 

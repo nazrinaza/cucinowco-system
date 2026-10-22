@@ -21,6 +21,12 @@ use Resend\Email;
 use Resend\Emails\Attachment;
 use Resend\Emails\Receiving;
 use Resend\Event;
+use Resend\Inbox;
+use Resend\Inboxes\Agent as InboxAgent;
+use Resend\Inboxes\Draft as InboxDraft;
+use Resend\Inboxes\Label as InboxLabel;
+use Resend\Inboxes\Thread as InboxThread;
+use Resend\Inboxes\Threads\Email as InboxThreadEmail;
 use Resend\Log;
 use Resend\Metrics;
 use Resend\Resource;
@@ -28,6 +34,7 @@ use Resend\Segment;
 use Resend\Suppression;
 use Resend\Template;
 use Resend\Topic;
+use Resend\Usage;
 use Resend\Webhook;
 use Resend\Webhooks\Event as WebhookEvent;
 use Resend\Webhooks\EventAttempt as WebhookEventAttempt;
@@ -55,12 +62,19 @@ abstract class Service
         'emails' => Email::class,
         'emails-metrics' => Metrics::class,
         'events' => Event::class,
+        'inbox-agents' => InboxAgent::class,
+        'inbox-drafts' => InboxDraft::class,
+        'inbox-labels' => InboxLabel::class,
+        'inbox-thread-emails' => InboxThreadEmail::class,
+        'inbox-threads' => InboxThread::class,
+        'inboxes' => Inbox::class,
         'logs' => Log::class,
         'receiving' => Receiving::class,
         'segments' => Segment::class,
         'suppressions' => Suppression::class,
         'templates' => Template::class,
         'topics' => Topic::class,
+        'usage' => Usage::class,
         'webhook-event-attempts' => WebhookEventAttempt::class,
         'webhook-events' => WebhookEvent::class,
         'webhooks' => Webhook::class,
