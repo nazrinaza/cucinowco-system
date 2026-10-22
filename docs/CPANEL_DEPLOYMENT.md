@@ -29,6 +29,7 @@ Using **File Manager**, copy `.env.example` to `.env` in the application root. U
 - `APP_ENV=production`, `APP_DEBUG=false`, and `APP_URL=https://cucinow.co`
 - `CPANEL_PUBLIC_ROOT=/home2/shahjaha/public_html/cucinow.co` when the domain uses a locked document root outside the repository
 - `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD`
+- `DB_HOST=127.0.0.1` and `DB_PORT=3306` so cPanel web and cron PHP both use TCP instead of relying on potentially different MySQL socket paths
 - `ADMIN_EMAIL` and a strong, unique `ADMIN_PASSWORD`
 - company phone, email, WhatsApp, address, and outgoing mail settings
 
@@ -52,6 +53,8 @@ Set the `.env` permissions to `600` or the most restrictive value your host supp
 Leave `APP_KEY=` blank only for the first deployment. The deployment task generates it once. Never delete or rotate the key after the site contains live data.
 
 Keep `SST_ENABLED=false` until Thursina's current Service Tax registration is confirmed. If registered for taxable cleaning services, set `SST_ENABLED=true`; the configured current rate is 8%.
+
+If a cron log reports `SQLSTATE[HY000] [2002] No such file or directory` with `Host: localhost`, change `DB_HOST` to `127.0.0.1`, remove any `DB_SOCKET` value, and run `php artisan optimize:clear` using the same cPanel PHP binary as the cron job. This forces a TCP connection and avoids a CLI/web PHP MySQL socket mismatch.
 
 ## 4. Deploy
 
