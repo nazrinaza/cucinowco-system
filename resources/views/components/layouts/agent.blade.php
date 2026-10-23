@@ -49,7 +49,7 @@
             @if($errors->any())<div class="agent-alert agent-alert-error" role="alert"><strong>Please check the form.</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
             {{ $slot }}
         </main>
-        <footer class="agent-footer"><span>© {{ now()->year }} CuciNow.co by Thursina</span><span>Better spaces. Stronger connections.</span><a href="mailto:{{ config('company.email') }}">Contact HQ</a></footer>
+        <footer class="agent-footer"><span>© {{ now()->year }} CuciNow.co by Thursina</span><span>Better spaces. Stronger connections.</span><a href="mailto:agents@cucinow.co">Contact HQ</a></footer>
     </div>
 </body>
 </html>
