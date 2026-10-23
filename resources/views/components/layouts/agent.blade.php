@@ -5,6 +5,23 @@
 <head>
     <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
     <title>{{ $title }} | CuciNow Agents</title>
+    <meta name="description" content="Join the CuciNow agent network. Share your personal referral link, follow referred enquiries and access ready-to-share content from HQ.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="CuciNow Agent Network">
+    <meta property="og:title" content="{{ $title }} | CuciNow Agent Network">
+    <meta property="og:description" content="Your network. Our expertise. New possibilities. Join the CuciNow agent network.">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:image" content="{{ asset('images/agents-ogimage.png') }}">
+    <meta property="og:image:secure_url" content="{{ asset('images/agents-ogimage.png') }}">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="628">
+    <meta property="og:image:alt" content="The CuciNow Agent Network — Your network. Our expertise. New possibilities.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $title }} | CuciNow Agent Network">
+    <meta name="twitter:description" content="Your network. Our expertise. New possibilities. Join the CuciNow agent network.">
+    <meta name="twitter:image" content="{{ asset('images/agents-ogimage.png') }}">
+    <meta name="twitter:image:alt" content="The CuciNow Agent Network — Your network. Our expertise. New possibilities.">
     <link rel="icon" href="{{ asset('favicon.ico') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
