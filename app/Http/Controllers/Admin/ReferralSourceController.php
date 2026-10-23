@@ -72,6 +72,11 @@ class ReferralSourceController extends Controller
     public function update(Request $request, ReferralSource $referral): RedirectResponse
     {
         $data = $request->validate(['is_active' => ['required', 'boolean']]);
+        if ($data['is_active'] && $referral->agent && $referral->agent->status !== 'approved') {
+            throw ValidationException::withMessages([
+                'is_active' => 'Approve this agent from the Agents page before activating their referral code.',
+            ]);
+        }
         $referral->update($data);
 
         return back()->with('success', $referral->is_active ? 'Referral activated.' : 'Referral paused. Existing lead records are preserved.');

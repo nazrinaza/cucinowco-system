@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\AgentController;
+use App\Http\Controllers\Admin\AgentMediaController;
 use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\CampaignController;
 use App\Http\Controllers\Admin\CustomerController;
@@ -17,6 +19,8 @@ use App\Http\Controllers\SubscriberController;
 use App\Http\Controllers\WhatsAppRedirectController;
 use App\Http\Middleware\EnsureActiveUser;
 use Illuminate\Support\Facades\Route;
+
+require __DIR__.'/agents.php';
 
 Route::view('/', 'welcome')->name('home');
 Route::get('/whatsapp', WhatsAppRedirectController::class)
@@ -41,14 +45,14 @@ Route::match(['get', 'post'], '/newsletter/unsubscribe/{subscriber}', [Subscribe
     ->middleware('signed')
     ->name('newsletter.unsubscribe');
 
-Route::middleware('guest')->group(function () {
+Route::middleware('guest:web')->group(function () {
     Route::get('/admin/login', [AuthController::class, 'create'])->name('login');
     Route::post('/admin/login', [AuthController::class, 'store'])->middleware('throttle:5,1')->name('login.store');
 });
 
-Route::post('/admin/logout', [AuthController::class, 'destroy'])->middleware('auth')->name('logout');
+Route::post('/admin/logout', [AuthController::class, 'destroy'])->middleware('auth:web')->name('logout');
 
-Route::prefix('admin')->name('admin.')->middleware(['auth', EnsureActiveUser::class])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth:web', EnsureActiveUser::class])->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::patch('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::get('/site-visits', [SiteVisitController::class, 'index'])->name('site-visits.index');
@@ -63,6 +67,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', EnsureActiveUser::cl
     Route::patch('/bookings/{booking}', [BookingController::class, 'update'])->name('bookings.update');
 
     Route::middleware('can:manage-documents')->group(function () {
+        Route::get('/agents', [AgentController::class, 'index'])->name('agents.index');
+        Route::get('/agents/{agent}', [AgentController::class, 'show'])->name('agents.show');
+        Route::patch('/agents/{agent}', [AgentController::class, 'update'])->name('agents.update');
+        Route::get('/agent-media', [AgentMediaController::class, 'index'])->name('agent-media.index');
+        Route::post('/agent-media', [AgentMediaController::class, 'store'])->name('agent-media.store');
+        Route::patch('/agent-media/{media}', [AgentMediaController::class, 'update'])->name('agent-media.update');
+        Route::get('/agent-media/{media}/download', [AgentMediaController::class, 'download'])->name('agent-media.download');
         Route::get('/', DashboardController::class)->name('dashboard');
         Route::get('/quotes/create', [QuoteController::class, 'create'])->name('quotes.create');
         Route::get('/quotes', [QuoteController::class, 'index'])->name('quotes.index');
