@@ -48,13 +48,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         copy?.addEventListener('click', async () => {
+            const copyUrl = card.dataset.referralCopyUrl || url;
             try {
-                await navigator.clipboard.writeText(url);
+                await navigator.clipboard.writeText(copyUrl);
                 const original = copy.textContent;
                 copy.textContent = 'Copied';
                 window.setTimeout(() => { copy.textContent = original; }, 1500);
             } catch (error) {
-                window.prompt('Copy this referral link:', url);
+                window.prompt('Copy this referral link:', copyUrl);
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-agent-copy]').forEach((button) => {
+        button.addEventListener('click', async () => {
+            const value = button.dataset.agentCopy;
+            try {
+                await navigator.clipboard.writeText(value);
+                const original = button.textContent;
+                button.textContent = 'Copied';
+                window.setTimeout(() => { button.textContent = original; }, 1500);
+            } catch {
+                window.prompt('Copy this caption:', value);
             }
         });
     });

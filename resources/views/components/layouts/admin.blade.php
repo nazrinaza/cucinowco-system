@@ -13,6 +13,10 @@
                         <a href="{{ route(str_replace('.*','.index',$route)) }}" @class(['active' => request()->routeIs($route)])><span>{{ $icon }}</span>{{ $label }}</a>
                     @endif
                 @endforeach
+                @can('manage-documents')
+                    <a href="{{ route('admin.agents.index') }}" @class(['active' => request()->routeIs('admin.agents.*')])><span>AG</span>Agents</a>
+                    <a href="{{ route('admin.agent-media.index') }}" @class(['active' => request()->routeIs('admin.agent-media.*')])><span>HQ</span>Agent content</a>
+                @endcan
                 @can('manage-users')<a href="{{ route('admin.users.index') }}" @class(['active' => request()->routeIs('admin.users.*')])><span>US</span>Team accounts</a>@endcan
                 <a href="{{ route('admin.profile.show') }}" @class(['active' => request()->routeIs('admin.profile.*')])><span>ME</span>My account</a>
             </nav>

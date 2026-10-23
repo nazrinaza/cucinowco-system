@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Agent;
 use App\Models\User;
 
 return [
@@ -38,6 +39,7 @@ return [
     */
 
     'guards' => [
+        'agent' => ['driver' => 'session', 'provider' => 'agents'],
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
@@ -62,6 +64,7 @@ return [
     */
 
     'providers' => [
+        'agents' => ['driver' => 'eloquent', 'model' => Agent::class],
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
@@ -93,6 +96,7 @@ return [
     */
 
     'passwords' => [
+        'agents' => ['provider' => 'agents', 'table' => 'agent_password_reset_tokens', 'expire' => 60, 'throttle' => 60],
         'users' => [
             'provider' => 'users',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),

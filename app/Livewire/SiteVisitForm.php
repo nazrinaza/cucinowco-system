@@ -64,7 +64,7 @@ class SiteVisitForm extends Component
 
         $referral = ReferralSource::query()
             ->whereKey(session('cucinow.referral_source_id'))
-            ->where('is_active', true)
+            ->trackable()
             ->first();
         $clientIp = app(ClientIpResolver::class)->resolve(request());
 
