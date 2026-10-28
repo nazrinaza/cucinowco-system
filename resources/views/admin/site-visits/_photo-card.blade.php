@@ -1,10 +1,10 @@
 <figure class="site-photo-card">
     <a href="{{ route('admin.site-visits.photos.show', [$siteVisit, $photo]) }}" target="_blank" rel="noopener">
         @if(in_array($photo->mime_type, ['image/heic', 'image/heif']))
-            <img data-photo-heic-preview src="{{ route('admin.site-visits.photos.show', [$siteVisit, $photo]) }}" alt="{{ ucfirst($photo->phase) }} cleanup: {{ $photo->caption ?: $photo->original_name }}" loading="lazy">
+            <img data-photo-heic-preview src="{{ route('admin.site-visits.photos.show', [$siteVisit, $photo]) }}" alt="Site assessment: {{ $photo->caption ?: $photo->original_name }}" loading="lazy">
             <span class="site-photo-heic" data-photo-heic-fallback hidden>HEIC preview unavailable here · open original</span>
         @else
-            <img src="{{ route('admin.site-visits.photos.show', [$siteVisit, $photo]) }}" alt="{{ ucfirst($photo->phase) }} cleanup: {{ $photo->caption ?: $photo->original_name }}" loading="lazy">
+            <img src="{{ route('admin.site-visits.photos.show', [$siteVisit, $photo]) }}" alt="Site assessment: {{ $photo->caption ?: $photo->original_name }}" loading="lazy">
         @endif
     </a>
     <figcaption>

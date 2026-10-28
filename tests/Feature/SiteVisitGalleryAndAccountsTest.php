@@ -35,37 +35,25 @@ class SiteVisitGalleryAndAccountsTest extends TestCase
         return [$visit, $booking];
     }
 
-    public function test_private_before_and_after_uploads_record_the_user_and_gate_completion(): void
+    public function test_private_inspection_gallery_records_the_uploader_without_gating_job_completion(): void
     {
         Storage::fake('local');
         [$visit, $booking] = $this->visitWithBooking();
         $field = User::factory()->create(['role' => 'field']);
 
-        $this->actingAs($field)->patch(route('admin.bookings.update', $booking), ['status' => 'completed'])
-            ->assertSessionHasErrors('status');
         $this->actingAs($field)->post(route('admin.site-visits.photos.store', $visit), [
-            'phase' => 'after', 'photo' => UploadedFile::fake()->image('after.jpg'),
-        ])->assertSessionHasErrors('before_photo_id');
-
-        $this->actingAs($field)->post(route('admin.site-visits.photos.store', $visit), [
-            'phase' => 'before', 'caption' => 'Main hall', 'photo' => UploadedFile::fake()->image('before.jpg'),
+            'caption' => 'Main hall access', 'photo' => UploadedFile::fake()->image('inspection.jpg'),
         ])->assertSessionHasNoErrors();
-        $before = $visit->photos()->firstOrFail();
-        $this->assertSame($field->id, $before->uploaded_by_user_id);
-        Storage::disk('local')->assertExists($before->path);
-        $this->get(route('admin.site-visits.photos.show', [$visit, $before]))->assertOk();
+        $photo = $visit->photos()->firstOrFail();
+        $this->assertSame('inspection', $photo->phase);
+        $this->assertSame($field->id, $photo->uploaded_by_user_id);
+        Storage::disk('local')->assertExists($photo->path);
+        $this->get(route('admin.site-visits.photos.show', [$visit, $photo]))->assertOk();
         auth()->logout();
-        $this->get(route('admin.site-visits.photos.show', [$visit, $before]))->assertRedirect(route('login'));
+        $this->get(route('admin.site-visits.photos.show', [$visit, $photo]))->assertRedirect(route('login'));
 
         $this->actingAs($field)->patch(route('admin.bookings.update', $booking), ['status' => 'in_progress'])
             ->assertSessionHasNoErrors();
-        $this->actingAs($field)->patch(route('admin.bookings.update', $booking), ['status' => 'completed'])
-            ->assertSessionHasErrors('status');
-        $this->actingAs($field)->post(route('admin.site-visits.photos.store', $visit), [
-            'phase' => 'after', 'before_photo_id' => $before->id,
-            'photo' => UploadedFile::fake()->image('after.jpg'),
-        ])->assertSessionHasNoErrors();
-        $this->assertSame($before->id, $visit->photos()->where('phase', 'after')->firstOrFail()->before_photo_id);
         $this->actingAs($field)->patch(route('admin.bookings.update', $booking), ['status' => 'completed'])
             ->assertSessionHasNoErrors();
         $this->assertSame('completed', $booking->fresh()->status);
@@ -80,29 +68,20 @@ class SiteVisitGalleryAndAccountsTest extends TestCase
         $this->assertSame(7, $photo->uploaded_by_user_id);
     }
 
-    public function test_large_png_is_resized_and_an_after_photo_must_reference_the_same_visit(): void
+    public function test_large_png_is_resized_for_the_inspection_gallery(): void
     {
         Storage::fake('local');
         [$visit] = $this->visitWithBooking();
-        $otherCustomer = Customer::create(['name' => 'Other Client', 'phone' => '01199999999']);
-        $otherVisit = SiteVisitRequest::create([
-            'reference_number' => 'SV-GALLERY-2', 'customer_id' => $otherCustomer->id,
-            'status' => 'new', 'space_type' => 'office', 'site_address' => '',
-        ]);
         $admin = User::factory()->create();
 
         $this->actingAs($admin)->post(route('admin.site-visits.photos.store', $visit), [
-            'phase' => 'before', 'caption' => 'Entrance towards stage',
+            'caption' => 'Entrance towards stage',
             'photo' => UploadedFile::fake()->image('large.png', 3000, 1800),
         ])->assertSessionHasNoErrors();
-        $before = $visit->photos()->firstOrFail();
-        $this->assertSame('image/jpeg', $before->mime_type);
-        $this->assertLessThanOrEqual(2000, max(getimagesize(Storage::disk('local')->path($before->path))[0], getimagesize(Storage::disk('local')->path($before->path))[1]));
+        $photo = $visit->photos()->firstOrFail();
+        $this->assertSame('image/jpeg', $photo->mime_type);
+        $this->assertLessThanOrEqual(2000, max(getimagesize(Storage::disk('local')->path($photo->path))[0], getimagesize(Storage::disk('local')->path($photo->path))[1]));
 
-        $this->actingAs($admin)->post(route('admin.site-visits.photos.store', $otherVisit), [
-            'phase' => 'after', 'before_photo_id' => $before->id,
-            'photo' => UploadedFile::fake()->image('after.jpg'),
-        ])->assertSessionHasErrors('before_photo_id');
         $this->assertDatabaseCount('site_visit_photos', 1);
     }
 
@@ -114,7 +93,7 @@ class SiteVisitGalleryAndAccountsTest extends TestCase
         $heic = pack('N', 24).'ftypheic'.str_repeat("\0", 12);
 
         $this->actingAs($admin)->post(route('admin.site-visits.photos.store', $visit), [
-            'phase' => 'before', 'caption' => 'Front doorway',
+            'caption' => 'Front doorway',
             'photo' => UploadedFile::fake()->createWithContent('camera.heic', $heic),
         ])->assertSessionHasNoErrors();
         $photo = $visit->photos()->firstOrFail();
@@ -123,40 +102,50 @@ class SiteVisitGalleryAndAccountsTest extends TestCase
         Storage::disk('local')->assertExists($photo->path);
 
         $this->actingAs($admin)->post(route('admin.site-visits.photos.store', $visit), [
-            'phase' => 'before', 'caption' => 'Side doorway',
+            'caption' => 'Side doorway',
             'photo' => UploadedFile::fake()->create('oversized.jpg', 8193, 'image/jpeg'),
         ])->assertSessionHasErrors('photo');
         $this->assertDatabaseCount('site_visit_photos', 1);
     }
 
-    public function test_an_earlier_after_photo_can_be_paired_and_its_reference_cannot_then_be_deleted(): void
+    public function test_team_can_save_and_complete_a_structured_site_assessment(): void
     {
-        Storage::fake('local');
-        [$visit, $booking] = $this->visitWithBooking();
-        $admin = User::factory()->create();
-        $before = $visit->photos()->create([
-            'phase' => 'before', 'path' => 'before.jpg', 'mime_type' => 'image/jpeg',
-            'original_name' => 'before.jpg', 'caption' => 'Doorway facing desk', 'uploaded_by_user_id' => $admin->id,
-        ]);
-        $after = $visit->photos()->create([
-            'phase' => 'after', 'path' => 'after.jpg', 'mime_type' => 'image/jpeg',
-            'original_name' => 'after.jpg', 'uploaded_by_user_id' => $admin->id,
-        ]);
-        Storage::disk('local')->put('before.jpg', 'before');
-        Storage::disk('local')->put('after.jpg', 'after');
+        [$visit] = $this->visitWithBooking();
+        $field = User::factory()->create(['role' => 'field']);
 
-        $this->actingAs($admin)->patch(route('admin.bookings.update', $booking), ['status' => 'completed'])
-            ->assertSessionHasErrors('status');
-        $this->actingAs($admin)->get(route('admin.site-visits.show', $visit))
-            ->assertOk()->assertSee('Doorway facing desk')->assertSee('Earlier after photos to pair');
-        $this->actingAs($admin)->patch(route('admin.site-visits.photos.pair', [$visit, $after]), [
-            'before_photo_id' => $before->id,
+        $this->actingAs($field)->patch(route('admin.site-visits.assessment.update', $visit), [
+            'assessment_state' => 'draft',
+            'site_size_sqft' => 12000,
+            'tools' => ['floor_scrubber', 'wet_dry_vacuum'],
+            'ppe' => ['gloves', 'safety_boots'],
+            'forklift_required' => 1,
         ])->assertSessionHasNoErrors();
-        $this->assertSame($before->id, $after->fresh()->before_photo_id);
+        $this->assertNull($visit->fresh()->assessment_completed_at);
 
-        $this->actingAs($admin)->delete(route('admin.site-visits.photos.destroy', [$visit, $before]))
-            ->assertSessionHasErrors('photo');
-        Storage::disk('local')->assertExists('before.jpg');
+        $this->actingAs($field)->patch(route('admin.site-visits.assessment.update', $visit), [
+            'assessment_state' => 'completed',
+            'discovery_source' => 'referral_agent',
+            'site_size_sqft' => 12000,
+            'floor_count' => 2,
+            'premises_type' => 'factory_warehouse',
+            'tools' => ['floor_scrubber', 'wet_dry_vacuum'],
+            'other_tools' => 'Bring spare squeegee blades',
+            'ppe' => ['gloves', 'safety_boots'],
+            'safety_signage_required' => 1,
+            'forklift_required' => 1,
+            'expected_duration_hours' => 12.5,
+            'access_notes' => 'Use loading bay B.',
+        ])->assertSessionHasNoErrors();
+
+        $visit->refresh();
+        $this->assertSame($field->id, $visit->assessment_completed_by_user_id);
+        $this->assertNotNull($visit->assessment_completed_at);
+        $this->assertSame(12000, $visit->assessment_data['site_size_sqft']);
+        $this->assertTrue($visit->assessment_data['forklift_required']);
+        $this->assertSame(['floor_scrubber', 'wet_dry_vacuum'], $visit->assessment_data['tools']);
+
+        $this->actingAs($field)->get(route('admin.site-visits.show', $visit))
+            ->assertOk()->assertSee('Site assessment checklist')->assertSee('Inspection photo gallery');
     }
 
     public function test_only_admin_manages_accounts_and_field_cannot_open_financial_documents(): void
