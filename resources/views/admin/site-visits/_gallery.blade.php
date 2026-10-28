@@ -19,4 +19,20 @@
             @endforelse
         </div>
     </div>
+    <dialog class="site-photo-modal" data-site-photo-modal aria-labelledby="site-photo-modal-title">
+        <div class="site-photo-modal-shell">
+            <button type="button" class="site-photo-modal-close" data-gallery-modal-close aria-label="Close photo preview">&times;</button>
+            <div class="site-photo-modal-media">
+                <img data-gallery-modal-image alt="">
+                <p data-gallery-modal-fallback hidden>Preview is not supported by this browser. Open the original image instead.</p>
+            </div>
+            <div class="site-photo-modal-info">
+                <p>Captured site condition</p>
+                <h3 id="site-photo-modal-title" data-gallery-modal-caption></h3>
+                <div class="site-photo-modal-notes"><span>Inspection note / observation</span><p data-gallery-modal-notes></p></div>
+                <dl><div><dt>Uploaded by</dt><dd data-gallery-modal-uploader></dd></div><div><dt>Uploaded</dt><dd data-gallery-modal-date></dd></div></dl>
+                <a class="admin-button secondary" data-gallery-modal-original target="_blank" rel="noopener">Open original image</a>
+            </div>
+        </div>
+    </dialog>
 </section>

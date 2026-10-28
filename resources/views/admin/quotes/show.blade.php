@@ -6,6 +6,10 @@
         @if(!$quote->invoice)<form method="post" action="{{ route('admin.quotes.convert',$quote) }}">@csrf<button class="admin-button secondary" type="submit">Convert to invoice</button></form>@else<a class="admin-button secondary" href="{{ route('admin.invoices.show',$quote->invoice) }}">View invoice</a>@endif
     </div></x-slot:actions>
     @include('admin.partials.document-email-form', ['documentLabel' => 'quotation', 'sendRoute' => route('admin.quotes.send', $quote), 'defaultEmail' => $quote->customer->email])
+    <section class="admin-card quotation-owner">
+        <div><p>Owning site-visit session</p><strong>{{ $quote->siteVisit?->reference_number ?? 'Direct quotation — no site visit linked' }}</strong></div>
+        @if($quote->siteVisit)<a href="{{ route('admin.site-visits.show', $quote->siteVisit) }}">Open site visit session &nearr;</a>@endif
+    </section>
     <div class="detail-grid">
         <section class="admin-card document-card">
             <div class="document-head"><img src="{{ asset('images/cucinow-logo.png') }}" alt="CuciNow.co"><div><span>Quotation</span><strong>{{ $quote->quote_number }}</strong><small>Valid until {{ $quote->valid_until?->format('d M Y') }}</small></div></div>

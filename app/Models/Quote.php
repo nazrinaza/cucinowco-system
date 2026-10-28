@@ -44,7 +44,7 @@ class Quote extends Model
 
     public function siteVisit(): BelongsTo
     {
-        return $this->belongsTo(SiteVisitRequest::class);
+        return $this->belongsTo(SiteVisitRequest::class, 'site_visit_request_id');
     }
 
     public function getReferralLabelAttribute(): string
