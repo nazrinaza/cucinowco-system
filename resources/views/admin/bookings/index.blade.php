@@ -89,6 +89,19 @@
                     <p>{{ $booking->service?->name ?? 'Cleaning service' }}</p>
                     <x-lead-source :label="$booking->referral_label" />
                     <small>{{ $booking->service_address }}</small>
+                    @php($calendarStatus = $booking->calendarSync?->status ?? ($booking->status === 'confirmed' ? 'pending' : 'not_required'))
+                    <div class="calendar-sync-line">
+                        <span class="calendar-sync-status calendar-sync-{{ str($calendarStatus)->replace('_', '-') }}">Calendar: {{ str($calendarStatus)->replace('_', ' ')->title() }}</span>
+                        @can('manage-users')
+                            @if(in_array($calendarStatus, ['failed', 'not_connected'], true))
+                                <form method="post" action="{{ route('admin.bookings.calendar.retry', $booking) }}">
+                                    @csrf
+                                    <button type="submit">Retry sync</button>
+                                </form>
+                            @endif
+                        @endcan
+                    </div>
+                    @if($booking->calendarSync?->last_error)<small class="calendar-sync-error">{{ $booking->calendarSync->last_error }}</small>@endif
                     @if($booking->quote?->siteVisit)
                         <a href="{{ route('admin.site-visits.show', $booking->quote->siteVisit) }}" class="booking-photo-link">Photos: {{ $booking->quote->siteVisit->photos->where('phase', 'before')->count() }} before · {{ $booking->quote->siteVisit->photos->where('phase', 'after')->count() }} after</a>
                     @endif

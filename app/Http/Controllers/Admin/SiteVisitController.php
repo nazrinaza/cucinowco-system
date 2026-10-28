@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ReferralSource;
 use App\Models\SiteVisitPhoto;
 use App\Models\SiteVisitRequest;
+use App\Models\Staff;
 use App\Support\SitePhotoStorage;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
@@ -39,7 +40,8 @@ class SiteVisitController extends Controller
         ]);
 
         $siteVisits = $this->filteredQuery($filters)
-            ->with(['customer', 'service', 'quote', 'referralSource'])
+            ->with(['customer', 'service', 'quote', 'referralSource', 'calendarSync'])
+            ->withCount('quotes')
             ->latest()
             ->paginate(20)
             ->withQueryString();
@@ -102,9 +104,13 @@ class SiteVisitController extends Controller
 
     public function show(SiteVisitRequest $siteVisit): View
     {
-        $siteVisit->load(['customer', 'service', 'quote.booking', 'referralSource', 'photos.uploadedBy', 'photos.beforeReference']);
+        $siteVisit->load(['customer', 'service', 'staff', 'calendarSync', 'quotes' => fn ($query) => $query->with(['invoice', 'booking'])->latest(), 'referralSource', 'photos.uploadedBy', 'photos.beforeReference']);
 
-        return view('admin.site-visits.show', ['siteVisit' => $siteVisit, 'statuses' => self::STATUSES]);
+        return view('admin.site-visits.show', [
+            'siteVisit' => $siteVisit,
+            'statuses' => self::STATUSES,
+            'staff' => Staff::where('status', '!=', 'inactive')->orderBy('name')->get(),
+        ]);
     }
 
     public function update(Request $request, SiteVisitRequest $siteVisit): RedirectResponse
@@ -113,6 +119,9 @@ class SiteVisitController extends Controller
 
         $data = $request->validate([
             'status' => ['required', Rule::in(self::STATUSES)],
+            'staff_id' => ['nullable', 'exists:staff,id'],
+            'scheduled_start' => [Rule::requiredIf(fn (): bool => in_array($request->input('status'), ['scheduled', 'completed'], true)), 'nullable', 'date'],
+            'scheduled_end' => [Rule::requiredIf(fn (): bool => in_array($request->input('status'), ['scheduled', 'completed'], true)), 'nullable', 'date', 'after:scheduled_start'],
             'internal_notes' => ['nullable', 'string', 'max:3000'],
             'other_clean_type' => $requiresOtherCleanType
                 ? ['required', 'string', 'max:180']
@@ -220,7 +229,10 @@ class SiteVisitController extends Controller
         if ($photo->phase === 'before' && $photo->afterPhotos()->exists()) {
             return back()->withErrors(['photo' => 'This angle has paired after photos. Reassign or remove those photos first.']);
         }
-        if ($siteVisit->quote?->booking?->status === 'completed'
+        $hasCompletedBooking = $siteVisit->quotes()
+            ->whereHas('booking', fn (Builder $query) => $query->where('status', 'completed'))
+            ->exists() || $siteVisit->quote?->booking?->status === 'completed';
+        if ($hasCompletedBooking
             && $siteVisit->photos()->where('phase', $photo->phase)->count() <= 1) {
             return back()->withErrors(['photo' => 'Upload a replacement first. Completed bookings must retain before and after evidence.']);
         }

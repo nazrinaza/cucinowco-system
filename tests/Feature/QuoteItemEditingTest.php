@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\Quote;
 use App\Models\Service;
 use App\Models\User;
+use App\Mail\QuoteMail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -52,7 +53,7 @@ class QuoteItemEditingTest extends TestCase
         $this->assertSame('draft', $quote->status);
         $this->assertNull($quote->sent_at);
         $this->assertSame(2, $quote->items()->count());
-        $this->assertDatabaseHas('quote_items', ['id' => $original->id, 'service_id' => $service->id, 'amount' => 250.13, 'notes' => 'Include meeting rooms']);
+        $this->assertDatabaseHas('quote_items', ['id' => $original->id, 'service_id' => $service->id, 'amount' => 250.13, 'notes' => '<p>Include meeting rooms</p>']);
         $this->assertDatabaseMissing('quote_items', ['id' => $removed->id]);
         $this->assertDatabaseHas('quote_items', ['quote_id' => $quote->id, 'description' => 'Carpet cleaning add-on', 'amount' => 80]);
 
@@ -105,5 +106,33 @@ class QuoteItemEditingTest extends TestCase
     {
         $this->patch(route('admin.quotes.items.update', $this->quotation()), ['items' => [$this->line()], 'discount' => 0])
             ->assertRedirect(route('login'));
+    }
+
+    public function test_customer_facing_scope_formatting_is_sanitized_for_quote_and_email(): void
+    {
+        $this->actingAs(User::factory()->create(['is_active' => true]));
+        $quote = $this->quotation();
+        $unsafe = '<p><strong>Included</strong> and <em>carefully handled</em></p><ul><li>Lobby</li><li>Meeting rooms</li></ul><hr><script>alert(1)</script><a href="https://bad.example">bad link</a>';
+
+        $this->patch(route('admin.quotes.items.update', $quote), [
+            'items' => [$this->line(['notes' => $unsafe])],
+            'discount' => 0,
+        ])->assertSessionHasNoErrors();
+
+        $item = $quote->items()->firstOrFail();
+        $this->assertStringContainsString('<strong>Included</strong>', $item->notes);
+        $this->assertStringContainsString('<ul><li>Lobby</li><li>Meeting rooms</li></ul>', $item->notes);
+        $this->assertStringNotContainsString('script', $item->notes);
+        $this->assertStringNotContainsString('href', $item->notes);
+
+        $this->get(route('admin.quotes.show', $quote))
+            ->assertOk()
+            ->assertSee('<strong>Included</strong>', false)
+            ->assertDontSee('alert(1)');
+
+        $email = (new QuoteMail($quote->fresh(['customer', 'items'])))->render();
+        $this->assertStringContainsString('<strong>Included</strong>', $email);
+        $this->assertStringContainsString('padding-left:21px', $email);
+        $this->assertStringNotContainsString('alert(1)', $email);
     }
 }

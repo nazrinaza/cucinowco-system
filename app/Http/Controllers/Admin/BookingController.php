@@ -44,7 +44,7 @@ class BookingController extends Controller
         $calendarCounts = collect(['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'])
             ->mapWithKeys(fn (string $bookingStatus): array => [$bookingStatus => $monthBookings->where('status', $bookingStatus)->count()]);
 
-        $bookings = Booking::with(['customer', 'service', 'staff', 'quote.siteVisit.referralSource', 'quote.siteVisit.photos'])
+        $bookings = Booking::with(['customer', 'service', 'staff', 'calendarSync', 'quote.siteVisit.referralSource', 'quote.siteVisit.photos'])
             ->when($status, fn ($query, string $selectedStatus) => $query->where('status', $selectedStatus))
             ->orderByRaw('scheduled_start IS NULL')
             ->orderBy('scheduled_start')
@@ -80,7 +80,8 @@ class BookingController extends Controller
         }
 
         if (in_array($data['status'], ['in_progress', 'completed'], true) && $booking->quote_id) {
-            $siteVisit = SiteVisitRequest::where('quote_id', $booking->quote_id)->first();
+            $siteVisit = $booking->quote?->siteVisit
+                ?? SiteVisitRequest::where('quote_id', $booking->quote_id)->first();
             if ($siteVisit && ! $siteVisit->photos()->where('phase', 'before')->exists()) {
                 throw ValidationException::withMessages(['status' => 'Upload a before photo on the linked site visit before starting the cleanup.']);
             }

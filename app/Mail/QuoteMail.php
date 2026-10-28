@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Quote;
+use App\Support\QuotationHtmlSanitizer;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Mail\Mailables\Headers;
@@ -21,8 +22,14 @@ class QuoteMail extends CuciNowMailable
 
     public function content(): Content
     {
+        $sanitizer = app(QuotationHtmlSanitizer::class);
         $items = $this->quote->items
-            ->map(fn ($item): string => "- {$item->description}: RM ".number_format($item->amount, 2))
+            ->map(function ($item) use ($sanitizer): string {
+                $notes = $sanitizer->toPlainText($item->notes);
+
+                return "- {$item->description}: RM ".number_format($item->amount, 2)
+                    .($notes !== '' ? "\n  ".str_replace("\n", "\n  ", $notes) : '');
+            })
             ->implode("\n");
 
         return $this->brandedContent('emails.quote', implode("\n", [

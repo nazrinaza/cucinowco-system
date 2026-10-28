@@ -20,7 +20,7 @@ class PortalController extends Controller
 
         return view('agents.dashboard', [
             'agent' => $agent, 'summary' => $report->summary($agent),
-            'leads' => $report->leads($agent)->with(['quote.booking', 'quote.invoice'])->latest()->limit(5)->get(),
+            'leads' => $report->leads($agent)->with(['quote.booking', 'quote.invoice', 'quotes.booking', 'quotes.invoice'])->latest()->limit(5)->get(),
             'media' => AgentMedia::available()->latest()->limit(3)->get(), 'report' => $report,
         ]);
     }
@@ -28,7 +28,7 @@ class PortalController extends Controller
     public function leads(AgentReporting $report)
     {
         return view('agents.leads', [
-            'leads' => $report->leads(Auth::guard('agent')->user())->with(['quote.booking', 'quote.invoice'])->latest()->paginate(20),
+            'leads' => $report->leads(Auth::guard('agent')->user())->with(['quote.booking', 'quote.invoice', 'quotes.booking', 'quotes.invoice'])->latest()->paginate(20),
             'report' => $report,
         ]);
     }

@@ -6,6 +6,18 @@
     <label>Unit<input name="items[{{ $index }}][unit]" value="{{ $line['unit'] ?? 'job' }}" maxlength="30" required></label>
     <label>Rate (RM)<input type="number" name="items[{{ $index }}][unit_price]" value="{{ $line['unit_price'] ?? '0.00' }}" min="0" max="1000000" step="0.01" required data-line-rate></label>
     <div class="quote-line-amount">Amount <output data-line-amount>RM {{ number_format((float) ($line['quantity'] ?? 1) * (float) ($line['unit_price'] ?? 0), 2) }}</output></div>
-    <label class="quote-line-notes">Line notes (optional)<textarea name="items[{{ $index }}][notes]" rows="2" maxlength="3000">{{ $line['notes'] ?? '' }}</textarea></label>
+    @php($lineNotes = app(\App\Support\QuotationHtmlSanitizer::class)->sanitize($line['notes'] ?? ''))
+    <div class="quote-line-notes quote-rich-field" data-quote-rich-editor>
+        <span>Customer-facing scope details (optional)</span>
+        <div class="quote-rich-toolbar" role="toolbar" aria-label="Scope details formatting">
+            <button type="button" class="quote-rich-tool" data-quote-rich-command="bold" title="Bold"><strong>B</strong></button>
+            <button type="button" class="quote-rich-tool" data-quote-rich-command="italic" title="Italic"><em>I</em></button>
+            <button type="button" class="quote-rich-tool" data-quote-rich-command="insertUnorderedList" title="Bullet list">&#8226; List</button>
+            <button type="button" class="quote-rich-tool" data-quote-rich-hr title="Divider">&#8212; Divider</button>
+        </div>
+        <div class="quote-rich-canvas" contenteditable="true" role="textbox" aria-multiline="true" data-quote-rich-canvas>{!! $lineNotes !!}</div>
+        <textarea name="items[{{ $index }}][notes]" maxlength="3000" hidden data-quote-rich-source>{{ $lineNotes }}</textarea>
+        <small>Only bold, italic, bullets and dividers are kept for quotation and email compatibility.</small>
+    </div>
     <button type="button" class="admin-button secondary" data-remove-quote-line>Remove line</button>
 </fieldset>

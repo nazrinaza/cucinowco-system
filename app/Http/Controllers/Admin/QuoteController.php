@@ -11,6 +11,7 @@ use App\Models\Quote;
 use App\Models\SiteVisitRequest;
 use App\Support\DocumentEmailHistory;
 use App\Support\ReferenceNumber;
+use App\Support\QuotationHtmlSanitizer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -65,7 +66,7 @@ class QuoteController extends Controller
         return back()->with('success', 'Quote updated.');
     }
 
-    public function updateItems(Request $request, Quote $quote): RedirectResponse
+    public function updateItems(Request $request, Quote $quote, QuotationHtmlSanitizer $sanitizer): RedirectResponse
     {
         $data = $request->validate([
             'items' => ['required', 'array', 'min:1', 'max:100'],
@@ -79,7 +80,7 @@ class QuoteController extends Controller
             'discount' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:9999999999.99'],
         ]);
 
-        DB::transaction(function () use ($quote, $data, $request) {
+        DB::transaction(function () use ($quote, $data, $request, $sanitizer) {
             $quote = Quote::query()->lockForUpdate()->findOrFail($quote->id);
 
             if ($quote->invoice()->exists() || $quote->booking()->exists()) {
@@ -89,6 +90,7 @@ class QuoteController extends Controller
             $subtotalCents = 0;
             $lines = [];
             foreach ($data['items'] as $line) {
+                $line['notes'] = $sanitizer->sanitize($line['notes'] ?? null) ?: null;
                 $quantityHundredths = (int) round((float) $line['quantity'] * 100);
                 $rateCents = (int) round((float) $line['unit_price'] * 100);
                 // Round each line to the nearest sen before summing the quotation.
