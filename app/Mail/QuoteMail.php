@@ -31,6 +31,9 @@ class QuoteMail extends CuciNowMailable
                     .($notes !== '' ? "\n  ".str_replace("\n", "\n  ", $notes) : '');
             })
             ->implode("\n");
+        $terms = collect(config('company.quotation_terms'))
+            ->map(fn (string $term, int $index): string => ($index + 1).'. '.$term)
+            ->implode("\n");
 
         return $this->brandedContent('emails.quote', implode("\n", [
             "Quotation {$this->quote->quote_number}",
@@ -41,6 +44,10 @@ class QuoteMail extends CuciNowMailable
             '',
             'Total: RM '.number_format($this->quote->total, 2),
             "Service location: {$this->quote->service_address}, {$this->quote->postcode} {$this->quote->city}, {$this->quote->state}",
+            '',
+            'Project & payment terms',
+            $terms,
+            '',
             'Discuss this quotation: '.route('whatsapp.redirect', ['text' => 'Hi CuciNow, I would like to discuss quotation '.$this->quote->quote_number]),
         ]));
     }
