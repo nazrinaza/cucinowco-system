@@ -103,7 +103,7 @@
                     </div>
                     @if($booking->calendarSync?->last_error)<small class="calendar-sync-error">{{ $booking->calendarSync->last_error }}</small>@endif
                     @if($booking->quote?->siteVisit)
-                        <a href="{{ route('admin.site-visits.show', $booking->quote->siteVisit) }}" class="booking-photo-link">Photos: {{ $booking->quote->siteVisit->photos->where('phase', 'before')->count() }} before · {{ $booking->quote->siteVisit->photos->where('phase', 'after')->count() }} after</a>
+                        <a href="{{ route('admin.site-visits.show', $booking->quote->siteVisit) }}" class="booking-photo-link">Site assessment: {{ $booking->quote->siteVisit->photos->count() }} photo{{ $booking->quote->siteVisit->photos->count() === 1 ? '' : 's' }}</a>
                     @endif
                     @can('manage-documents')@if($booking->customer->email)
                         <form method="post" action="{{ route('admin.bookings.send',$booking) }}">

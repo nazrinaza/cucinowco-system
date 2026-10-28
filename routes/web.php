@@ -60,8 +60,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:web', EnsureActiveUser
     Route::get('/site-visits/calendar/events', [SiteVisitController::class, 'calendarEvents'])->name('site-visits.calendar-events');
     Route::get('/site-visits/{siteVisit}', [SiteVisitController::class, 'show'])->name('site-visits.show');
     Route::patch('/site-visits/{siteVisit}', [SiteVisitController::class, 'update'])->name('site-visits.update');
+    Route::patch('/site-visits/{siteVisit}/assessment', [SiteVisitController::class, 'updateAssessment'])->name('site-visits.assessment.update');
     Route::post('/site-visits/{siteVisit}/photos', [SiteVisitController::class, 'uploadPhoto'])->middleware('throttle:20,1')->name('site-visits.photos.store');
-    Route::patch('/site-visits/{siteVisit}/photos/{photo}/pair', [SiteVisitController::class, 'pairPhoto'])->name('site-visits.photos.pair');
     Route::get('/site-visits/{siteVisit}/photos/{photo}', [SiteVisitController::class, 'photo'])->name('site-visits.photos.show');
     Route::delete('/site-visits/{siteVisit}/photos/{photo}', [SiteVisitController::class, 'deletePhoto'])->middleware('can:manage-users')->name('site-visits.photos.destroy');
     Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');

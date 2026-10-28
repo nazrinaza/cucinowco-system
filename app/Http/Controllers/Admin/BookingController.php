@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\BookingConfirmationMail;
 use App\Models\Booking;
-use App\Models\SiteVisitRequest;
 use App\Models\Staff;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -79,16 +78,6 @@ class BookingController extends Controller
             ]);
         }
 
-        if (in_array($data['status'], ['in_progress', 'completed'], true) && $booking->quote_id) {
-            $siteVisit = $booking->quote?->siteVisit
-                ?? SiteVisitRequest::where('quote_id', $booking->quote_id)->first();
-            if ($siteVisit && ! $siteVisit->photos()->where('phase', 'before')->exists()) {
-                throw ValidationException::withMessages(['status' => 'Upload a before photo on the linked site visit before starting the cleanup.']);
-            }
-            if ($siteVisit && $data['status'] === 'completed' && ! $siteVisit->photos()->where('phase', 'after')->whereNotNull('before_photo_id')->exists()) {
-                throw ValidationException::withMessages(['status' => 'Upload and pair an after photo with a before angle before completing the cleanup.']);
-            }
-        }
         $booking->fill($data);
         $shouldConfirm = $booking->status === 'confirmed'
             && ($booking->isDirty('status') || $booking->isDirty('scheduled_start') || $booking->isDirty('scheduled_end'));

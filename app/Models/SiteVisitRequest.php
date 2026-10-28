@@ -15,6 +15,8 @@ class SiteVisitRequest extends Model
     {
         return [
             'clean_types' => 'array',
+            'assessment_data' => 'array',
+            'assessment_completed_at' => 'datetime',
             'preferred_date' => 'date',
             'scheduled_start' => 'datetime',
             'scheduled_end' => 'datetime',
@@ -91,5 +93,10 @@ class SiteVisitRequest extends Model
     public function calendarSync(): HasOne
     {
         return $this->hasOne(SiteVisitCalendarSync::class);
+    }
+
+    public function assessmentCompletedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assessment_completed_by_user_id');
     }
 }
