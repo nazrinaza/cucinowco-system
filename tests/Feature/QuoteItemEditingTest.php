@@ -112,6 +112,7 @@ class QuoteItemEditingTest extends TestCase
     {
         $this->actingAs(User::factory()->create(['is_active' => true]));
         $quote = $this->quotation();
+        $quote->update(['customer_notes' => 'PRIVATE CUSTOMER NOTE']);
         $unsafe = '<p><strong>Included</strong> and <em>carefully handled</em></p><ul><li>Lobby</li><li>Meeting rooms</li></ul><hr><script>alert(1)</script><a href="https://bad.example">bad link</a>';
 
         $this->patch(route('admin.quotes.items.update', $quote), [
@@ -128,11 +129,15 @@ class QuoteItemEditingTest extends TestCase
         $this->get(route('admin.quotes.show', $quote))
             ->assertOk()
             ->assertSee('<strong>Included</strong>', false)
+            ->assertSee('Project &amp; payment terms', false)
+            ->assertDontSee('PRIVATE CUSTOMER NOTE')
             ->assertDontSee('alert(1)');
 
         $email = (new QuoteMail($quote->fresh(['customer', 'items'])))->render();
         $this->assertStringContainsString('<strong>Included</strong>', $email);
         $this->assertStringContainsString('padding-left:21px', $email);
+        $this->assertStringContainsString('Project &amp; payment terms', $email);
+        $this->assertStringNotContainsString('PRIVATE CUSTOMER NOTE', $email);
         $this->assertStringNotContainsString('alert(1)', $email);
     }
 }
