@@ -69,6 +69,53 @@ class DocumentEmailHistoryTest extends TestCase
         $this->get(route('admin.quotes.show', $quote))->assertOk()->assertSee('Email sending history')->assertSee('Queued')->assertSee('History Admin');
     }
 
+    public function test_quote_can_be_sent_to_multiple_custom_recipients_and_each_is_tracked(): void
+    {
+        Mail::fake();
+        $admin = User::factory()->create(['is_active' => true]);
+        $quote = $this->document();
+
+        $this->actingAs($admin)->post(route('admin.quotes.send', $quote), [
+            'recipients' => "finance@example.com; manager@example.com\nFINANCE@example.com",
+        ])->assertSessionHasNoErrors()->assertSessionHas('success', '2 quotation emails queued for delivery.');
+
+        Mail::assertQueued(QuoteMail::class, 2);
+        Mail::assertQueued(QuoteMail::class, fn (QuoteMail $mail): bool => $mail->hasTo('finance@example.com'));
+        Mail::assertQueued(QuoteMail::class, fn (QuoteMail $mail): bool => $mail->hasTo('manager@example.com'));
+        $this->assertSame(['finance@example.com', 'manager@example.com'], EmailEvent::where('event_type', 'app.queued')->pluck('recipient')->all());
+    }
+
+    public function test_invoice_can_be_sent_to_custom_recipient_when_customer_has_no_email(): void
+    {
+        Mail::fake();
+        $admin = User::factory()->create(['is_active' => true]);
+        $invoice = $this->document('invoice');
+        $invoice->customer->update(['email' => null]);
+
+        $this->actingAs($admin)->post(route('admin.invoices.send', $invoice), [
+            'recipients' => 'accounts@client.example',
+        ])->assertSessionHasNoErrors()->assertSessionHas('success', '1 invoice email queued for delivery.');
+
+        Mail::assertQueued(InvoiceMail::class, fn (InvoiceMail $mail): bool => $mail->hasTo('accounts@client.example'));
+        $this->assertDatabaseHas('email_events', ['event_type' => 'app.queued', 'recipient' => 'accounts@client.example']);
+    }
+
+    public function test_document_recipient_input_rejects_invalid_or_excessive_addresses(): void
+    {
+        Mail::fake();
+        $quote = $this->document();
+        $this->actingAs(User::factory()->create(['is_active' => true]));
+
+        $this->post(route('admin.quotes.send', $quote), ['recipients' => 'valid@example.com, not-an-email'])
+            ->assertSessionHasErrors('recipients');
+        $this->post(route('admin.quotes.send', $quote), [
+            'recipients' => collect(range(1, 11))->map(fn (int $number): string => "person{$number}@example.com")->implode(','),
+        ])->assertSessionHasErrors('recipients');
+
+        Mail::assertNothingQueued();
+        $this->assertDatabaseCount('email_events', 0);
+    }
+
     public function test_provider_acceptance_and_untagged_delivery_events_are_linked_with_malaysia_times(): void
     {
         Mail::fake();

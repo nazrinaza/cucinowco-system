@@ -1,12 +1,10 @@
 <x-layouts.admin title="Invoice {{ $invoice->invoice_number }}" heading="{{ $invoice->invoice_number }}">
     <x-slot:actions>
         <div class="action-row">
-            @if($invoice->customer->email)
-                <form method="post" action="{{ route('admin.invoices.send', $invoice) }}">@csrf<button class="admin-button" type="submit">Email invoice</button></form>
-            @endif
             <button type="button" onclick="window.print()" class="admin-button secondary">Print / save PDF</button>
         </div>
     </x-slot:actions>
+    @include('admin.partials.document-email-form', ['documentLabel' => 'invoice', 'sendRoute' => route('admin.invoices.send', $invoice), 'defaultEmail' => $invoice->customer->email])
     <div class="detail-grid">
         <section class="admin-card document-card">
             <div class="document-head"><img src="{{ asset('images/cucinow-logo.png') }}" alt="CuciNow.co"><div><span>Invoice</span><strong>{{ $invoice->invoice_number }}</strong><small>Issued {{ $invoice->issued_at?->format('d M Y') }} &middot; Due {{ $invoice->due_at?->format('d M Y') }}</small></div></div>

@@ -10,6 +10,7 @@ use App\Models\Invoice;
 use App\Models\Quote;
 use App\Models\SiteVisitRequest;
 use App\Support\DocumentEmailHistory;
+use App\Support\DocumentEmailRecipients;
 use App\Support\ReferenceNumber;
 use App\Support\QuotationHtmlSanitizer;
 use Illuminate\Http\RedirectResponse;
@@ -168,16 +169,19 @@ class QuoteController extends Controller
         return back()->with('success', 'Quotation contacts updated.');
     }
 
-    public function send(Quote $quote): RedirectResponse
+    public function send(Request $request, Quote $quote, DocumentEmailRecipients $recipientParser): RedirectResponse
     {
         $quote->load(['customer', 'items.service']);
-
-        if (! $quote->customer->email) {
-            return back()->with('error', 'Add a customer email address before sending this quotation.');
-        }
+        $request->validate(['recipients' => ['nullable', 'string', 'max:2000']]);
+        $recipients = $recipientParser->parse($request->string('recipients')->toString(), $quote->customer->email);
 
         try {
-            app(DocumentEmailHistory::class)->queue($quote, new QuoteMail($quote), 'quotation');
+            foreach ($recipients as $recipient) {
+                app(DocumentEmailHistory::class)->queue(
+                    $quote, new QuoteMail($quote), 'quotation', $recipient,
+                    $recipient === strtolower((string) $quote->customer->email) ? $quote->customer->name : null,
+                );
+            }
             $quote->update(['sent_by_user_id' => auth()->id()]);
         } catch (\Throwable $exception) {
             report($exception);
@@ -185,7 +189,7 @@ class QuoteController extends Controller
             return back()->with('error', 'The quotation email could not be queued. Check the email history and server log before trying again.');
         }
 
-        return back()->with('success', 'Quotation email queued for delivery.');
+        return back()->with('success', count($recipients).' quotation email'.(count($recipients) === 1 ? '' : 's').' queued for delivery.');
     }
 
     public function convert(Quote $quote): RedirectResponse
