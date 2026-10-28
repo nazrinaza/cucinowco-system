@@ -9,6 +9,7 @@
     </a>
     <figcaption>
         <strong>{{ $photo->caption ?: $photo->original_name }}</strong>
+        @if($photo->notes)<span class="site-photo-note">{{ $photo->notes }}</span>@endif
         <small>{{ $photo->uploadedBy?->name ?? 'Former team member' }} · {{ $photo->created_at->format('d M Y, g:i A') }}</small>
     </figcaption>
     @can('manage-users')

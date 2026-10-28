@@ -34,11 +34,21 @@ class QuoteMail extends CuciNowMailable
         $terms = collect(config('company.quotation_terms'))
             ->map(fn (string $term, int $index): string => ($index + 1).'. '.$term)
             ->implode("\n");
+        $contacts = collect($this->quote->contact_people ?? [])
+            ->map(function (array $contact): string {
+                $identity = $contact['name'].(filled($contact['role'] ?? null) ? " ({$contact['role']})" : '');
+                $details = collect([$contact['phone'] ?? null, $contact['email'] ?? null])->filter()->implode(' · ');
+
+                return "- {$identity}: {$details}";
+            })
+            ->values();
+        $contactSection = $contacts->isEmpty() ? [] : ['', 'Project contacts', ...$contacts->all()];
 
         return $this->brandedContent('emails.quote', implode("\n", [
             "Quotation {$this->quote->quote_number}",
             "Prepared for {$this->quote->customer->name}",
             'Valid until: '.$this->quote->valid_until?->format('d M Y'),
+            ...$contactSection,
             '',
             $items,
             '',

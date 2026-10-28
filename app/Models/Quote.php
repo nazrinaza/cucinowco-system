@@ -15,6 +15,7 @@ class Quote extends Model
     {
         return [
             'preferred_date' => 'date', 'valid_until' => 'date', 'sent_at' => 'datetime',
+            'contact_people' => 'array',
             'viewed_at' => 'datetime', 'accepted_at' => 'datetime', 'rejected_at' => 'datetime',
             'subtotal' => 'decimal:2', 'discount' => 'decimal:2', 'tax_rate' => 'decimal:2',
             'tax_amount' => 'decimal:2', 'total' => 'decimal:2',

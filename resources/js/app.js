@@ -173,6 +173,35 @@ document.addEventListener('DOMContentLoaded', () => {
         recalculate();
     });
 
+    document.querySelectorAll('[data-quote-contacts]').forEach((editor) => {
+        const list = editor.querySelector('[data-quote-contact-list]');
+        const template = editor.querySelector('[data-quote-contact-template]');
+        const addButton = editor.querySelector('[data-add-quote-contact]');
+        let nextIndex = Math.max(-1, ...[...list.querySelectorAll('[name]')].map((input) => Number(input.name.match(/^contacts\[(\d+)\]/)?.[1] ?? -1))) + 1;
+        const sync = () => {
+            const rows = list.querySelectorAll('[data-quote-contact-row]');
+            addButton.disabled = rows.length >= 10;
+        };
+        addButton.addEventListener('click', () => {
+            if (list.querySelectorAll('[data-quote-contact-row]').length >= 10) return;
+            const fragment = template.content.cloneNode(true);
+            fragment.querySelectorAll('[name]').forEach((input) => {
+                input.name = input.name.replace('__INDEX__', String(nextIndex));
+            });
+            nextIndex += 1;
+            list.append(fragment);
+            list.lastElementChild.querySelector('input').focus();
+            sync();
+        });
+        list.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-remove-quote-contact]');
+            if (!button) return;
+            button.closest('[data-quote-contact-row]').remove();
+            sync();
+        });
+        sync();
+    });
+
     const menuButton = document.querySelector('[data-menu-button]');
     const menu = document.querySelector('[data-menu]');
     menuButton?.addEventListener('click', () => {

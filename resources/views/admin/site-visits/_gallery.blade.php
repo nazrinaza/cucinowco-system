@@ -5,7 +5,8 @@
             @csrf
             <h3>Capture site condition</h3>
             <p class="muted">Take clear photos of the areas, access points, surfaces, machinery requirements and any safety concerns observed during the assessment.</p>
-            <label><span>Photo note (optional)</span><input name="caption" maxlength="180" placeholder="e.g. Loading bay access at Level 1"></label>
+            <label><span>Area / location</span><input name="caption" maxlength="180" placeholder="e.g. Loading bay at Level 1" required></label>
+            <label><span>Inspection note / observation</span><textarea name="notes" rows="4" maxlength="1000" placeholder="Describe the condition, access issue, measurement, equipment need or safety concern shown in this photo." required></textarea></label>
             <label><span>Take or choose a photo</span><input type="file" name="photo" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" capture="environment" required></label>
             <small>JPG, PNG, WebP, HEIC or HEIF · maximum 8 MB. Large supported images are resized to 2,000 px.</small>
             <button class="admin-button" type="submit">Upload photo</button>
