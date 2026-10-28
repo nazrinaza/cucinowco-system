@@ -100,6 +100,11 @@ document.addEventListener('DOMContentLoaded', () => {
         let nextIndex = Math.max(-1, ...[...lines.querySelectorAll('input[name]')].map((input) => Number(input.name.match(/^items\[(\d+)\]/)?.[1] ?? -1))) + 1;
         const money = (cents) => currency.format(cents / 100);
         const cents = (value) => Math.round((Number(value) || 0) * 100);
+        const syncRichEditor = (editor) => {
+            const canvas = editor?.querySelector('[data-quote-rich-canvas]');
+            const source = editor?.querySelector('[data-quote-rich-source]');
+            if (canvas && source) source.value = canvas.innerHTML;
+        };
 
         const recalculate = () => {
             const rows = [...lines.querySelectorAll('[data-quote-line]')];
@@ -133,10 +138,36 @@ document.addEventListener('DOMContentLoaded', () => {
             lines.lastElementChild.querySelector('[data-line-description]').focus();
         });
         lines.addEventListener('click', (event) => {
+            const richCommand = event.target.closest('[data-quote-rich-command]');
+            const richDivider = event.target.closest('[data-quote-rich-hr]');
+            if (richCommand || richDivider) {
+                const editor = event.target.closest('[data-quote-rich-editor]');
+                const canvas = editor?.querySelector('[data-quote-rich-canvas]');
+                canvas?.focus();
+                document.execCommand(richCommand?.dataset.quoteRichCommand ?? 'insertHorizontalRule', false);
+                syncRichEditor(editor);
+                return;
+            }
             const button = event.target.closest('[data-remove-quote-line]');
             if (!button || lines.querySelectorAll('[data-quote-line]').length <= 1) return;
             button.closest('[data-quote-line]').remove();
             recalculate();
+        });
+        lines.addEventListener('mousedown', (event) => {
+            if (event.target.closest('[data-quote-rich-command],[data-quote-rich-hr]')) event.preventDefault();
+        });
+        lines.addEventListener('input', (event) => {
+            syncRichEditor(event.target.closest('[data-quote-rich-editor]'));
+            recalculate();
+        });
+        lines.addEventListener('paste', (event) => {
+            if (!event.target.closest('[data-quote-rich-canvas]')) return;
+            event.preventDefault();
+            document.execCommand('insertText', false, event.clipboardData?.getData('text/plain') ?? '');
+            syncRichEditor(event.target.closest('[data-quote-rich-editor]'));
+        });
+        form.addEventListener('submit', () => {
+            form.querySelectorAll('[data-quote-rich-editor]').forEach(syncRichEditor);
         });
         form.addEventListener('input', recalculate);
         recalculate();

@@ -21,17 +21,23 @@ class AgentReporting
 
     public function summary(Agent $agent): array
     {
-        $quoteIds = $this->leads($agent)->whereNotNull('quote_id')->select('quote_id')->distinct();
-        $quotes = Quote::whereIn('id', $quoteIds);
-        $closed = (clone $quotes)->where(fn ($q) => $q->where('status', 'accepted')->orWhereHas('booking', fn ($b) => $b->whereIn('status', ['confirmed', 'in_progress', 'completed'])))->count();
+        $leadIds = $this->leads($agent)->select('id');
+        $legacyQuoteIds = $this->leads($agent)->whereNotNull('quote_id')->pluck('quote_id');
+        $quoteIds = Quote::whereIn('site_visit_request_id', $leadIds)->pluck('id')->merge($legacyQuoteIds)->unique();
+        $closed = $this->leads($agent)->where(function (Builder $lead): void {
+            $closedQuote = fn (Builder $quote) => $quote
+                ->where('status', 'accepted')
+                ->orWhereHas('booking', fn (Builder $booking) => $booking->whereIn('status', ['confirmed', 'in_progress', 'completed']));
+            $lead->whereHas('quotes', $closedQuote)->orWhereHas('quote', $closedQuote);
+        })->count();
         $leads = $this->leads($agent)->count();
 
         return [
             'visits' => $agent->referralSource?->visit_count ?? 0,
             'leads' => $leads,
             'closed' => $closed,
-            'completed' => Booking::whereIn('quote_id', clone $quoteIds)->where('status', 'completed')->count(),
-            'paid' => Invoice::whereIn('quote_id', clone $quoteIds)->where('status', 'paid')->where('balance', '<=', 0)->count(),
+            'completed' => Booking::whereIn('quote_id', $quoteIds)->where('status', 'completed')->count(),
+            'paid' => Invoice::whereIn('quote_id', $quoteIds)->where('status', 'paid')->where('balance', '<=', 0)->count(),
             'conversion' => $leads ? round($closed / $leads * 100, 1) : 0,
         ];
     }
@@ -56,25 +62,29 @@ class AgentReporting
 
     public function stage(SiteVisitRequest $lead): string
     {
-        $quote = $lead->quote;
-        $invoice = $quote?->invoice;
-        $booking = $quote?->booking;
-        if ($invoice?->status === 'paid' && (float) $invoice->balance <= 0) {
+        $quotes = $lead->relationLoaded('quotes')
+            ? $lead->quotes
+            : $lead->quotes()->with(['invoice', 'booking'])->latest()->get();
+        if ($lead->quote && ! $quotes->contains('id', $lead->quote->id)) {
+            $quotes->push($lead->quote->loadMissing(['invoice', 'booking']));
+        }
+
+        if ($quotes->contains(fn (Quote $quote): bool => $quote->invoice?->status === 'paid' && (float) $quote->invoice->balance <= 0)) {
             return 'Paid';
         }
-        if ($booking?->status === 'completed') {
+        if ($quotes->contains(fn (Quote $quote): bool => $quote->booking?->status === 'completed')) {
             return 'Job completed';
         }
-        if ($booking && in_array($booking->status, ['confirmed', 'in_progress'])) {
+        if ($quotes->contains(fn (Quote $quote): bool => in_array($quote->booking?->status, ['confirmed', 'in_progress'], true))) {
             return 'Closed deal';
         }
-        if ($quote?->status === 'accepted') {
+        if ($quotes->contains(fn (Quote $quote): bool => $quote->status === 'accepted')) {
             return 'Closed deal';
         }
-        if (in_array($lead->status, ['cancelled', 'rejected']) || in_array($quote?->status, ['rejected', 'expired'])) {
+        if (in_array($lead->status, ['cancelled', 'rejected']) || ($quotes->isNotEmpty() && $quotes->every(fn (Quote $quote): bool => in_array($quote->status, ['rejected', 'expired'], true)))) {
             return 'Not proceeding';
         }
-        if ($quote) {
+        if ($quotes->isNotEmpty()) {
             return 'Quotation prepared';
         }
 

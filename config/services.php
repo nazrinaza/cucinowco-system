@@ -24,6 +24,14 @@ return [
 
     'google' => [
         'tag_id' => env('GOOGLE_TAG_ID', 'G-FJDN5ZSLN6'),
+        'calendar' => [
+            'client_id' => env('GOOGLE_CALENDAR_CLIENT_ID'),
+            'client_secret' => env('GOOGLE_CALENDAR_CLIENT_SECRET'),
+            'calendar_id' => env('GOOGLE_CALENDAR_ID'),
+            'redirect_uri' => env('GOOGLE_CALENDAR_REDIRECT_URI'),
+            'queue' => env('GOOGLE_CALENDAR_QUEUE', 'default'),
+            'default_duration_minutes' => (int) env('GOOGLE_CALENDAR_DEFAULT_DURATION_MINUTES', 120),
+        ],
     ],
 
     'ses' => [

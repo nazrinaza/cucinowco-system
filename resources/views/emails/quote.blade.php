@@ -9,7 +9,7 @@
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;font-size:13px">
         <tr style="color:#fff;background:#25282d"><th align="left" style="padding:11px">Description</th><th align="right" style="padding:11px">Amount</th></tr>
         @foreach($quote->items as $item)
-            <tr><td style="padding:13px 11px;border-bottom:1px solid #dedbd2"><strong>{{ $item->description }}</strong><br><span style="color:#73777d">{{ number_format($item->quantity, 2) }} {{ $item->unit }} @ RM {{ number_format($item->unit_price, 2) }}</span></td><td align="right" style="padding:13px 11px;border-bottom:1px solid #dedbd2">RM {{ number_format($item->amount, 2) }}</td></tr>
+            <tr><td style="padding:13px 11px;border-bottom:1px solid #dedbd2"><strong>{{ $item->description }}</strong>@if($item->notes)<div style="margin-top:7px">{!! app(\App\Support\QuotationHtmlSanitizer::class)->forEmail($item->notes) !!}</div>@endif<span style="color:#73777d">{{ number_format($item->quantity, 2) }} {{ $item->unit }} @ RM {{ number_format($item->unit_price, 2) }}</span></td><td align="right" style="padding:13px 11px;border-bottom:1px solid #dedbd2;vertical-align:top">RM {{ number_format($item->amount, 2) }}</td></tr>
         @endforeach
         <tr><td align="right" style="padding:8px 11px">Subtotal</td><td align="right" style="padding:8px 11px">RM {{ number_format($quote->subtotal, 2) }}</td></tr>
         @if($quote->discount > 0)

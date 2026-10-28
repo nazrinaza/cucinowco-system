@@ -142,6 +142,7 @@ class QuoteEstimator extends Component
                 'created_by_user_id' => auth()->id(),
                 'quote_number' => $this->reference,
                 'customer_id' => $customer->id,
+                'site_visit_request_id' => $this->siteVisitId,
                 'source' => 'admin',
                 'status' => 'draft',
                 'property_type' => $validated['propertyType'],
@@ -168,14 +169,16 @@ class QuoteEstimator extends Component
                 'notes' => 'Internal planning estimate; final scope and pricing require confirmation.',
             ]);
 
+            if ($this->siteVisitId) {
+                // Keep the legacy pointer on the newest quotation while the
+                // canonical one-to-many link lives on quotes.
+                SiteVisitRequest::whereKey($this->siteVisitId)->update(['quote_id' => $quote->id]);
+            }
+
             return $quote;
         });
 
         $this->quoteId = $quote->id;
-
-        if ($this->siteVisitId) {
-            SiteVisitRequest::whereKey($this->siteVisitId)->update(['quote_id' => $quote->id]);
-        }
 
         $this->submitted = true;
     }

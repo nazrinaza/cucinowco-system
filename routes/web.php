@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\CampaignController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\GoogleCalendarController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\QuoteController;
@@ -114,6 +115,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:web', EnsureActiveUser
     });
 
     Route::middleware('can:manage-users')->group(function () {
+        Route::get('/integrations/google-calendar', [GoogleCalendarController::class, 'index'])->name('integrations.google-calendar.index');
+        Route::get('/integrations/google-calendar/connect', [GoogleCalendarController::class, 'connect'])->name('integrations.google-calendar.connect');
+        Route::get('/integrations/google-calendar/callback', [GoogleCalendarController::class, 'callback'])->name('integrations.google-calendar.callback');
+        Route::post('/integrations/google-calendar/disconnect', [GoogleCalendarController::class, 'disconnect'])->name('integrations.google-calendar.disconnect');
+        Route::post('/integrations/google-calendar/sync-upcoming', [GoogleCalendarController::class, 'syncUpcoming'])->name('integrations.google-calendar.sync-upcoming');
+        Route::post('/bookings/{booking}/calendar/retry', [GoogleCalendarController::class, 'retry'])->name('bookings.calendar.retry');
+        Route::post('/site-visits/{siteVisit}/calendar/retry', [GoogleCalendarController::class, 'retrySiteVisit'])->name('site-visits.calendar.retry');
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
         Route::patch('/users/{user}', [UserController::class, 'update'])->name('users.update');

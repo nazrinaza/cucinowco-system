@@ -18,6 +18,7 @@
                     <a href="{{ route('admin.agent-media.index') }}" @class(['active' => request()->routeIs('admin.agent-media.*')])><span>HQ</span>Agent content</a>
                 @endcan
                 @can('manage-users')<a href="{{ route('admin.users.index') }}" @class(['active' => request()->routeIs('admin.users.*')])><span>US</span>Team accounts</a>@endcan
+                @can('manage-users')<a href="{{ route('admin.integrations.google-calendar.index') }}" @class(['active' => request()->routeIs('admin.integrations.google-calendar.*')])><span>GC</span>Google Calendar</a>@endcan
                 <a href="{{ route('admin.profile.show') }}" @class(['active' => request()->routeIs('admin.profile.*')])><span>ME</span>My account</a>
             </nav>
             <div class="admin-sidebar-foot"><p>Signed in as</p><strong>{{ auth()->user()->name }}</strong><form method="post" action="{{ route('logout') }}">@csrf<button type="submit">Sign out</button></form></div>

@@ -49,16 +49,16 @@
                 <td><x-lead-source :label="$siteVisit->referral_label" /><small>{{ $siteVisit->referral_code ?: 'direct' }}</small></td>
                 <td>{{ $siteVisit->clean_types_label }}<small>{{ $siteVisit->space_label }}</small></td>
                 <td>{{ $siteVisit->preferred_date?->format('d M Y') ?? 'Flexible' }}<small>{{ str($siteVisit->preferred_time_slot)->title() }}</small></td>
-                <td><span class="status status-{{ $siteVisit->status }}">{{ ucfirst($siteVisit->status) }}</span></td>
+                <td><span class="status status-{{ $siteVisit->status }}">{{ ucfirst($siteVisit->status) }}</span>@if($siteVisit->calendarSync)<small>Calendar: {{ str($siteVisit->calendarSync->status)->replace('_', ' ')->title() }}</small>@endif</td>
                 <td>
                     @if(auth()->user()->can('manage-documents'))
                         @if($siteVisit->quote)
-                            <a href="{{ route('admin.quotes.show', $siteVisit->quote) }}">{{ $siteVisit->quote->quote_number }}</a>
+                            <a href="{{ route('admin.quotes.show', $siteVisit->quote) }}">{{ $siteVisit->quote->quote_number }}</a><small>{{ $siteVisit->quotes_count }} quotation{{ $siteVisit->quotes_count === 1 ? '' : 's' }} total</small>
                         @else
-                            <a href="{{ route('admin.quotes.create', ['site_visit' => $siteVisit->id]) }}">Create estimate</a>
+                            <a href="{{ route('admin.quotes.create', ['site_visit' => $siteVisit->id]) }}">Create quotation</a>
                         @endif
                     @else
-                        {{ $siteVisit->quote?->quote_number ?? 'Pending' }}
+                        {{ $siteVisit->quote?->quote_number ?? 'Pending' }}@if($siteVisit->quotes_count)<small>{{ $siteVisit->quotes_count }} total</small>@endif
                     @endif
                 </td>
             </tr>

@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Livewire\QuoteEstimator;
 use App\Models\Service;
+use App\Models\Customer;
+use App\Models\SiteVisitRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -64,5 +66,36 @@ class QuoteEstimatorTest extends TestCase
         $this->assertDatabaseHas('customers', ['phone' => '0123456789', 'name' => 'Aina Rahman']);
         $this->assertDatabaseHas('quotes', ['status' => 'draft', 'source' => 'admin', 'property_type' => 'office', 'total' => 280]);
         $this->assertDatabaseHas('quote_items', ['description' => 'Office Cleaning', 'amount' => 280]);
+    }
+
+    public function test_one_site_visit_can_have_multiple_quotations(): void
+    {
+        $service = Service::create([
+            'code' => 'office-cleaning', 'name' => 'Office Cleaning', 'base_price' => 280,
+            'unit' => 'job', 'is_active' => true, 'sort_order' => 1,
+        ]);
+        $customer = Customer::create([
+            'name' => 'Multiple Quote Client', 'phone' => '0123456000', 'email' => 'multiple@example.com',
+            'address' => 'Example Office', 'postcode' => '40160', 'city' => 'Shah Alam', 'state' => 'Selangor',
+        ]);
+        $siteVisit = SiteVisitRequest::create([
+            'reference_number' => 'SV-MULTI-QUOTE', 'customer_id' => $customer->id, 'service_id' => $service->id,
+            'status' => 'completed', 'space_type' => 'office', 'preferred_date' => now()->addDay(),
+            'preferred_time_slot' => 'morning', 'site_address' => 'Example Office', 'postcode' => '40160',
+        ]);
+
+        foreach (['under_1000', '1000_2000'] as $sizeBand) {
+            Livewire::test(QuoteEstimator::class, ['siteVisit' => $siteVisit])
+                ->set('sizeBand', $sizeBand)
+                ->set('city', 'Shah Alam')
+                ->call('submit')
+                ->assertHasNoErrors()
+                ->assertSet('submitted', true);
+        }
+
+        $siteVisit->refresh();
+        $this->assertSame(2, $siteVisit->quotes()->count());
+        $this->assertSame($siteVisit->quotes()->latest('id')->value('id'), $siteVisit->quote_id);
+        $this->assertSame([$siteVisit->id], $siteVisit->quotes()->pluck('site_visit_request_id')->unique()->all());
     }
 }

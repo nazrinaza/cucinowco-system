@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class SiteVisitRequest extends Model
 {
@@ -15,6 +16,8 @@ class SiteVisitRequest extends Model
         return [
             'clean_types' => 'array',
             'preferred_date' => 'date',
+            'scheduled_start' => 'datetime',
+            'scheduled_end' => 'datetime',
             'contacted_at' => 'datetime',
             'completed_at' => 'datetime',
             'referral_landed_at' => 'datetime',
@@ -70,8 +73,23 @@ class SiteVisitRequest extends Model
         return $this->belongsTo(Quote::class);
     }
 
+    public function quotes(): HasMany
+    {
+        return $this->hasMany(Quote::class);
+    }
+
     public function photos(): HasMany
     {
         return $this->hasMany(SiteVisitPhoto::class);
+    }
+
+    public function staff(): BelongsTo
+    {
+        return $this->belongsTo(Staff::class);
+    }
+
+    public function calendarSync(): HasOne
+    {
+        return $this->hasOne(SiteVisitCalendarSync::class);
     }
 }

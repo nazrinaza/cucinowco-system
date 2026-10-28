@@ -41,9 +41,9 @@ class Quote extends Model
         return $this->hasOne(Booking::class);
     }
 
-    public function siteVisit(): HasOne
+    public function siteVisit(): BelongsTo
     {
-        return $this->hasOne(SiteVisitRequest::class);
+        return $this->belongsTo(SiteVisitRequest::class);
     }
 
     public function getReferralLabelAttribute(): string
