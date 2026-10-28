@@ -14,8 +14,7 @@ return [
     'sst_rate' => (float) env('SST_RATE', 8),
     'quote_valid_days' => 14,
     'quotation_terms' => [
-        'This quotation covers only the services and quantities listed above and remains valid until the stated expiry date.',
-        'The project date, working hours, team and machinery are confirmed after written acceptance and remain subject to availability and safe site access.',
+        'Project confirmation requires a 40% deposit. A lead time of 3-7 days is required following confirmation.',
         'Additional work, changed site conditions or requests outside the agreed scope may require a revised quotation or written approval before work continues.',
         'Payment is due according to the terms and due date stated on the invoice issued for the accepted work.',
         'The customer must provide agreed access, permits and available utilities required to carry out the work safely and efficiently.',

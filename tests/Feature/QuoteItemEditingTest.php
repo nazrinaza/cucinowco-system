@@ -140,4 +140,53 @@ class QuoteItemEditingTest extends TestCase
         $this->assertStringNotContainsString('PRIVATE CUSTOMER NOTE', $email);
         $this->assertStringNotContainsString('alert(1)', $email);
     }
+
+    public function test_multiple_project_contacts_are_saved_and_displayed_on_quotation_and_email(): void
+    {
+        $admin = User::factory()->create(['is_active' => true]);
+        $quote = $this->quotation();
+
+        $this->actingAs($admin)->patch(route('admin.quotes.contacts.update', $quote), [
+            'contacts' => [
+                ['name' => 'Aina Rahman', 'role' => 'Facilities Manager', 'phone' => '011-1111 2222', 'email' => 'AINA@example.com'],
+                ['name' => 'Kumar Dev', 'role' => 'Site Supervisor', 'phone' => '012-3333 4444', 'email' => ''],
+            ],
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $quote->refresh();
+        $this->assertCount(2, $quote->contact_people);
+        $this->assertSame('aina@example.com', $quote->contact_people[0]['email']);
+        $this->assertSame($admin->id, $quote->last_edited_by_user_id);
+
+        $this->get(route('admin.quotes.show', $quote))
+            ->assertOk()->assertSee('Project contacts')->assertSee('Aina Rahman')->assertSee('Facilities Manager')->assertSee('Kumar Dev');
+
+        $email = (new QuoteMail($quote->load(['customer', 'items'])))->render();
+        $this->assertStringContainsString('Project contacts', $email);
+        $this->assertStringContainsString('Aina Rahman', $email);
+        $this->assertStringContainsString('aina@example.com', $email);
+    }
+
+    public function test_project_contacts_require_a_reachable_phone_or_email_and_are_limited_to_ten(): void
+    {
+        $this->actingAs(User::factory()->create(['is_active' => true]));
+        $quote = $this->quotation();
+
+        $this->patch(route('admin.quotes.contacts.update', $quote), [
+            'contacts' => [['name' => 'Unreachable person', 'role' => 'Manager', 'phone' => '', 'email' => '']],
+        ])->assertSessionHasErrors(['contacts.0.phone', 'contacts.0.email']);
+
+        $this->patch(route('admin.quotes.contacts.update', $quote), [
+            'contacts' => array_fill(0, 11, ['name' => 'Contact', 'phone' => '0111234567']),
+        ])->assertSessionHasErrors('contacts');
+
+        $this->assertNull($quote->fresh()->contact_people);
+    }
+
+    public function test_editing_project_contacts_requires_authentication(): void
+    {
+        $this->patch(route('admin.quotes.contacts.update', $this->quotation()), [
+            'contacts' => [['name' => 'Contact', 'phone' => '0111234567']],
+        ])->assertRedirect(route('login'));
+    }
 }

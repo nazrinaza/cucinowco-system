@@ -142,6 +142,32 @@ class QuoteController extends Controller
         return redirect()->route('admin.quotes.show', $quote)->with('success', 'Quotation services and totals saved as a draft. You can now email the revised quotation.');
     }
 
+    public function updateContacts(Request $request, Quote $quote): RedirectResponse
+    {
+        $data = $request->validate([
+            'contacts' => ['nullable', 'array', 'max:10'],
+            'contacts.*' => ['array:name,role,phone,email'],
+            'contacts.*.name' => ['required', 'string', 'max:120'],
+            'contacts.*.role' => ['nullable', 'string', 'max:120'],
+            'contacts.*.phone' => ['nullable', 'required_without:contacts.*.email', 'string', 'max:30'],
+            'contacts.*.email' => ['nullable', 'required_without:contacts.*.phone', 'email', 'max:160'],
+        ]);
+
+        $contacts = collect($data['contacts'] ?? [])->map(fn (array $contact): array => [
+            'name' => trim($contact['name']),
+            'role' => filled($contact['role'] ?? null) ? trim($contact['role']) : null,
+            'phone' => filled($contact['phone'] ?? null) ? trim($contact['phone']) : null,
+            'email' => filled($contact['email'] ?? null) ? strtolower(trim($contact['email'])) : null,
+        ])->values()->all();
+
+        $quote->update([
+            'contact_people' => $contacts ?: null,
+            'last_edited_by_user_id' => $request->user()->id,
+        ]);
+
+        return back()->with('success', 'Quotation contacts updated.');
+    }
+
     public function send(Quote $quote): RedirectResponse
     {
         $quote->load(['customer', 'items.service']);

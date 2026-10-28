@@ -6,6 +6,14 @@
     <h1 style="margin:0 0 8px;font-size:30px">{{ $quote->quote_number }}</h1>
     <p style="margin:0 0 24px;color:#73777d;font-size:13px">Prepared for {{ $quote->customer->name }} &middot; Valid until {{ $quote->valid_until?->format('d M Y') }}</p>
     <p style="margin:0 0 24px;color:#4c5159;font-size:15px;line-height:1.7">Thank you for the opportunity to assess your cleaning requirements. Your proposed scope and pricing are summarised below.</p>
+    @if(filled($quote->contact_people))
+        <div style="margin:0 0 24px;padding:16px;background:#f7f4ec;border-left:4px solid #f5b800;font-size:13px;line-height:1.65">
+            <strong style="display:block;margin-bottom:8px;color:#25282d">Project contacts</strong>
+            @foreach($quote->contact_people as $contact)
+                <p style="margin:0 0 8px"><strong>{{ $contact['name'] }}</strong>@if(filled($contact['role'] ?? null)) &middot; {{ $contact['role'] }}@endif<br>@if(filled($contact['phone'] ?? null)){{ $contact['phone'] }}@endif @if(filled($contact['phone'] ?? null) && filled($contact['email'] ?? null))&middot;@endif @if(filled($contact['email'] ?? null)){{ $contact['email'] }}@endif</p>
+            @endforeach
+        </div>
+    @endif
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;font-size:13px">
         <tr style="color:#fff;background:#25282d"><th align="left" style="padding:11px">Description</th><th align="right" style="padding:11px">Amount</th></tr>
         @foreach($quote->items as $item)

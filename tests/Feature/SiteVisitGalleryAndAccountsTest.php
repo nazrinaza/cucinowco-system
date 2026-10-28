@@ -42,11 +42,13 @@ class SiteVisitGalleryAndAccountsTest extends TestCase
         $field = User::factory()->create(['role' => 'field']);
 
         $this->actingAs($field)->post(route('admin.site-visits.photos.store', $visit), [
-            'caption' => 'Main hall access', 'photo' => UploadedFile::fake()->image('inspection.jpg'),
+            'caption' => 'Main hall access', 'notes' => 'Narrow access; protect the glass doors.',
+            'photo' => UploadedFile::fake()->image('inspection.jpg'),
         ])->assertSessionHasNoErrors();
         $photo = $visit->photos()->firstOrFail();
         $this->assertSame('inspection', $photo->phase);
         $this->assertSame($field->id, $photo->uploaded_by_user_id);
+        $this->assertSame('Narrow access; protect the glass doors.', $photo->notes);
         Storage::disk('local')->assertExists($photo->path);
         $this->get(route('admin.site-visits.photos.show', [$visit, $photo]))->assertOk();
         auth()->logout();
@@ -76,6 +78,7 @@ class SiteVisitGalleryAndAccountsTest extends TestCase
 
         $this->actingAs($admin)->post(route('admin.site-visits.photos.store', $visit), [
             'caption' => 'Entrance towards stage',
+            'notes' => 'Heavy tile staining near the entrance.',
             'photo' => UploadedFile::fake()->image('large.png', 3000, 1800),
         ])->assertSessionHasNoErrors();
         $photo = $visit->photos()->firstOrFail();
@@ -94,6 +97,7 @@ class SiteVisitGalleryAndAccountsTest extends TestCase
 
         $this->actingAs($admin)->post(route('admin.site-visits.photos.store', $visit), [
             'caption' => 'Front doorway',
+            'notes' => 'Measure doorway clearance before bringing machinery.',
             'photo' => UploadedFile::fake()->createWithContent('camera.heic', $heic),
         ])->assertSessionHasNoErrors();
         $photo = $visit->photos()->firstOrFail();
@@ -103,6 +107,7 @@ class SiteVisitGalleryAndAccountsTest extends TestCase
 
         $this->actingAs($admin)->post(route('admin.site-visits.photos.store', $visit), [
             'caption' => 'Side doorway',
+            'notes' => 'Oversized upload validation test.',
             'photo' => UploadedFile::fake()->create('oversized.jpg', 8193, 'image/jpeg'),
         ])->assertSessionHasErrors('photo');
         $this->assertDatabaseCount('site_visit_photos', 1);

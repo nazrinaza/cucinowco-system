@@ -152,7 +152,8 @@ class SiteVisitController extends Controller
                         $fail('Choose a valid JPG, PNG, WebP, HEIC or HEIF image.');
                     }
                 }],
-            'caption' => ['nullable', 'string', 'max:180'],
+            'caption' => ['required', 'string', 'max:180'],
+            'notes' => ['required', 'string', 'max:1000'],
         ]);
 
         if ($siteVisit->photos()->count() >= 60) {
@@ -170,6 +171,7 @@ class SiteVisitController extends Controller
                 'mime_type' => $stored['mime_type'],
                 'original_name' => $file->getClientOriginalName(),
                 'caption' => $data['caption'] ?? null,
+                'notes' => $data['notes'],
                 'uploaded_by_user_id' => $request->user()->id,
             ]);
         } catch (\Throwable $exception) {
