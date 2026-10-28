@@ -581,6 +581,7 @@ class ComposerStaticInitee521a8475827814193025509abf0409
         'App\\Support\\AgentReporting' => __DIR__ . '/../..' . '/app/Support/AgentReporting.php',
         'App\\Support\\ClientIpResolver' => __DIR__ . '/../..' . '/app/Support/ClientIpResolver.php',
         'App\\Support\\DocumentEmailHistory' => __DIR__ . '/../..' . '/app/Support/DocumentEmailHistory.php',
+        'App\\Support\\DocumentEmailRecipients' => __DIR__ . '/../..' . '/app/Support/DocumentEmailRecipients.php',
         'App\\Support\\EmailPlainText' => __DIR__ . '/../..' . '/app/Support/EmailPlainText.php',
         'App\\Support\\NewsletterBatchSender' => __DIR__ . '/../..' . '/app/Support/NewsletterBatchSender.php',
         'App\\Support\\NewsletterHtmlSanitizer' => __DIR__ . '/../..' . '/app/Support/NewsletterHtmlSanitizer.php',

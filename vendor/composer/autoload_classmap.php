@@ -85,6 +85,7 @@ return array(
     'App\\Support\\AgentReporting' => $baseDir . '/app/Support/AgentReporting.php',
     'App\\Support\\ClientIpResolver' => $baseDir . '/app/Support/ClientIpResolver.php',
     'App\\Support\\DocumentEmailHistory' => $baseDir . '/app/Support/DocumentEmailHistory.php',
+    'App\\Support\\DocumentEmailRecipients' => $baseDir . '/app/Support/DocumentEmailRecipients.php',
     'App\\Support\\EmailPlainText' => $baseDir . '/app/Support/EmailPlainText.php',
     'App\\Support\\NewsletterBatchSender' => $baseDir . '/app/Support/NewsletterBatchSender.php',
     'App\\Support\\NewsletterHtmlSanitizer' => $baseDir . '/app/Support/NewsletterHtmlSanitizer.php',
