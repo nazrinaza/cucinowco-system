@@ -47,9 +47,15 @@ class QuoteController extends Controller
     public function show(Quote $quote): View
     {
         $quote->load(['customer', 'items.service', 'invoice', 'booking', 'siteVisit.referralSource', 'createdBy', 'lastEditedBy', 'sentBy']);
+        $availableSiteVisits = SiteVisitRequest::query()
+            ->where('customer_id', $quote->customer_id)
+            ->latest()
+            ->limit(100)
+            ->get(['id', 'reference_number', 'preferred_date', 'status']);
 
         return view('admin.quotes.show', [
             'quote' => $quote, 'statuses' => self::STATUSES,
+            'availableSiteVisits' => $availableSiteVisits,
             'emailHistory' => app(DocumentEmailHistory::class)->forDocument($quote),
         ]);
     }
@@ -167,6 +173,47 @@ class QuoteController extends Controller
         ]);
 
         return back()->with('success', 'Quotation contacts updated.');
+    }
+
+    public function updateSiteVisit(Request $request, Quote $quote): RedirectResponse
+    {
+        $data = $request->validate([
+            'site_visit_id' => [
+                'nullable', 'integer',
+                Rule::exists('site_visit_requests', 'id')->where('customer_id', $quote->customer_id),
+            ],
+        ]);
+        $siteVisitId = filled($data['site_visit_id'] ?? null) ? (int) $data['site_visit_id'] : null;
+
+        DB::transaction(function () use ($quote, $siteVisitId, $request): void {
+            $lockedQuote = Quote::query()->lockForUpdate()->findOrFail($quote->id);
+            $previousSiteVisitId = $lockedQuote->site_visit_request_id;
+
+            $lockedQuote->update([
+                'site_visit_request_id' => $siteVisitId,
+                'last_edited_by_user_id' => $request->user()->id,
+            ]);
+
+            if ($previousSiteVisitId && $previousSiteVisitId !== $siteVisitId) {
+                $previousSiteVisit = SiteVisitRequest::query()->lockForUpdate()->find($previousSiteVisitId);
+                if ($previousSiteVisit?->quote_id === $lockedQuote->id) {
+                    $previousSiteVisit->update([
+                        'quote_id' => Quote::where('site_visit_request_id', $previousSiteVisitId)
+                            ->where('id', '!=', $lockedQuote->id)
+                            ->latest('id')
+                            ->value('id'),
+                    ]);
+                }
+            }
+
+            if ($siteVisitId) {
+                SiteVisitRequest::whereKey($siteVisitId)->update(['quote_id' => $lockedQuote->id]);
+            }
+        });
+
+        return back()->with('success', $siteVisitId
+            ? 'Quotation linked to the selected site-visit session.'
+            : 'Quotation is now marked as a direct quotation.');
     }
 
     public function send(Request $request, Quote $quote, DocumentEmailRecipients $recipientParser): RedirectResponse
