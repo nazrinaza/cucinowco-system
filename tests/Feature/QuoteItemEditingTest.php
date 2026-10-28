@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Customer;
 use App\Models\Quote;
 use App\Models\Service;
+use App\Models\SiteVisitRequest;
 use App\Models\User;
 use App\Mail\QuoteMail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -188,5 +189,59 @@ class QuoteItemEditingTest extends TestCase
         $this->patch(route('admin.quotes.contacts.update', $this->quotation()), [
             'contacts' => [['name' => 'Contact', 'phone' => '0111234567']],
         ])->assertRedirect(route('login'));
+    }
+
+    public function test_admin_can_link_move_and_unlink_a_quotation_to_customer_site_visits(): void
+    {
+        $admin = User::factory()->create(['is_active' => true]);
+        $quote = $this->quotation();
+        $olderQuote = $this->quotation();
+        $olderQuote->update(['customer_id' => $quote->customer_id]);
+        $firstVisit = SiteVisitRequest::create([
+            'reference_number' => 'SV-LINK-FIRST', 'customer_id' => $quote->customer_id,
+            'status' => 'completed', 'space_type' => 'office', 'site_address' => 'First office', 'quote_id' => $olderQuote->id,
+        ]);
+        $olderQuote->update(['site_visit_request_id' => $firstVisit->id]);
+        $secondVisit = SiteVisitRequest::create([
+            'reference_number' => 'SV-LINK-SECOND', 'customer_id' => $quote->customer_id,
+            'status' => 'scheduled', 'space_type' => 'office', 'site_address' => 'Second office',
+        ]);
+        $this->actingAs($admin);
+
+        $this->get(route('admin.quotes.show', $quote))->assertOk()
+            ->assertSee('Link quotation to')->assertSee('SV-LINK-FIRST')->assertSee('SV-LINK-SECOND');
+
+        $this->patch(route('admin.quotes.site-visit.update', $quote), ['site_visit_id' => $secondVisit->id])
+            ->assertSessionHasNoErrors();
+        $this->assertSame($secondVisit->id, $quote->fresh()->site_visit_request_id);
+        $this->assertSame($quote->id, $secondVisit->fresh()->quote_id);
+
+        $this->patch(route('admin.quotes.site-visit.update', $quote), ['site_visit_id' => $firstVisit->id])
+            ->assertSessionHasNoErrors();
+        $this->assertNull($secondVisit->fresh()->quote_id);
+        $this->assertSame($quote->id, $firstVisit->fresh()->quote_id);
+
+        $this->patch(route('admin.quotes.site-visit.update', $quote), ['site_visit_id' => ''])
+            ->assertSessionHasNoErrors();
+        $this->assertNull($quote->fresh()->site_visit_request_id);
+        $this->assertSame($olderQuote->id, $firstVisit->fresh()->quote_id);
+        $this->assertSame($admin->id, $quote->fresh()->last_edited_by_user_id);
+    }
+
+    public function test_quotation_cannot_be_linked_to_another_customers_site_visit(): void
+    {
+        $quote = $this->quotation();
+        $otherCustomer = Customer::create(['name' => 'Other client', 'phone' => '0199999999']);
+        $otherVisit = SiteVisitRequest::create([
+            'reference_number' => 'SV-OTHER-CUSTOMER', 'customer_id' => $otherCustomer->id,
+            'status' => 'new', 'space_type' => 'office', 'site_address' => 'Other office',
+        ]);
+
+        $this->actingAs(User::factory()->create(['is_active' => true]))
+            ->patch(route('admin.quotes.site-visit.update', $quote), ['site_visit_id' => $otherVisit->id])
+            ->assertSessionHasErrors('site_visit_id');
+
+        $this->assertNull($quote->fresh()->site_visit_request_id);
+        $this->get(route('admin.quotes.show', $quote))->assertDontSee('SV-OTHER-CUSTOMER');
     }
 }

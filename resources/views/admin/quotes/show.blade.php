@@ -8,6 +8,11 @@
     @include('admin.partials.document-email-form', ['documentLabel' => 'quotation', 'sendRoute' => route('admin.quotes.send', $quote), 'defaultEmail' => $quote->customer->email])
     <section class="admin-card quotation-owner">
         <div><p>Owning site-visit session</p><strong>{{ $quote->siteVisit?->reference_number ?? 'Direct quotation — no site visit linked' }}</strong></div>
+        <form method="post" action="{{ route('admin.quotes.site-visit.update', $quote) }}">
+            @csrf @method('patch')
+            <label><span>Link quotation to</span><select name="site_visit_id"><option value="">Direct quotation (no site visit)</option>@foreach($availableSiteVisits as $visit)<option value="{{ $visit->id }}" @selected((int) $quote->site_visit_request_id === $visit->id)>{{ $visit->reference_number }} · {{ $visit->preferred_date?->format('d M Y') ?? 'Flexible date' }} · {{ ucfirst($visit->status) }}</option>@endforeach</select></label>
+            <button class="admin-button" type="submit">Save link</button>
+        </form>
         @if($quote->siteVisit)<a href="{{ route('admin.site-visits.show', $quote->siteVisit) }}">Open site visit session &nearr;</a>@endif
     </section>
     <div class="detail-grid">
