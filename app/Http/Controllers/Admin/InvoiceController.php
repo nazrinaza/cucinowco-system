@@ -8,6 +8,7 @@ use App\Mail\PaymentReceiptMail;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Support\DocumentEmailHistory;
+use App\Support\DocumentEmailRecipients;
 use App\Support\ReferenceNumber;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -40,16 +41,19 @@ class InvoiceController extends Controller
         return back()->with('success', 'Invoice updated.');
     }
 
-    public function send(Invoice $invoice): RedirectResponse
+    public function send(Request $request, Invoice $invoice, DocumentEmailRecipients $recipientParser): RedirectResponse
     {
         $invoice->load(['customer', 'items']);
-
-        if (! $invoice->customer->email) {
-            return back()->with('error', 'Add a customer email address before sending this invoice.');
-        }
+        $request->validate(['recipients' => ['nullable', 'string', 'max:2000']]);
+        $recipients = $recipientParser->parse($request->string('recipients')->toString(), $invoice->customer->email);
 
         try {
-            app(DocumentEmailHistory::class)->queue($invoice, new InvoiceMail($invoice), 'invoice');
+            foreach ($recipients as $recipient) {
+                app(DocumentEmailHistory::class)->queue(
+                    $invoice, new InvoiceMail($invoice), 'invoice', $recipient,
+                    $recipient === strtolower((string) $invoice->customer->email) ? $invoice->customer->name : null,
+                );
+            }
             $invoice->update(['sent_by_user_id' => auth()->id()]);
         } catch (\Throwable $exception) {
             report($exception);
@@ -57,7 +61,7 @@ class InvoiceController extends Controller
             return back()->with('error', 'The invoice email could not be queued. Check the email history and server log before trying again.');
         }
 
-        return back()->with('success', 'Invoice email queued for delivery.');
+        return back()->with('success', count($recipients).' invoice email'.(count($recipients) === 1 ? '' : 's').' queued for delivery.');
     }
 
     public function payment(Request $request, Invoice $invoice): RedirectResponse

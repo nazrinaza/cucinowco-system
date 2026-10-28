@@ -13,7 +13,7 @@ use Throwable;
 
 class DocumentEmailHistory
 {
-    public function queue(Quote|Invoice $document, CuciNowMailable $mail, string $category): void
+    public function queue(Quote|Invoice $document, CuciNowMailable $mail, string $category, ?string $recipient = null, ?string $recipientName = null): void
     {
         $attempt = (string) Str::uuid();
         $metadata = [
@@ -22,7 +22,7 @@ class DocumentEmailHistory
             'delivery_attempt_id' => $attempt,
             'requested_by' => auth()->user()?->name ?? 'System',
         ];
-        $recipient = $document->customer->email;
+        $recipient ??= $document->customer->email;
         $mail->deliveryAttemptId = $attempt;
         $mail->deliveryDocumentMetadata = array_intersect_key($metadata, ['quote_id' => true, 'invoice_id' => true]);
         // Pin the mailer and attempt ID when queued so retries retain their identity.
@@ -31,7 +31,7 @@ class DocumentEmailHistory
         $this->record($attempt, 'app.queued', $recipient, $metadata, $mailer);
 
         try {
-            Mail::to($recipient, $document->customer->name)->queue($mail);
+            Mail::to($recipient, $recipientName)->queue($mail);
         } catch (Throwable $exception) {
             $this->failed($attempt);
             throw $exception;
