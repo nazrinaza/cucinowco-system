@@ -6,6 +6,7 @@ use App\Livewire\QuoteEstimator;
 use App\Models\Service;
 use App\Models\Customer;
 use App\Models\SiteVisitRequest;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -97,5 +98,12 @@ class QuoteEstimatorTest extends TestCase
         $this->assertSame(2, $siteVisit->quotes()->count());
         $this->assertSame($siteVisit->quotes()->latest('id')->value('id'), $siteVisit->quote_id);
         $this->assertSame([$siteVisit->id], $siteVisit->quotes()->pluck('site_visit_request_id')->unique()->all());
+
+        $this->actingAs(User::factory()->create(['is_active' => true]));
+        $quote = $siteVisit->quotes()->firstOrFail();
+        $this->get(route('admin.quotes.show', $quote))->assertOk()
+            ->assertSee('Owning site-visit session')->assertSee('SV-MULTI-QUOTE');
+        $this->get(route('admin.quotes.index'))->assertOk()
+            ->assertSee('Site visit session')->assertSee('SV-MULTI-QUOTE');
     }
 }

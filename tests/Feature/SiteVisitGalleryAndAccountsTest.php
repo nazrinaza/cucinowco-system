@@ -51,6 +51,11 @@ class SiteVisitGalleryAndAccountsTest extends TestCase
         $this->assertSame('Narrow access; protect the glass doors.', $photo->notes);
         Storage::disk('local')->assertExists($photo->path);
         $this->get(route('admin.site-visits.photos.show', [$visit, $photo]))->assertOk();
+        $this->get(route('admin.site-visits.show', $visit))->assertOk()
+            ->assertSee('Captured site condition')
+            ->assertSee('Main hall access')
+            ->assertSee('Narrow access; protect the glass doors.')
+            ->assertSee('data-gallery-preview', false);
         auth()->logout();
         $this->get(route('admin.site-visits.photos.show', [$visit, $photo]))->assertRedirect(route('login'));
 

@@ -90,6 +90,38 @@ document.addEventListener('DOMContentLoaded', () => {
         image.addEventListener('error', showFallback);
         if (image.complete && image.naturalWidth === 0) showFallback();
     });
+    document.querySelectorAll('[data-site-photo-modal]').forEach((modal) => {
+        const image = modal.querySelector('[data-gallery-modal-image]');
+        const fallback = modal.querySelector('[data-gallery-modal-fallback]');
+        const original = modal.querySelector('[data-gallery-modal-original]');
+        const close = () => modal.close();
+        modal.closest('.site-photo-section')?.querySelectorAll('[data-gallery-preview]').forEach((preview) => {
+            preview.addEventListener('click', (event) => {
+                event.preventDefault();
+                modal.querySelector('[data-gallery-modal-caption]').textContent = preview.dataset.photoCaption || 'Site condition';
+                modal.querySelector('[data-gallery-modal-notes]').textContent = preview.dataset.photoNotes || 'No inspection note recorded.';
+                modal.querySelector('[data-gallery-modal-uploader]').textContent = preview.dataset.photoUploader || 'Team member';
+                modal.querySelector('[data-gallery-modal-date]').textContent = preview.dataset.photoDate || '';
+                image.hidden = false;
+                fallback.hidden = true;
+                image.alt = `Site assessment: ${preview.dataset.photoCaption || 'site condition'}`;
+                image.src = preview.dataset.photoUrl;
+                original.href = preview.dataset.photoUrl;
+                modal.showModal();
+            });
+        });
+        image.addEventListener('error', () => {
+            image.hidden = true;
+            fallback.hidden = false;
+        });
+        modal.querySelector('[data-gallery-modal-close]')?.addEventListener('click', close);
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) close();
+        });
+        modal.addEventListener('close', () => {
+            image.removeAttribute('src');
+        });
+    });
     document.querySelectorAll('[data-quote-editor]').forEach((form) => {
         const lines = form.querySelector('[data-quote-lines]');
         const template = form.querySelector('[data-quote-line-template]');
