@@ -34,6 +34,8 @@ class DocumentPrintViewTest extends TestCase
             ->assertSee('Q-PRINT-1')->assertSee('Deep cleaning')->assertSee('Aina')
             ->assertSee('document-print-toolbar', false)->assertSee('window.print()', false)
             ->assertSee('document-totals-table', false)
+            ->assertSee('border-radius:18px!important', false)
+            ->assertSee('background:#f7f4ec!important', false)
             ->assertDontSee('tr,img{break-inside:avoid', false);
 
         $email = (new QuoteMail($quote->load(['customer', 'items'])))->render();

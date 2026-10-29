@@ -18,8 +18,9 @@
                 .email-page,.email-card{background:#fffdf8!important}
                 .email-page,.email-page>tbody,.email-page>tbody>tr,.email-page-cell,.email-card,.email-card>tbody,.email-card-row,.email-card-row>td{display:block!important;width:100%!important}
                 .email-page-cell{padding:0!important}
-                .email-card{max-width:none!important;border-radius:0!important;overflow:visible!important}
-                .email-header-row>td{padding:18px 24px!important}
+                .email-card{max-width:none!important;border:1px solid #d8d4ca!important;border-radius:18px!important;overflow:visible!important}
+                .email-header-row>td{padding:18px 24px!important;background:#f7f4ec!important;border-radius:17px 17px 0 0!important;border-bottom:5px solid #f5b800!important}
+                .email-footer-row>td{border-radius:0 0 17px 17px!important}
                 .email-content-row>td{padding:24px!important}
                 .email-footer-row>td{padding:16px 24px!important}
                 .email-card-row,.email-card-row>td,.document-line-table,.document-line-table tr,.document-line-table td{break-inside:auto!important;page-break-inside:auto!important}
