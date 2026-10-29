@@ -1,7 +1,7 @@
 <x-layouts.admin title="Invoice {{ $invoice->invoice_number }}" heading="{{ $invoice->invoice_number }}">
     <x-slot:actions>
         <div class="action-row">
-            <button type="button" onclick="window.print()" class="admin-button secondary">Print / save PDF</button>
+            <a href="{{ route('admin.invoices.print', $invoice) }}" target="_blank" rel="noopener" class="admin-button secondary">Print / save PDF</a>
         </div>
     </x-slot:actions>
     @include('admin.partials.document-email-form', ['documentLabel' => 'invoice', 'sendRoute' => route('admin.invoices.send', $invoice), 'defaultEmail' => $invoice->customer->email])

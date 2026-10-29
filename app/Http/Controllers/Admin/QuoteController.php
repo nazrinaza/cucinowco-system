@@ -60,6 +60,17 @@ class QuoteController extends Controller
         ]);
     }
 
+    public function printable(Quote $quote): View
+    {
+        $quote->load(['customer', 'items.service']);
+
+        return view('emails.quote', [
+            'quote' => $quote,
+            'printMode' => true,
+            'printBackUrl' => route('admin.quotes.show', $quote),
+        ]);
+    }
+
     public function update(Request $request, Quote $quote): RedirectResponse
     {
         $data = $request->validate(['status' => ['required', Rule::in(self::STATUSES)], 'internal_notes' => ['nullable', 'string', 'max:3000']]);

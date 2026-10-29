@@ -1,0 +1,65 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Mail\InvoiceMail;
+use App\Mail\QuoteMail;
+use App\Models\Customer;
+use App\Models\Invoice;
+use App\Models\Quote;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class DocumentPrintViewTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_quotation_print_view_reuses_the_email_template_and_content(): void
+    {
+        $customer = Customer::create(['name' => 'Print Client', 'phone' => '01112345678', 'email' => 'print@example.com']);
+        $quote = Quote::create([
+            'quote_number' => 'Q-PRINT-1', 'customer_id' => $customer->id,
+            'status' => 'draft', 'subtotal' => 500, 'total' => 500,
+            'service_address' => 'Print Office', 'postcode' => '40160', 'city' => 'Shah Alam', 'state' => 'Selangor',
+            'contact_people' => [['name' => 'Aina', 'role' => 'Facilities Manager', 'email' => 'aina@example.com']],
+        ]);
+        $quote->items()->create(['description' => 'Deep cleaning', 'quantity' => 1, 'unit' => 'job', 'unit_price' => 500, 'amount' => 500]);
+
+        $this->get(route('admin.quotes.print', $quote))->assertRedirect(route('login'));
+        $response = $this->actingAs(User::factory()->create(['is_active' => true]))
+            ->get(route('admin.quotes.print', $quote));
+
+        $response->assertOk()->assertViewIs('emails.quote')->assertViewHas('printMode', true)
+            ->assertSee('Q-PRINT-1')->assertSee('Deep cleaning')->assertSee('Aina')
+            ->assertSee('document-print-toolbar', false)->assertSee('window.print()', false);
+
+        $email = (new QuoteMail($quote->load(['customer', 'items'])))->render();
+        $this->assertStringContainsString('Deep cleaning', $email);
+        $this->assertStringContainsString('Project contacts', $email);
+        $this->assertStringNotContainsString('document-print-toolbar', $email);
+    }
+
+    public function test_invoice_print_view_reuses_the_email_template_and_content(): void
+    {
+        $customer = Customer::create(['name' => 'Invoice Client', 'phone' => '01187654321', 'email' => 'invoice@example.com']);
+        $invoice = Invoice::create([
+            'invoice_number' => 'INV-PRINT-1', 'customer_id' => $customer->id,
+            'status' => 'draft', 'subtotal' => 750, 'total' => 750, 'balance' => 750,
+            'payment_terms' => 'Due within 14 days.',
+        ]);
+        $invoice->items()->create(['description' => 'Carpet cleaning', 'quantity' => 1, 'unit' => 'job', 'unit_price' => 750, 'amount' => 750]);
+
+        $response = $this->actingAs(User::factory()->create(['is_active' => true]))
+            ->get(route('admin.invoices.print', $invoice));
+
+        $response->assertOk()->assertViewIs('emails.invoice')->assertViewHas('printMode', true)
+            ->assertSee('INV-PRINT-1')->assertSee('Carpet cleaning')->assertSee('Balance due')
+            ->assertSee('document-print-toolbar', false);
+
+        $email = (new InvoiceMail($invoice->load(['customer', 'items'])))->render();
+        $this->assertStringContainsString('Carpet cleaning', $email);
+        $this->assertStringContainsString('Balance due', $email);
+        $this->assertStringNotContainsString('document-print-toolbar', $email);
+    }
+}

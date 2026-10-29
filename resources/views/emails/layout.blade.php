@@ -1,15 +1,36 @@
 <!doctype html>
+@php($isPrint = $printMode ?? false)
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>@yield('title', config('company.name'))</title>
+    @if($isPrint)
+        <style>
+            *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;box-sizing:border-box}
+            .document-print-toolbar{position:sticky;z-index:20;top:0;display:flex;justify-content:center;gap:10px;padding:12px;background:#25282d;font-family:Arial,Helvetica,sans-serif}
+            .document-print-toolbar a,.document-print-toolbar button{display:inline-block;padding:10px 15px;border:1px solid #f5b800;border-radius:8px;color:#25282d;background:#f5b800;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer}
+            .document-print-toolbar a{color:#fff;background:transparent;border-color:#777b82}
+            @page{size:A4;margin:12mm}
+            @media print{
+                html,body{background:#fff!important}
+                .document-print-toolbar{display:none!important}
+                .email-page,.email-card{background:#fffdf8!important}
+                .email-page-cell{padding:0!important}
+                .email-card{max-width:none!important;width:100%!important;border-radius:0!important}
+                tr,img{break-inside:avoid;page-break-inside:avoid}
+            }
+        </style>
+    @endif
 </head>
 <body style="margin:0;padding:0;background:#f2efe7;color:#25282d;font-family:Arial,Helvetica,sans-serif">
+@if($isPrint)
+    <div class="document-print-toolbar"><a href="{{ $printBackUrl }}">Back to document</a><button type="button" onclick="window.print()">Print / Save PDF</button></div>
+@endif
 <div style="display:none;max-height:0;overflow:hidden;color:transparent">@yield('preview')</div>
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f2efe7">
-    <tr><td align="center" style="padding:28px 12px">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:660px;background:#fffdf8;border:1px solid #dedbd2;border-radius:18px;overflow:hidden">
+<table class="email-page" role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f2efe7">
+    <tr><td class="email-page-cell" align="center" style="padding:28px 12px">
+        <table class="email-card" role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:660px;background:#fffdf8;border:1px solid #dedbd2;border-radius:18px;overflow:hidden">
             <tr><td style="padding:24px 30px;background:#25282d;border-bottom:5px solid #f5b800">
                 <a href="@yield('header-link', 'https://cucinow.co')" target="_blank" rel="noopener noreferrer" style="display:inline-block;text-decoration:none">
                     <img src="{{ asset('images/cucinow-logo.png') }}" width="190" alt="CuciNow.co by Thursina" style="display:block;max-width:190px;height:auto;border:0">
@@ -31,5 +52,8 @@
         </table>
     </td></tr>
 </table>
+@if($isPrint)
+    <script>window.addEventListener('load',function(){window.setTimeout(function(){window.print()},150)})</script>
+@endif
 </body>
 </html>

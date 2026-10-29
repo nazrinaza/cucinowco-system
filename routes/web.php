@@ -78,6 +78,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:web', EnsureActiveUser
         Route::get('/', DashboardController::class)->name('dashboard');
         Route::get('/quotes/create', [QuoteController::class, 'create'])->name('quotes.create');
         Route::get('/quotes', [QuoteController::class, 'index'])->name('quotes.index');
+        Route::get('/quotes/{quote}/print', [QuoteController::class, 'printable'])->name('quotes.print');
         Route::get('/quotes/{quote}', [QuoteController::class, 'show'])->name('quotes.show');
         Route::patch('/quotes/{quote}', [QuoteController::class, 'update'])->name('quotes.update');
         Route::patch('/quotes/{quote}/items', [QuoteController::class, 'updateItems'])->name('quotes.items.update');
@@ -87,6 +88,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:web', EnsureActiveUser
         Route::post('/quotes/{quote}/convert', [QuoteController::class, 'convert'])->name('quotes.convert');
         Route::post('/quotes/{quote}/book', [QuoteController::class, 'book'])->name('quotes.book');
         Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+        Route::get('/invoices/{invoice}/print', [InvoiceController::class, 'printable'])->name('invoices.print');
         Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
         Route::patch('/invoices/{invoice}', [InvoiceController::class, 'update'])->name('invoices.update');
         Route::post('/invoices/{invoice}/send', [InvoiceController::class, 'send'])->name('invoices.send');

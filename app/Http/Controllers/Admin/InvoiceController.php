@@ -33,6 +33,17 @@ class InvoiceController extends Controller
         return view('admin.invoices.show', compact('invoice', 'emailHistory'));
     }
 
+    public function printable(Invoice $invoice): View
+    {
+        $invoice->load(['customer', 'items']);
+
+        return view('emails.invoice', [
+            'invoice' => $invoice,
+            'printMode' => true,
+            'printBackUrl' => route('admin.invoices.show', $invoice),
+        ]);
+    }
+
     public function update(Request $request, Invoice $invoice): RedirectResponse
     {
         $data = $request->validate(['status' => ['required', Rule::in(['draft', 'sent', 'partial', 'paid', 'overdue', 'cancelled'])], 'due_at' => ['nullable', 'date'], 'notes' => ['nullable', 'string', 'max:3000']]);
