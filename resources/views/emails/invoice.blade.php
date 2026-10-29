@@ -5,6 +5,14 @@
     <p style="margin:0 0 10px;color:#8c6906;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">Invoice</p>
     <h1 style="margin:0 0 8px;font-size:30px">{{ $invoice->invoice_number }}</h1>
     <p style="margin:0 0 24px;color:#73777d;font-size:13px">Issued {{ $invoice->issued_at?->format('d M Y') }} &middot; Due {{ $invoice->due_at?->format('d M Y') }}</p>
+    <div style="margin:0 0 24px;padding:16px;background:#f7f4ec;border-left:4px solid #f5b800;font-size:13px;line-height:1.65">
+        <strong style="display:block;margin-bottom:6px;color:#25282d">Bill to</strong>
+        @if(filled($invoice->customer->company_name))<strong>{{ $invoice->customer->company_name }}</strong><br>@endif
+        {{ $invoice->customer->name }}
+        @if(filled($invoice->customer->address))<br>{{ $invoice->customer->address }}@endif
+        @if(filled($invoice->customer->email))<br>{{ $invoice->customer->email }}@endif
+        @if(filled($invoice->customer->phone))<br>{{ $invoice->customer->phone }}@endif
+    </div>
     <table class="document-line-table" role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;font-size:13px">
         <thead><tr class="document-line-header" style="color:#fff;background:#25282d"><th align="left" style="padding:11px">Description</th><th align="right" style="padding:11px">Amount</th></tr></thead>
         <tbody>
