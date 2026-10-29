@@ -2,7 +2,7 @@
     @include('admin.quotes._item-editor')
     @include('admin.quotes._contact-editor')
     <x-slot:actions><div class="action-row">
-        <button type="button" class="admin-button secondary" onclick="window.print()">Print quote</button>
+        <a class="admin-button secondary" href="{{ route('admin.quotes.print', $quote) }}" target="_blank" rel="noopener">Print / save PDF</a>
         @if(!$quote->invoice)<form method="post" action="{{ route('admin.quotes.convert',$quote) }}">@csrf<button class="admin-button secondary" type="submit">Convert to invoice</button></form>@else<a class="admin-button secondary" href="{{ route('admin.invoices.show',$quote->invoice) }}">View invoice</a>@endif
     </div></x-slot:actions>
     @include('admin.partials.document-email-form', ['documentLabel' => 'quotation', 'sendRoute' => route('admin.quotes.send', $quote), 'defaultEmail' => $quote->customer->email])
