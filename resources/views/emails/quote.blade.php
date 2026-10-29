@@ -14,11 +14,16 @@
             @endforeach
         </div>
     @endif
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;font-size:13px">
-        <tr style="color:#fff;background:#25282d"><th align="left" style="padding:11px">Description</th><th align="right" style="padding:11px">Amount</th></tr>
+    <table class="document-line-table" role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;font-size:13px">
+        <thead><tr class="document-line-header" style="color:#fff;background:#25282d"><th align="left" style="padding:11px">Description</th><th align="right" style="padding:11px">Amount</th></tr></thead>
+        <tbody>
         @foreach($quote->items as $item)
-            <tr><td style="padding:13px 11px;border-bottom:1px solid #dedbd2"><strong>{{ $item->description }}</strong>@if($item->notes)<div style="margin-top:7px">{!! app(\App\Support\QuotationHtmlSanitizer::class)->forEmail($item->notes) !!}</div>@endif<span style="color:#73777d">{{ number_format($item->quantity, 2) }} {{ $item->unit }} @ RM {{ number_format($item->unit_price, 2) }}</span></td><td align="right" style="padding:13px 11px;border-bottom:1px solid #dedbd2;vertical-align:top">RM {{ number_format($item->amount, 2) }}</td></tr>
+            <tr class="document-line-item"><td style="padding:13px 11px;border-bottom:1px solid #dedbd2"><strong>{{ $item->description }}</strong>@if($item->notes)<div style="margin-top:7px">{!! app(\App\Support\QuotationHtmlSanitizer::class)->forEmail($item->notes) !!}</div>@endif<span style="color:#73777d">{{ number_format($item->quantity, 2) }} {{ $item->unit }} @ RM {{ number_format($item->unit_price, 2) }}</span></td><td align="right" style="padding:13px 11px;border-bottom:1px solid #dedbd2;vertical-align:top">RM {{ number_format($item->amount, 2) }}</td></tr>
         @endforeach
+        </tbody>
+    </table>
+    <table class="document-totals-table" role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;font-size:13px">
+        <tbody>
         <tr><td align="right" style="padding:8px 11px">Subtotal</td><td align="right" style="padding:8px 11px">RM {{ number_format($quote->subtotal, 2) }}</td></tr>
         @if($quote->discount > 0)
             <tr><td align="right" style="padding:8px 11px">Discount</td><td align="right" style="padding:8px 11px">− RM {{ number_format($quote->discount, 2) }}</td></tr>
@@ -27,6 +32,7 @@
             <tr><td align="right" style="padding:8px 11px">Tax ({{ number_format($quote->tax_rate, 2) }}%)</td><td align="right" style="padding:8px 11px">RM {{ number_format($quote->tax_amount, 2) }}</td></tr>
         @endif
         <tr><td align="right" style="padding:18px 11px;font-weight:700">Total</td><td align="right" style="padding:18px 11px;color:#8c6906;font-size:20px;font-weight:700">RM {{ number_format($quote->total, 2) }}</td></tr>
+        </tbody>
     </table>
     <div style="margin:8px 0 24px;padding:16px;background:#f7f4ec;font-size:13px;line-height:1.6"><strong>Service location</strong><br>{{ $quote->service_address }}<br>{{ $quote->postcode }} {{ $quote->city }}, {{ $quote->state }}</div>
     <div style="margin:0 0 24px;padding:16px;background:#f7f4ec;border-left:4px solid #f5b800;color:#4c5159;font-size:12px;line-height:1.6"><strong style="color:#25282d">Project &amp; payment terms</strong><ol style="margin:10px 0 0;padding-left:20px">@foreach(config('company.quotation_terms') as $term)<li style="margin:0 0 7px">{{ $term }}</li>@endforeach</ol></div>

@@ -16,9 +16,22 @@
                 html,body{background:#fff!important}
                 .document-print-toolbar{display:none!important}
                 .email-page,.email-card{background:#fffdf8!important}
+                .email-page,.email-page>tbody,.email-page>tbody>tr,.email-page-cell,.email-card,.email-card>tbody,.email-card-row,.email-card-row>td{display:block!important;width:100%!important}
                 .email-page-cell{padding:0!important}
-                .email-card{max-width:none!important;width:100%!important;border-radius:0!important}
-                tr,img{break-inside:avoid;page-break-inside:avoid}
+                .email-card{max-width:none!important;border-radius:0!important;overflow:visible!important}
+                .email-header-row>td{padding:18px 24px!important}
+                .email-content-row>td{padding:24px!important}
+                .email-footer-row>td{padding:16px 24px!important}
+                .email-card-row,.email-card-row>td,.document-line-table,.document-line-table tr,.document-line-table td{break-inside:auto!important;page-break-inside:auto!important}
+                .document-line-table thead{display:table-header-group}
+                .document-line-header{break-after:avoid;page-break-after:avoid}
+                .document-totals,.document-totals-table{break-inside:avoid!important;page-break-inside:avoid!important}
+                .document-line-item p{margin:4px 0 7px!important;line-height:1.42!important}
+                .document-line-item ul,.document-line-item ol{margin:5px 0 8px!important}
+                .document-line-item li{margin-bottom:3px!important;line-height:1.4!important}
+                .document-line-item hr{margin:8px 0!important}
+                img{break-inside:avoid;page-break-inside:avoid}
+                p,li{orphans:2;widows:2}
             }
         </style>
     @endif
@@ -31,15 +44,15 @@
 <table class="email-page" role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f2efe7">
     <tr><td class="email-page-cell" align="center" style="padding:28px 12px">
         <table class="email-card" role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:660px;background:#fffdf8;border:1px solid #dedbd2;border-radius:18px;overflow:hidden">
-            <tr><td style="padding:24px 30px;background:#25282d;border-bottom:5px solid #f5b800">
+            <tr class="email-card-row email-header-row"><td style="padding:24px 30px;background:#25282d;border-bottom:5px solid #f5b800">
                 <a href="@yield('header-link', 'https://cucinow.co')" target="_blank" rel="noopener noreferrer" style="display:inline-block;text-decoration:none">
                     <img src="{{ asset('images/cucinow-logo.png') }}" width="190" alt="CuciNow.co by Thursina" style="display:block;max-width:190px;height:auto;border:0">
                 </a>
             </td></tr>
-            <tr><td style="padding:36px 30px">
+            <tr class="email-card-row email-content-row"><td style="padding:36px 30px">
                 @yield('content')
             </td></tr>
-            <tr><td style="padding:24px 30px;color:#73777d;background:#f7f4ec;border-top:1px solid #dedbd2;font-size:12px;line-height:1.6">
+            <tr class="email-card-row email-footer-row"><td style="padding:24px 30px;color:#73777d;background:#f7f4ec;border-top:1px solid #dedbd2;font-size:12px;line-height:1.6">
                 <strong style="color:#25282d">{{ config('company.name') }} by {{ config('company.legal_name') }}</strong><br>
                 {{ config('company.address') }}<br>
                 <a href="mailto:{{ config('company.email') }}" style="color:#8c6906">{{ config('company.email') }}</a>
