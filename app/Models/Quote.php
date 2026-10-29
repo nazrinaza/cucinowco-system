@@ -19,6 +19,7 @@ class Quote extends Model
             'viewed_at' => 'datetime', 'accepted_at' => 'datetime', 'rejected_at' => 'datetime',
             'subtotal' => 'decimal:2', 'discount' => 'decimal:2', 'tax_rate' => 'decimal:2',
             'tax_amount' => 'decimal:2', 'total' => 'decimal:2',
+            'document_date' => 'date', 'deposit_percentage' => 'decimal:2',
         ];
     }
 
@@ -35,6 +36,11 @@ class Quote extends Model
     public function invoice(): HasOne
     {
         return $this->hasOne(Invoice::class);
+    }
+
+    public function proformaInvoice(): HasOne
+    {
+        return $this->hasOne(ProformaInvoice::class);
     }
 
     public function booking(): HasOne
@@ -65,5 +71,30 @@ class Quote extends Model
     public function sentBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sent_by_user_id');
+    }
+
+    public function salesPerson(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'sales_person_user_id');
+    }
+
+    public function getDisplayTitleAttribute(): string
+    {
+        return $this->title ?: 'RE: QUOTATION FOR CLEANING SERVICE AT '.strtoupper($this->customer?->company_name ?: $this->customer?->name ?: 'CUSTOMER SITE');
+    }
+
+    public function getDepositAmountAttribute(): float
+    {
+        return round((float) $this->total * (float) ($this->deposit_percentage ?? 50) / 100, 2);
+    }
+
+    public function getBalancePercentageAttribute(): float
+    {
+        return round(100 - (float) ($this->deposit_percentage ?? 50), 2);
+    }
+
+    public function getBalanceAmountAttribute(): float
+    {
+        return round((float) $this->total - $this->deposit_amount, 2);
     }
 }

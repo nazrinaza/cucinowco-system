@@ -29,7 +29,7 @@
                     $sendReference = $metadata['delivery_attempt_id'] ?? $emailEvent->provider_email_id;
                     $time = $emailEvent->occurred_at?->timezone('Asia/Kuala_Lumpur');
                     $category = match($metadata['category'] ?? '') {
-                        'quotation' => 'Quotation', 'invoice' => 'Invoice',
+                        'quotation' => 'Quotation', 'proforma_invoice' => 'Proforma invoice', 'invoice' => 'Invoice',
                         'invoice_reminder' => 'Payment reminder', 'payment_receipt' => 'Payment receipt',
                         default => 'Email update',
                     };

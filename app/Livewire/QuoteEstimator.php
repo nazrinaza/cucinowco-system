@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\Quote;
 use App\Models\Service;
 use App\Models\SiteVisitRequest;
+use App\Models\User;
 use App\Support\ReferenceNumber;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -50,6 +51,12 @@ class QuoteEstimator extends Component
 
     public string $notes = '';
 
+    public string $documentTitle = '';
+
+    public float $depositPercentage = 50;
+
+    public ?int $salesPersonId = null;
+
     public bool $submitted = false;
 
     public string $reference = '';
@@ -62,6 +69,7 @@ class QuoteEstimator extends Component
             ->orderBy('sort_order')
             ->value('id');
         $this->preferredDate = now()->addDays(2)->format('Y-m-d');
+        $this->salesPersonId = auth()->id();
 
         if ($siteVisit) {
             $this->siteVisitId = $siteVisit->id;
@@ -76,6 +84,7 @@ class QuoteEstimator extends Component
             $this->city = (string) $siteVisit->customer->city;
             $this->state = (string) ($siteVisit->customer->state ?: 'Selangor');
             $this->notes = ($siteVisit->clean_types ? 'Requested clean types: '.$siteVisit->clean_types_label."\n" : '').(string) $siteVisit->customer_notes;
+            $this->documentTitle = 'RE: QUOTATION FOR INITIAL CLEANING SERVICE AT '.strtoupper($siteVisit->customer->company_name ?: $siteVisit->customer->name);
         }
     }
 
@@ -100,6 +109,12 @@ class QuoteEstimator extends Component
         return round($base * $sizeMultiplier * (1 - $frequencyDiscount), 2);
     }
 
+    #[Computed]
+    public function salesPeople()
+    {
+        return User::where('is_active', true)->whereIn('role', ['admin', 'office'])->orderBy('name')->get();
+    }
+
     public function submit(): void
     {
         $validated = $this->validate([
@@ -118,6 +133,9 @@ class QuoteEstimator extends Component
             'city' => ['required', 'string', 'max:100'],
             'state' => ['required', 'string', 'max:100'],
             'notes' => ['nullable', 'string', 'max:1500'],
+            'documentTitle' => ['nullable', 'string', 'max:255'],
+            'depositPercentage' => ['required', 'numeric', 'min:0', 'max:100'],
+            'salesPersonId' => ['nullable', Rule::exists('users', 'id')->where(fn ($query) => $query->where('is_active', true)->whereIn('role', ['admin', 'office']))],
         ]);
 
         $service = Service::findOrFail($validated['serviceId']);
@@ -138,9 +156,18 @@ class QuoteEstimator extends Component
             $this->reference = ReferenceNumber::make('Q', Quote::class, 'quote_number');
             $estimate = $this->estimate;
 
+            $salesPerson = filled($validated['salesPersonId'] ?? null) ? User::find($validated['salesPersonId']) : null;
+            $documentTitle = trim($validated['documentTitle'] ?? '') ?: 'RE: QUOTATION FOR INITIAL CLEANING SERVICE AT '.strtoupper($customer->company_name ?: $customer->name);
+
             $quote = Quote::create([
                 'created_by_user_id' => auth()->id(),
                 'quote_number' => $this->reference,
+                'title' => $documentTitle,
+                'document_date' => today(),
+                'deposit_percentage' => $validated['depositPercentage'],
+                'sales_person_user_id' => $salesPerson?->id,
+                'sales_person_name' => $salesPerson ? ($salesPerson->sales_signature_name ?: $salesPerson->name) : null,
+                'sales_person_title' => $salesPerson ? ($salesPerson->sales_signature_title ?: 'SALES DEPARTMENT OF CUCINOW.CO') : null,
                 'customer_id' => $customer->id,
                 'site_visit_request_id' => $this->siteVisitId,
                 'source' => 'admin',

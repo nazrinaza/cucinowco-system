@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Mail\CuciNowMailable;
 use App\Models\EmailEvent;
 use App\Models\Invoice;
+use App\Models\ProformaInvoice;
 use App\Models\Quote;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Mail;
@@ -13,18 +14,22 @@ use Throwable;
 
 class DocumentEmailHistory
 {
-    public function queue(Quote|Invoice $document, CuciNowMailable $mail, string $category, ?string $recipient = null, ?string $recipientName = null): void
+    public function queue(Quote|Invoice|ProformaInvoice $document, CuciNowMailable $mail, string $category, ?string $recipient = null, ?string $recipientName = null): void
     {
         $attempt = (string) Str::uuid();
         $metadata = [
-            $document instanceof Quote ? 'quote_id' : 'invoice_id' => (string) $document->id,
+            match (true) {
+                $document instanceof Quote => 'quote_id',
+                $document instanceof Invoice => 'invoice_id',
+                default => 'proforma_invoice_id',
+            } => (string) $document->id,
             'category' => $category,
             'delivery_attempt_id' => $attempt,
             'requested_by' => auth()->user()?->name ?? 'System',
         ];
         $recipient ??= $document->customer->email;
         $mail->deliveryAttemptId = $attempt;
-        $mail->deliveryDocumentMetadata = array_intersect_key($metadata, ['quote_id' => true, 'invoice_id' => true]);
+        $mail->deliveryDocumentMetadata = array_intersect_key($metadata, ['quote_id' => true, 'invoice_id' => true, 'proforma_invoice_id' => true]);
         // Pin the mailer and attempt ID when queued so retries retain their identity.
         $mailer = config('mail.default');
         $mail->mailer($mailer);
@@ -58,9 +63,13 @@ class DocumentEmailHistory
         }
     }
 
-    public function forDocument(Quote|Invoice $document): LengthAwarePaginator
+    public function forDocument(Quote|Invoice|ProformaInvoice $document): LengthAwarePaginator
     {
-        $key = $document instanceof Quote ? 'quote_id' : 'invoice_id';
+        $key = match (true) {
+            $document instanceof Quote => 'quote_id',
+            $document instanceof Invoice => 'invoice_id',
+            default => 'proforma_invoice_id',
+        };
         $id = (string) $document->id;
         $providerIds = EmailEvent::where("metadata->{$key}", $id)
             ->whereNotNull('provider_email_id')->select('provider_email_id');

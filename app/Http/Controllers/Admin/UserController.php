@@ -22,6 +22,8 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'max:30'],
+            'sales_signature_name' => ['nullable', 'string', 'max:255'],
+            'sales_signature_title' => ['nullable', 'string', 'max:160'],
             'role' => ['required', Rule::in(['admin', 'office', 'field'])],
             'password' => ['required', 'string', 'min:12', 'confirmed'],
         ]);
@@ -37,6 +39,8 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone' => ['nullable', 'string', 'max:30'],
+            'sales_signature_name' => ['nullable', 'string', 'max:255'],
+            'sales_signature_title' => ['nullable', 'string', 'max:160'],
             'role' => ['required', Rule::in(['admin', 'office', 'field'])],
             'is_active' => ['required', 'boolean'],
             'password' => ['nullable', 'string', 'min:12', 'confirmed'],

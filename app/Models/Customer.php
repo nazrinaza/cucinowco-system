@@ -29,6 +29,11 @@ class Customer extends Model
         return $this->hasMany(Invoice::class);
     }
 
+    public function proformaInvoices(): HasMany
+    {
+        return $this->hasMany(ProformaInvoice::class);
+    }
+
     public function getReferralLabelAttribute(): string
     {
         $siteVisit = $this->relationLoaded('siteVisitRequests')
