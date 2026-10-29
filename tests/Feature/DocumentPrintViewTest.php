@@ -32,7 +32,9 @@ class DocumentPrintViewTest extends TestCase
 
         $response->assertOk()->assertViewIs('emails.quote')->assertViewHas('printMode', true)
             ->assertSee('Q-PRINT-1')->assertSee('Deep cleaning')->assertSee('Aina')
-            ->assertSee('document-print-toolbar', false)->assertSee('window.print()', false);
+            ->assertSee('document-print-toolbar', false)->assertSee('window.print()', false)
+            ->assertSee('document-totals-table', false)
+            ->assertDontSee('tr,img{break-inside:avoid', false);
 
         $email = (new QuoteMail($quote->load(['customer', 'items'])))->render();
         $this->assertStringContainsString('Deep cleaning', $email);
