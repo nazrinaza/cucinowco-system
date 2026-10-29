@@ -29,7 +29,7 @@
                     @foreach($quote->contact_people ?? [] as $contact)
                         <p><strong>{{ $contact['name'] }}</strong>@if(filled($contact['role'] ?? null)) <em>{{ $contact['role'] }}</em>@endif<br>@if(filled($contact['phone'] ?? null)){{ $contact['phone'] }}@endif @if(filled($contact['phone'] ?? null) && filled($contact['email'] ?? null))&middot;@endif @if(filled($contact['email'] ?? null)){{ $contact['email'] }}@endif</p>
                     @endforeach
-                    @if(filled($quote->sales_person_name))<p><strong>{{ $quote->sales_person_name }}</strong><br>{{ $quote->sales_person_title ?: 'SALES DEPARTMENT OF CUCINOW.CO' }}</p>@endif
+                    @if(filled($quote->sales_person_name))<p><strong>{{ $quote->sales_person_name }}</strong><br>{{ $quote->sales_person_title ?: 'SALES DEPARTMENT OF CUCINOW.CO' }}@if(filled($quote->sales_person_phone))<br>{{ $quote->sales_person_phone }}@endif</p>@endif
                 </div></div>
             @endif
             <table class="document-table"><thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>

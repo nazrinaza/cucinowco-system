@@ -50,6 +50,7 @@ class ProformaInvoiceController extends Controller
                 'deposit_percentage' => $quote->deposit_percentage ?? 50,
                 'sales_person_name' => $quote->sales_person_name,
                 'sales_person_title' => $quote->sales_person_title,
+                'sales_person_phone' => $quote->sales_person_phone,
                 'created_by_user_id' => auth()->id(),
             ]);
             foreach ($quote->items as $item) {

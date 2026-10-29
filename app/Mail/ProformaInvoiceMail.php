@@ -39,7 +39,7 @@ class ProformaInvoiceMail extends CuciNowMailable
             'Deposit payment of '.$this->percent($this->proformaInvoice->deposit_percentage).'% (RM '.number_format($this->proformaInvoice->deposit_amount, 2).') to confirm slot',
             'Balance of '.$this->percent($this->proformaInvoice->balance_percentage).'% (RM '.number_format($this->proformaInvoice->balance_amount, 2).') after job completed',
             'Grand Total: RM '.number_format($this->proformaInvoice->total, 2),
-            ...filled($this->proformaInvoice->sales_person_name) ? ['', 'CuciNow sales contact', $this->proformaInvoice->sales_person_name, $this->proformaInvoice->sales_person_title] : [],
+            ...filled($this->proformaInvoice->sales_person_name) ? ['', 'CuciNow sales contact', $this->proformaInvoice->sales_person_name, $this->proformaInvoice->sales_person_title, ...filled($this->proformaInvoice->sales_person_phone) ? [$this->proformaInvoice->sales_person_phone] : []] : [],
         ]));
     }
 

@@ -27,6 +27,7 @@ class ProformaInvoiceTest extends TestCase
             'document_date' => '2026-10-29', 'valid_until' => '2026-11-12',
             'deposit_percentage' => 40, 'sales_person_user_id' => $creator->id,
             'sales_person_name' => 'Nur Sales', 'sales_person_title' => 'SALES DEPARTMENT OF CUCINOW.CO',
+            'sales_person_phone' => $creator->phone,
             'subtotal' => 1000, 'tax_rate' => 8, 'tax_amount' => 80, 'total' => 1080,
         ]);
         $quote->items()->create([
@@ -43,6 +44,7 @@ class ProformaInvoiceTest extends TestCase
         $sales = User::factory()->create([
             'role' => 'office', 'sales_signature_name' => 'Farah Sales',
             'sales_signature_title' => 'SALES DEPARTMENT OF CUCINOW.CO',
+            'phone' => '011-5555 7788',
         ]);
         $quote = $this->quote($admin);
 
@@ -54,17 +56,18 @@ class ProformaInvoiceTest extends TestCase
 
         $quote->refresh();
         $this->assertSame('Farah Sales', $quote->sales_person_name);
+        $this->assertSame('011-5555 7788', $quote->sales_person_phone);
         $this->assertSame('378.00', number_format($quote->deposit_amount, 2, '.', ''));
         $this->assertSame('702.00', number_format($quote->balance_amount, 2, '.', ''));
         $this->get(route('admin.quotes.print', $quote))->assertOk()
             ->assertSee('30 Oct 2026')->assertSee('Grand Total')->assertSee('Farah Sales')
-            ->assertSee('Deposit payment of 35% to confirm slot')->assertSee('RM 378.00');
+            ->assertSee('Deposit payment of 35% to confirm slot')->assertSee('RM 378.00')->assertSee('011-5555 7788');
     }
 
     public function test_proforma_invoice_is_snapshotted_from_quote_and_can_be_printed_and_emailed(): void
     {
         Mail::fake();
-        $office = User::factory()->create(['role' => 'office']);
+        $office = User::factory()->create(['role' => 'office', 'phone' => '011-9876 5432']);
         $quote = $this->quote($office);
 
         $response = $this->actingAs($office)->post(route('admin.proforma-invoices.store', $quote));
@@ -73,7 +76,7 @@ class ProformaInvoiceTest extends TestCase
 
         $this->assertDatabaseHas('proforma_invoices', [
             'id' => $proforma->id, 'quote_id' => $quote->id, 'deposit_percentage' => 40,
-            'sales_person_name' => 'Nur Sales', 'total' => 1080,
+            'sales_person_name' => 'Nur Sales', 'sales_person_phone' => '011-9876 5432', 'total' => 1080,
         ]);
         $this->assertDatabaseHas('proforma_invoice_items', [
             'proforma_invoice_id' => $proforma->id, 'description' => 'Initial cleaning service', 'amount' => 1000,
@@ -83,7 +86,7 @@ class ProformaInvoiceTest extends TestCase
         $this->get(route('admin.proforma-invoices.show', $proforma))->assertOk()
             ->assertSee('Grand total')->assertSee('RM 432.00')->assertSee('RM 648.00');
         $this->get(route('admin.proforma-invoices.print', $proforma))->assertOk()
-            ->assertSee('Grand Total')->assertSee('Nur Sales');
+            ->assertSee('Grand Total')->assertSee('Nur Sales')->assertSee('011-9876 5432');
 
         $this->post(route('admin.proforma-invoices.send', $proforma), ['recipients' => 'finance@acme.example'])
             ->assertSessionHasNoErrors();
