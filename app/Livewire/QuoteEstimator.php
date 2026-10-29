@@ -168,6 +168,7 @@ class QuoteEstimator extends Component
                 'sales_person_user_id' => $salesPerson?->id,
                 'sales_person_name' => $salesPerson ? ($salesPerson->sales_signature_name ?: $salesPerson->name) : null,
                 'sales_person_title' => $salesPerson ? ($salesPerson->sales_signature_title ?: 'SALES DEPARTMENT OF CUCINOW.CO') : null,
+                'sales_person_phone' => $salesPerson?->phone,
                 'customer_id' => $customer->id,
                 'site_visit_request_id' => $this->siteVisitId,
                 'source' => 'admin',

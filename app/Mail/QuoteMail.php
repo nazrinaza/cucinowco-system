@@ -52,7 +52,7 @@ class QuoteMail extends CuciNowMailable
             ...filled($this->quote->customer->company_name) ? ["Company: {$this->quote->customer->company_name}"] : [],
             'Valid until: '.$this->quote->valid_until?->format('d M Y'),
             ...$contactSection,
-            ...filled($this->quote->sales_person_name) ? ['', 'CuciNow sales contact', $this->quote->sales_person_name, $this->quote->sales_person_title ?: 'SALES DEPARTMENT OF CUCINOW.CO'] : [],
+            ...filled($this->quote->sales_person_name) ? ['', 'CuciNow sales contact', $this->quote->sales_person_name, $this->quote->sales_person_title ?: 'SALES DEPARTMENT OF CUCINOW.CO', ...filled($this->quote->sales_person_phone) ? [$this->quote->sales_person_phone] : []] : [],
             '',
             $items,
             '',

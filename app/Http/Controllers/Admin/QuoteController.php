@@ -90,6 +90,7 @@ class QuoteController extends Controller
             'sales_person_user_id' => $salesPerson?->id,
             'sales_person_name' => $salesPerson ? ($salesPerson->sales_signature_name ?: $salesPerson->name) : null,
             'sales_person_title' => $salesPerson ? ($salesPerson->sales_signature_title ?: 'SALES DEPARTMENT OF CUCINOW.CO') : null,
+            'sales_person_phone' => $salesPerson?->phone,
             'internal_notes' => $data['internal_notes'] ?? null, 'last_edited_by_user_id' => $request->user()->id,
         ];
         $timestamp = ['sent' => 'sent_at', 'viewed' => 'viewed_at', 'accepted' => 'accepted_at', 'rejected' => 'rejected_at'][$data['status']] ?? null;

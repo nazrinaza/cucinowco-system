@@ -14,7 +14,7 @@
             @foreach($quote->contact_people ?? [] as $contact)
                 <p style="margin:0 0 8px"><strong>{{ $contact['name'] }}</strong>@if(filled($contact['role'] ?? null)) &middot; {{ $contact['role'] }}@endif<br>@if(filled($contact['phone'] ?? null)){{ $contact['phone'] }}@endif @if(filled($contact['phone'] ?? null) && filled($contact['email'] ?? null))&middot;@endif @if(filled($contact['email'] ?? null)){{ $contact['email'] }}@endif</p>
             @endforeach
-            @if(filled($quote->sales_person_name))<p style="margin:8px 0 0"><strong>{{ $quote->sales_person_name }}</strong><br>{{ $quote->sales_person_title ?: 'SALES DEPARTMENT OF CUCINOW.CO' }}</p>@endif
+            @if(filled($quote->sales_person_name))<p style="margin:8px 0 0"><strong>{{ $quote->sales_person_name }}</strong><br>{{ $quote->sales_person_title ?: 'SALES DEPARTMENT OF CUCINOW.CO' }}@if(filled($quote->sales_person_phone))<br>{{ $quote->sales_person_phone }}@endif</p>@endif
         </div>
     @endif
     <table class="document-line-table" role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;font-size:13px">
