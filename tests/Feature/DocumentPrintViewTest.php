@@ -17,7 +17,7 @@ class DocumentPrintViewTest extends TestCase
 
     public function test_quotation_print_view_reuses_the_email_template_and_content(): void
     {
-        $customer = Customer::create(['name' => 'Print Client', 'phone' => '01112345678', 'email' => 'print@example.com']);
+        $customer = Customer::create(['name' => 'Print Client', 'phone' => '01112345678', 'email' => 'print@example.com', 'company_name' => 'Print Client Sdn Bhd']);
         $quote = Quote::create([
             'quote_number' => 'Q-PRINT-1', 'customer_id' => $customer->id,
             'status' => 'draft', 'subtotal' => 500, 'total' => 500,
@@ -31,22 +31,27 @@ class DocumentPrintViewTest extends TestCase
             ->get(route('admin.quotes.print', $quote));
 
         $response->assertOk()->assertViewIs('emails.quote')->assertViewHas('printMode', true)
-            ->assertSee('Q-PRINT-1')->assertSee('Deep cleaning')->assertSee('Aina')
+            ->assertSee('Q-PRINT-1')->assertSee('Deep cleaning')->assertSee('Aina')->assertSee('Print Client Sdn Bhd')
             ->assertSee('document-print-toolbar', false)->assertSee('window.print()', false)
             ->assertSee('document-totals-table', false)
             ->assertSee('border-radius:18px!important', false)
             ->assertSee('background:#f7f4ec!important', false)
+            ->assertDontSee('Reply to this email or contact us on WhatsApp')
+            ->assertDontSee('Discuss this quotation')
             ->assertDontSee('tr,img{break-inside:avoid', false);
 
         $email = (new QuoteMail($quote->load(['customer', 'items'])))->render();
         $this->assertStringContainsString('Deep cleaning', $email);
         $this->assertStringContainsString('Project contacts', $email);
+        $this->assertStringContainsString('Print Client Sdn Bhd', $email);
+        $this->assertStringContainsString('Reply to this email or contact us on WhatsApp', $email);
+        $this->assertStringContainsString('Discuss this quotation', $email);
         $this->assertStringNotContainsString('document-print-toolbar', $email);
     }
 
     public function test_invoice_print_view_reuses_the_email_template_and_content(): void
     {
-        $customer = Customer::create(['name' => 'Invoice Client', 'phone' => '01187654321', 'email' => 'invoice@example.com']);
+        $customer = Customer::create(['name' => 'Invoice Client', 'phone' => '01187654321', 'email' => 'invoice@example.com', 'company_name' => 'Invoice Client Sdn Bhd']);
         $invoice = Invoice::create([
             'invoice_number' => 'INV-PRINT-1', 'customer_id' => $customer->id,
             'status' => 'draft', 'subtotal' => 750, 'total' => 750, 'balance' => 750,
@@ -58,12 +63,13 @@ class DocumentPrintViewTest extends TestCase
             ->get(route('admin.invoices.print', $invoice));
 
         $response->assertOk()->assertViewIs('emails.invoice')->assertViewHas('printMode', true)
-            ->assertSee('INV-PRINT-1')->assertSee('Carpet cleaning')->assertSee('Balance due')
+            ->assertSee('INV-PRINT-1')->assertSee('Carpet cleaning')->assertSee('Balance due')->assertSee('Invoice Client Sdn Bhd')
             ->assertSee('document-print-toolbar', false);
 
         $email = (new InvoiceMail($invoice->load(['customer', 'items'])))->render();
         $this->assertStringContainsString('Carpet cleaning', $email);
         $this->assertStringContainsString('Balance due', $email);
+        $this->assertStringContainsString('Invoice Client Sdn Bhd', $email);
         $this->assertStringNotContainsString('document-print-toolbar', $email);
     }
 }

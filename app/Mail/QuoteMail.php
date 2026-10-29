@@ -47,6 +47,7 @@ class QuoteMail extends CuciNowMailable
         return $this->brandedContent('emails.quote', implode("\n", [
             "Quotation {$this->quote->quote_number}",
             "Prepared for {$this->quote->customer->name}",
+            ...filled($this->quote->customer->company_name) ? ["Company: {$this->quote->customer->company_name}"] : [],
             'Valid until: '.$this->quote->valid_until?->format('d M Y'),
             ...$contactSection,
             '',
