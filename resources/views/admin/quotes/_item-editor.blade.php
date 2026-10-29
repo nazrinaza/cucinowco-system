@@ -22,7 +22,7 @@
             <div class="quote-editor-totals" aria-live="polite">
                 <span>Subtotal <strong data-quote-subtotal>RM {{ number_format($quote->subtotal, 2) }}</strong></span>
                 <span>Tax ({{ number_format($quote->tax_rate, 2) }}%) <strong data-quote-tax>RM {{ number_format($quote->tax_amount, 2) }}</strong></span>
-                <span>Total <strong data-quote-total>RM {{ number_format($quote->total, 2) }}</strong></span>
+                <span>Grand total <strong data-quote-total>RM {{ number_format($quote->total, 2) }}</strong></span>
             </div>
             <p class="quote-editor-help" data-quote-editor-message role="status"></p>
             <button type="submit" class="admin-button">Save quotation services</button>

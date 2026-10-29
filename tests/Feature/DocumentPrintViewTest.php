@@ -36,6 +36,7 @@ class DocumentPrintViewTest extends TestCase
             ->assertSee('document-totals-table', false)
             ->assertSee('border-radius:18px!important', false)
             ->assertSee('background:#f7f4ec!important', false)
+            ->assertSee('Grand Total')
             ->assertDontSee('Reply to this email or contact us on WhatsApp')
             ->assertDontSee('Discuss this quotation')
             ->assertDontSee('tr,img{break-inside:avoid', false);

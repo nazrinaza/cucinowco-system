@@ -9,6 +9,7 @@ use App\Models\Booking;
 use App\Models\Invoice;
 use App\Models\Quote;
 use App\Models\SiteVisitRequest;
+use App\Models\User;
 use App\Support\DocumentEmailHistory;
 use App\Support\DocumentEmailRecipients;
 use App\Support\ReferenceNumber;
@@ -46,7 +47,7 @@ class QuoteController extends Controller
 
     public function show(Quote $quote): View
     {
-        $quote->load(['customer', 'items.service', 'invoice', 'booking', 'siteVisit.referralSource', 'createdBy', 'lastEditedBy', 'sentBy']);
+        $quote->load(['customer', 'items.service', 'invoice', 'proformaInvoice', 'booking', 'siteVisit.referralSource', 'createdBy', 'lastEditedBy', 'sentBy']);
         $availableSiteVisits = SiteVisitRequest::query()
             ->where('customer_id', $quote->customer_id)
             ->latest()
@@ -56,6 +57,7 @@ class QuoteController extends Controller
         return view('admin.quotes.show', [
             'quote' => $quote, 'statuses' => self::STATUSES,
             'availableSiteVisits' => $availableSiteVisits,
+            'salesPeople' => User::where('is_active', true)->whereIn('role', ['admin', 'office'])->orderBy('name')->get(),
             'emailHistory' => app(DocumentEmailHistory::class)->forDocument($quote),
         ]);
     }
@@ -73,8 +75,23 @@ class QuoteController extends Controller
 
     public function update(Request $request, Quote $quote): RedirectResponse
     {
-        $data = $request->validate(['status' => ['required', Rule::in(self::STATUSES)], 'internal_notes' => ['nullable', 'string', 'max:3000']]);
-        $updates = ['status' => $data['status'], 'internal_notes' => $data['internal_notes'] ?? null, 'last_edited_by_user_id' => $request->user()->id];
+        $data = $request->validate([
+            'status' => ['required', Rule::in(self::STATUSES)],
+            'title' => ['required', 'string', 'max:255'],
+            'document_date' => ['required', 'date'],
+            'deposit_percentage' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:100'],
+            'sales_person_user_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where(fn ($query) => $query->where('is_active', true)->whereIn('role', ['admin', 'office']))],
+            'internal_notes' => ['nullable', 'string', 'max:3000'],
+        ]);
+        $salesPerson = filled($data['sales_person_user_id'] ?? null) ? User::findOrFail($data['sales_person_user_id']) : null;
+        $updates = [
+            'status' => $data['status'], 'title' => trim($data['title']),
+            'document_date' => $data['document_date'], 'deposit_percentage' => $data['deposit_percentage'],
+            'sales_person_user_id' => $salesPerson?->id,
+            'sales_person_name' => $salesPerson ? ($salesPerson->sales_signature_name ?: $salesPerson->name) : null,
+            'sales_person_title' => $salesPerson ? ($salesPerson->sales_signature_title ?: 'SALES DEPARTMENT OF CUCINOW.CO') : null,
+            'internal_notes' => $data['internal_notes'] ?? null, 'last_edited_by_user_id' => $request->user()->id,
+        ];
         $timestamp = ['sent' => 'sent_at', 'viewed' => 'viewed_at', 'accepted' => 'accepted_at', 'rejected' => 'rejected_at'][$data['status']] ?? null;
         if ($timestamp) {
             $updates[$timestamp] = now();

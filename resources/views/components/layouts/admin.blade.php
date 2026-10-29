@@ -7,7 +7,7 @@
             <a href="{{ auth()->user()->role === 'field' ? route('admin.site-visits.index') : route('admin.dashboard') }}" class="admin-brand"><img src="{{ asset('images/cucinow-logo.png') }}" alt="CuciNow.co"></a>
             <nav>
                 @foreach ([
-                    ['admin.dashboard','Overview','OV'],['admin.site-visits.*','Site visits','SV'],['admin.quotes.*','Quotes','QU'],['admin.invoices.*','Invoices','IN'],['admin.bookings.*','Bookings','BK'],['admin.customers.*','Customers','CU'],['admin.staff.*','Staff','ST'],['admin.referrals.*','Referral QR','RF'],['admin.subscribers.*','Subscribers','SU'],['admin.campaigns.*','Campaigns','CA']
+                    ['admin.dashboard','Overview','OV'],['admin.site-visits.*','Site visits','SV'],['admin.quotes.*','Quotes','QU'],['admin.proforma-invoices.*','Proforma invoices','PI'],['admin.invoices.*','Invoices','IN'],['admin.bookings.*','Bookings','BK'],['admin.customers.*','Customers','CU'],['admin.staff.*','Staff','ST'],['admin.referrals.*','Referral QR','RF'],['admin.subscribers.*','Subscribers','SU'],['admin.campaigns.*','Campaigns','CA']
                 ] as [$route,$label,$icon])
                     @if(in_array($route, ['admin.site-visits.*', 'admin.bookings.*']) || auth()->user()->can('manage-documents'))
                         <a href="{{ route(str_replace('.*','.index',$route)) }}" @class(['active' => request()->routeIs($route)])><span>{{ $icon }}</span>{{ $label }}</a>

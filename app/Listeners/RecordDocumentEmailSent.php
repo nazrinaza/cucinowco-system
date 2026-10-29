@@ -5,6 +5,7 @@ namespace App\Listeners;
 use App\Models\EmailEvent;
 use App\Models\Invoice;
 use App\Models\Quote;
+use App\Models\ProformaInvoice;
 use App\Support\DocumentEmailHistory;
 use Illuminate\Mail\Events\MessageSent;
 
@@ -47,6 +48,10 @@ class RecordDocumentEmailSent
         if (($metadata['category'] ?? null) === 'invoice') {
             Invoice::whereKey($metadata['invoice_id'])->update(['sent_at' => now()]);
             Invoice::whereKey($metadata['invoice_id'])->where('status', 'draft')->update(['status' => 'sent']);
+        }
+        if (($metadata['category'] ?? null) === 'proforma_invoice') {
+            ProformaInvoice::whereKey($metadata['proforma_invoice_id'])->update(['sent_at' => now()]);
+            ProformaInvoice::whereKey($metadata['proforma_invoice_id'])->where('status', 'draft')->update(['status' => 'sent']);
         }
     }
 }

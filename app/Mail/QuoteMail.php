@@ -46,14 +46,19 @@ class QuoteMail extends CuciNowMailable
 
         return $this->brandedContent('emails.quote', implode("\n", [
             "Quotation {$this->quote->quote_number}",
+            'Generated: '.($this->quote->document_date ?? $this->quote->created_at)->format('d M Y'),
+            $this->quote->display_title,
             "Prepared for {$this->quote->customer->name}",
             ...filled($this->quote->customer->company_name) ? ["Company: {$this->quote->customer->company_name}"] : [],
             'Valid until: '.$this->quote->valid_until?->format('d M Y'),
             ...$contactSection,
+            ...filled($this->quote->sales_person_name) ? ['', 'CuciNow sales contact', $this->quote->sales_person_name, $this->quote->sales_person_title ?: 'SALES DEPARTMENT OF CUCINOW.CO'] : [],
             '',
             $items,
             '',
-            'Total: RM '.number_format($this->quote->total, 2),
+            'Deposit payment of '.$this->percent($this->quote->deposit_percentage).'% (RM '.number_format($this->quote->deposit_amount, 2).') to confirm slot',
+            'Balance of '.$this->percent($this->quote->balance_percentage).'% (RM '.number_format($this->quote->balance_amount, 2).') after job completed',
+            'Grand Total: RM '.number_format($this->quote->total, 2),
             "Service location: {$this->quote->service_address}, {$this->quote->postcode} {$this->quote->city}, {$this->quote->state}",
             '',
             'Project & payment terms',
@@ -66,5 +71,10 @@ class QuoteMail extends CuciNowMailable
     public function headers(): Headers
     {
         return $this->deliveryHeaders("quote-{$this->quote->id}-{$this->quote->updated_at->timestamp}");
+    }
+
+    private function percent(float|string|null $value): string
+    {
+        return rtrim(rtrim(number_format((float) ($value ?? 50), 2), '0'), '.');
     }
 }
