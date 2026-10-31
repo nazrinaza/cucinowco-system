@@ -529,6 +529,7 @@ class ComposerStaticInitee521a8475827814193025509abf0409
         'App\\Http\\Middleware\\AgentPortalHeaders' => __DIR__ . '/../..' . '/app/Http/Middleware/AgentPortalHeaders.php',
         'App\\Http\\Middleware\\AgentSession' => __DIR__ . '/../..' . '/app/Http/Middleware/AgentSession.php',
         'App\\Http\\Middleware\\ApprovedAgent' => __DIR__ . '/../..' . '/app/Http/Middleware/ApprovedAgent.php',
+        'App\\Http\\Middleware\\CaptureAgentIntroducer' => __DIR__ . '/../..' . '/app/Http/Middleware/CaptureAgentIntroducer.php',
         'App\\Http\\Middleware\\CaptureReferral' => __DIR__ . '/../..' . '/app/Http/Middleware/CaptureReferral.php',
         'App\\Http\\Middleware\\EnsureActiveUser' => __DIR__ . '/../..' . '/app/Http/Middleware/EnsureActiveUser.php',
         'App\\Jobs\\SendNewsletterCampaign' => __DIR__ . '/../..' . '/app/Jobs/SendNewsletterCampaign.php',

@@ -33,6 +33,7 @@ return array(
     'App\\Http\\Middleware\\AgentPortalHeaders' => $baseDir . '/app/Http/Middleware/AgentPortalHeaders.php',
     'App\\Http\\Middleware\\AgentSession' => $baseDir . '/app/Http/Middleware/AgentSession.php',
     'App\\Http\\Middleware\\ApprovedAgent' => $baseDir . '/app/Http/Middleware/ApprovedAgent.php',
+    'App\\Http\\Middleware\\CaptureAgentIntroducer' => $baseDir . '/app/Http/Middleware/CaptureAgentIntroducer.php',
     'App\\Http\\Middleware\\CaptureReferral' => $baseDir . '/app/Http/Middleware/CaptureReferral.php',
     'App\\Http\\Middleware\\EnsureActiveUser' => $baseDir . '/app/Http/Middleware/EnsureActiveUser.php',
     'App\\Jobs\\SendNewsletterCampaign' => $baseDir . '/app/Jobs/SendNewsletterCampaign.php',
