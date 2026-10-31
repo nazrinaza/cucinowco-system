@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Agents;
 use App\Http\Controllers\Controller;
 use App\Models\Agent;
 use App\Models\AgentActivity;
+use App\Models\ReferralSource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -38,7 +40,20 @@ class AuthController extends Controller
             'website' => ['prohibited'],
         ]);
         $agent = Agent::create([...collect($data)->except(['terms', 'password_confirmation', 'website'])->all(), 'terms_accepted_at' => now()]);
-        AgentActivity::create(['agent_id' => $agent->id, 'action' => 'application.submitted']);
+        // Resolve again at submission: suspended/deactivated sources cannot claim registrations.
+        $attribution = $request->session()->get('agent_introducer', []);
+        $source = is_array($attribution) && ($attribution['expires_at'] ?? 0) > now()->timestamp && is_string($attribution['code'] ?? null)
+            ? ReferralSource::query()->trackable()->where('code', $attribution['code'])->first()
+            : null;
+        $agent->forceFill([
+            'introducer_source_id' => $source?->id,
+            'introducer_code' => $source?->code ?? 'direct',
+            'introducer_name' => $source?->name,
+            'introducer_channel' => $source?->channel,
+        ])->save();
+        AgentActivity::create(['agent_id' => $agent->id, 'action' => 'application.submitted', 'details' => ['introducer_code' => $agent->introducer_code]]);
+        $request->session()->forget('agent_introducer');
+        Cookie::queue(Cookie::forget('cucinow_agent_introducer'));
         $agent->sendVerificationEmail();
         Auth::guard('agent')->login($agent);
         $request->session()->regenerate();

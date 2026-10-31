@@ -5,10 +5,11 @@ use App\Http\Controllers\Agents\PortalController;
 use App\Http\Middleware\AgentPortalHeaders;
 use App\Http\Middleware\AgentSession;
 use App\Http\Middleware\ApprovedAgent;
+use App\Http\Middleware\CaptureAgentIntroducer;
 use Illuminate\Support\Facades\Route;
 
 Route::domain(config('agents.domain'))->prefix(config('agents.domain') ? '' : 'agents')
-    ->name('agents.')->middleware(AgentPortalHeaders::class)->group(function () {
+    ->name('agents.')->middleware([AgentPortalHeaders::class, CaptureAgentIntroducer::class])->group(function () {
         Route::get('/login', [AuthController::class, 'login'])->name('login');
         Route::post('/login', [AuthController::class, 'authenticate'])->middleware('throttle:5,1')->name('login.store');
         Route::get('/register', [AuthController::class, 'register'])->name('register');

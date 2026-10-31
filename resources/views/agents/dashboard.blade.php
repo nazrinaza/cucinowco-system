@@ -10,6 +10,7 @@
         </section>
         <section class="agent-card agent-next"><p class="agent-kicker">KEEP THE MOMENTUM</p><h2>From introduction<br>to a cleaner space.</h2><ol><li><span>01</span>Share your link or branded QR.</li><li><span>02</span>Your customer requests an assessment.</li><li><span>03</span>HQ manages the visit, quote and job.</li><li><span>04</span>Follow progress in My leads.</li></ol><a href="{{ route('agents.leads') }}">See my referrals →</a></section>
     </div>
+    <section class="agent-card" style="margin-top:24px"><p class="agent-kicker">GROW THE AGENT NETWORK</p><h2>Introduce a new agent</h2><p>This invitation link records you as the introducer when someone applies. It is separate from your customer referral link.</p><label class="agent-link-field"><span>Your agent invitation link</span><input readonly aria-label="Your agent invitation link" value="{{ route('agents.register', ['ref' => $agent->referralSource->code]) }}"></label></section>
     <div class="agent-section-head"><div><p class="agent-kicker">YOUR CONNECTIONS, IN MOTION</p><h2>Latest referrals</h2></div><a href="{{ route('agents.leads') }}">View all →</a></div>
     @include('agents.partials.lead-table')
     <div class="agent-section-head"><div><p class="agent-kicker">MADE BY HQ. READY FOR YOU.</p><h2>Fresh from the creative team</h2></div><a href="{{ route('agents.media') }}">Marketing tools →</a></div>
