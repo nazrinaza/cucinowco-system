@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use App\Livewire\QuoteEstimator;
-use App\Models\Service;
 use App\Models\Customer;
+use App\Models\Service;
 use App\Models\SiteVisitRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -101,8 +101,12 @@ class QuoteEstimatorTest extends TestCase
 
         $this->actingAs(User::factory()->create(['is_active' => true]));
         $quote = $siteVisit->quotes()->firstOrFail();
+        $quote->update(['deposit_percentage' => 35]);
         $this->get(route('admin.quotes.show', $quote))->assertOk()
-            ->assertSee('Owning site-visit session')->assertSee('SV-MULTI-QUOTE');
+            ->assertSee('Owning site-visit session')->assertSee('SV-MULTI-QUOTE')
+            ->assertSee('Project confirmation requires a 35% deposit.')
+            ->assertDontSee('Requested schedule')
+            ->assertDontSee('requires a 40% deposit');
         $this->get(route('admin.quotes.index'))->assertOk()
             ->assertSee('Site visit session')->assertSee('SV-MULTI-QUOTE');
     }

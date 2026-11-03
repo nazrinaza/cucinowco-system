@@ -549,7 +549,7 @@ class EmailWorkflowTest extends TestCase
         $customer = Customer::create(['name' => 'Aina Rahman', 'phone' => '0111111111', 'email' => 'aina@example.com']);
         $service = Service::create(['code' => 'office-cleaning', 'name' => 'Office Cleaning', 'unit' => 'job', 'is_active' => true]);
         $siteVisit = SiteVisitRequest::create(['reference_number' => 'SV-RENDER-1', 'customer_id' => $customer->id, 'service_id' => $service->id, 'status' => 'new', 'space_type' => 'office', 'preferred_date' => now()->addDay(), 'preferred_time_slot' => 'morning', 'site_address' => 'Example Tower', 'postcode' => '40160']);
-        $quote = Quote::create(['quote_number' => 'Q-RENDER-1', 'customer_id' => $customer->id, 'status' => 'sent', 'subtotal' => 250, 'total' => 250, 'valid_until' => now()->addDays(14), 'service_address' => 'Example Tower']);
+        $quote = Quote::create(['quote_number' => 'Q-RENDER-1', 'customer_id' => $customer->id, 'status' => 'sent', 'subtotal' => 250, 'total' => 250, 'deposit_percentage' => 35, 'valid_until' => now()->addDays(14), 'service_address' => 'Example Tower']);
         $quote->items()->create(['service_id' => $service->id, 'description' => 'Office Cleaning', 'quantity' => 1, 'unit' => 'job', 'unit_price' => 250, 'amount' => 250]);
         $invoice = Invoice::create(['invoice_number' => 'INV-RENDER-1', 'customer_id' => $customer->id, 'quote_id' => $quote->id, 'status' => 'overdue', 'issued_at' => today(), 'due_at' => today()->subDay(), 'subtotal' => 250, 'total' => 250, 'balance' => 250]);
         $invoice->items()->create(['description' => 'Office Cleaning', 'quantity' => 1, 'unit' => 'job', 'unit_price' => 250, 'amount' => 250]);
@@ -573,5 +573,9 @@ class EmailWorkflowTest extends TestCase
         foreach ($mailables as $mailable) {
             $this->assertStringContainsString('CuciNow.co', $mailable->render());
         }
+
+        $quoteEmail = (new QuoteMail($quote))->render();
+        $this->assertStringContainsString('Project confirmation requires a 35% deposit.', $quoteEmail);
+        $this->assertStringNotContainsString('requires a 40% deposit', $quoteEmail);
     }
 }
