@@ -31,7 +31,7 @@ class QuoteMail extends CuciNowMailable
                     .($notes !== '' ? "\n  ".str_replace("\n", "\n  ", $notes) : '');
             })
             ->implode("\n");
-        $terms = collect(config('company.quotation_terms'))
+        $terms = collect($this->quote->quotation_terms)
             ->map(fn (string $term, int $index): string => ($index + 1).'. '.$term)
             ->implode("\n");
         $contacts = collect($this->quote->contact_people ?? [])

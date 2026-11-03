@@ -97,4 +97,13 @@ class Quote extends Model
     {
         return round((float) $this->total - $this->deposit_amount, 2);
     }
+
+    public function getQuotationTermsAttribute(): array
+    {
+        $depositPercentage = rtrim(rtrim(number_format((float) ($this->deposit_percentage ?? 50), 2), '0'), '.');
+
+        return collect(config('company.quotation_terms', []))
+            ->map(fn (string $term): string => str_replace(':deposit_percentage', $depositPercentage, $term))
+            ->all();
+    }
 }
