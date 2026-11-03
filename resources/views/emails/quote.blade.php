@@ -6,7 +6,12 @@
     <h1 style="margin:0 0 8px;font-size:30px">{{ $quote->quote_number }}</h1>
     <p style="margin:0 0 12px;color:#73777d;font-size:13px">Generated {{ ($quote->document_date ?? $quote->created_at)->format('d M Y') }} &middot; Valid until {{ $quote->valid_until?->format('d M Y') }}</p>
     <h2 style="margin:0 0 24px;color:#25282d;font-size:17px;line-height:1.45">{{ $quote->display_title }}</h2>
-    <p style="margin:0 0 24px;color:#73777d;font-size:13px">Prepared for {{ $quote->customer->name }}@if(filled($quote->customer->company_name)) &middot; {{ $quote->customer->company_name }}@endif</p>
+    <p style="margin:0 0 24px;color:#73777d;font-size:13px;line-height:1.65">
+        Prepared for {{ $quote->customer->name }}@if(filled($quote->customer->company_name)) &middot; {{ $quote->customer->company_name }}@endif
+        @if(filled($quote->customer->phone) || filled($quote->customer->email))
+            <br>@if(filled($quote->customer->phone)){{ $quote->customer->phone }}@endif@if(filled($quote->customer->phone) && filled($quote->customer->email)) &middot; @endif@if(filled($quote->customer->email)){{ $quote->customer->email }}@endif
+        @endif
+    </p>
     <p style="margin:0 0 24px;color:#4c5159;font-size:15px;line-height:1.7">Thank you for the opportunity to assess your cleaning requirements. Your proposed scope and pricing are summarised below.</p>
     @if(filled($quote->contact_people) || filled($quote->sales_person_name))
         <div style="margin:0 0 24px;padding:16px;background:#f7f4ec;border-left:4px solid #f5b800;font-size:13px;line-height:1.65">

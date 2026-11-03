@@ -577,5 +577,7 @@ class EmailWorkflowTest extends TestCase
         $quoteEmail = (new QuoteMail($quote))->render();
         $this->assertStringContainsString('Project confirmation requires a 35% deposit.', $quoteEmail);
         $this->assertStringNotContainsString('requires a 40% deposit', $quoteEmail);
+        $this->assertStringContainsString('0111111111', $quoteEmail);
+        $this->assertStringContainsString('aina@example.com', $quoteEmail);
     }
 }
