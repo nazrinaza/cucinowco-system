@@ -14,7 +14,7 @@
                                 @forelse($campaign->segments ?? [] as $segment)<em>{{ $segment }}</em>@empty<em>All subscribers</em>@endforelse
                             </span>
                             @if($campaign->status === 'sent')
-                                <small>{{ number_format($campaign->recipient_count) }} recipients &middot; {{ number_format($campaign->open_count) }} opens &middot; {{ number_format($campaign->click_count) }} clicks</small>
+                                <small>{{ number_format($campaign->recipient_count) }} recipients &middot; Delivery analytics available in Resend</small>
                             @elseif($campaign->scheduled_at)
                                 <small>Scheduled {{ $campaign->scheduled_at->format('d M Y, g:i A') }}</small>
                             @endif
@@ -23,7 +23,7 @@
                         <div class="campaign-actions">
                             <span class="status status-{{ $campaign->status }}">{{ ucfirst($campaign->status) }}</span>
                             @if($campaign->recipient_count > 0 || in_array($campaign->status, ['sending', 'sent', 'failed']))
-                                <a class="admin-button secondary" href="{{ route('admin.campaigns.analytics', $campaign) }}">Analytics</a>
+                                <a class="admin-button secondary" href="{{ route('admin.campaigns.analytics', $campaign) }}">Delivery tracking</a>
                             @endif
                             @if(in_array($campaign->status, ['draft', 'scheduled', 'failed']))
                                 <a class="admin-button secondary" href="{{ route('admin.campaigns.edit', $campaign) }}">Edit</a>
