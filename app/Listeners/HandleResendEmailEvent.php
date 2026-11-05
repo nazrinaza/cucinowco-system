@@ -27,6 +27,14 @@ class HandleResendEmailEvent
             (string) ($payload['created_at'] ?? $data['created_at'] ?? ''),
         ]));
         $metadata = $this->normaliseTags($data['tags'] ?? []);
+
+        // Campaign analytics live in Resend. Skip campaign events before any
+        // database lookup or transaction to protect the shared hosting server
+        // from delivery bursts. Transactional document events remain tracked.
+        if (($metadata['category'] ?? null) === 'newsletter' || isset($metadata['campaign_id'])) {
+            return;
+        }
+
         $attempt = $metadata['delivery_attempt_id'] ?? null;
         $previous = $attempt
             ? EmailEvent::where('event_key', hash('sha256', $attempt.'|app.queued'))->first()

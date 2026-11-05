@@ -458,7 +458,7 @@ class EmailWorkflowTest extends TestCase
         $this->assertSame(0, $copy->unsubscribe_count);
     }
 
-    public function test_campaign_analytics_reports_unique_engagement_and_delivery_problems(): void
+    public function test_campaign_delivery_page_directs_staff_to_resend_without_loading_local_analytics(): void
     {
         $admin = User::factory()->create(['is_active' => true]);
         $campaign = NewsletterCampaign::create([
@@ -469,47 +469,15 @@ class EmailWorkflowTest extends TestCase
             'recipient_count' => 4,
             'sent_at' => now()->subDay(),
         ]);
-        $eventNumber = 0;
-        $recordEvent = function (string $type, string $emailId, string $recipient) use ($campaign, &$eventNumber): void {
-            $eventNumber++;
-            EmailEvent::create([
-                'event_key' => 'analytics-event-'.$eventNumber,
-                'provider' => 'resend',
-                'event_type' => $type,
-                'provider_email_id' => $emailId,
-                'recipient' => $recipient,
-                'metadata' => ['campaign_id' => (string) $campaign->id],
-                'occurred_at' => now()->subDay()->addMinutes($eventNumber),
-            ]);
-        };
-
-        $recordEvent('email.delivered', 'email-1', 'one@example.com');
-        $recordEvent('email.delivered', 'email-2', 'two@example.com');
-        $recordEvent('email.opened', 'email-1', 'one@example.com');
-        $recordEvent('email.opened', 'email-1', 'one@example.com');
-        $recordEvent('email.clicked', 'email-1', 'one@example.com');
-        $recordEvent('email.suppressed', 'email-3', 'blocked@example.com');
-        $recordEvent('email.failed', 'email-4', 'failed@example.com');
-        $recordEvent('email.delivery_delayed', 'email-2', 'two@example.com');
-
         $this->actingAs($admin)
             ->get(route('admin.campaigns.analytics', $campaign))
             ->assertOk()
-            ->assertSee('Campaign analytics')
-            ->assertSee('Unique opens')
-            ->assertSee('Blocked')
-            ->assertSee('blocked@example.com')
-            ->assertViewHas('metrics', fn (array $metrics): bool => $metrics['unique_opens'] === 1
-                && $metrics['total_opens'] === 2
-                && $metrics['unique_clicks'] === 1
-                && $metrics['delivered'] === 2
-                && $metrics['blocked'] === 1
-                && $metrics['failed'] === 1
-                && $metrics['delayed'] === 1
-                && $metrics['issues'] === 2);
+            ->assertSee('Campaign analytics are managed in Resend')
+            ->assertSee('Open Resend email logs')
+            ->assertDontSee('Unique opens');
     }
 
-    public function test_resend_webhook_event_updates_campaign_metrics_once(): void
+    public function test_resend_webhook_event_ignores_newsletter_campaign_tracking(): void
     {
         $subscriber = Subscriber::create(['email' => 'reader@example.com', 'status' => 'subscribed', 'subscribed_at' => now()]);
         $campaign = NewsletterCampaign::create(['name' => 'Test', 'subject' => 'Subject', 'content' => 'Content', 'status' => 'sent']);
@@ -519,7 +487,7 @@ class EmailWorkflowTest extends TestCase
             'data' => [
                 'email_id' => 'resend-email-123',
                 'to' => [$subscriber->email],
-                'tags' => ['campaign_id' => (string) $campaign->id, 'subscriber_id' => (string) $subscriber->id],
+                'tags' => ['category' => 'newsletter', 'campaign_id' => (string) $campaign->id, 'subscriber_id' => (string) $subscriber->id],
             ],
         ];
         $listener = new HandleResendEmailEvent;
@@ -527,8 +495,8 @@ class EmailWorkflowTest extends TestCase
         $listener->handle(new EmailOpened($payload));
         $listener->handle(new EmailOpened($payload));
 
-        $this->assertDatabaseCount('email_events', 1);
-        $this->assertSame(1, $campaign->refresh()->open_count);
+        $this->assertDatabaseCount('email_events', 0);
+        $this->assertSame(0, $campaign->refresh()->open_count);
     }
 
     public function test_unsigned_resend_webhook_requests_are_rejected(): void
