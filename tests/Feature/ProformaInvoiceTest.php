@@ -106,4 +106,65 @@ class ProformaInvoiceTest extends TestCase
         $this->post(route('admin.proforma-invoices.store', $quote))->assertRedirect(route('admin.proforma-invoices.show', $first));
         $this->assertDatabaseCount('proforma_invoices', 1);
     }
+
+    public function test_unsent_draft_can_be_synced_from_quotation_and_deleted_without_deleting_quote(): void
+    {
+        $office = User::factory()->create(['role' => 'office']);
+        $quote = $this->quote($office);
+        $this->actingAs($office)->post(route('admin.proforma-invoices.store', $quote))->assertRedirect();
+        $proforma = $quote->fresh()->proformaInvoice;
+
+        $quote->update([
+            'title' => 'RE: REVISED CLEANING SCOPE',
+            'subtotal' => 1250,
+            'discount' => 50,
+            'tax_amount' => 96,
+            'total' => 1296,
+            'deposit_percentage' => 45,
+        ]);
+        $quote->items()->first()->update([
+            'description' => 'Revised cleaning service',
+            'notes' => '<p><strong>Revised:</strong> Main office and lobby</p>',
+            'unit_price' => 1250,
+            'amount' => 1250,
+        ]);
+
+        $this->post(route('admin.proforma-invoices.sync', $proforma))
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('success');
+
+        $proforma->refresh();
+        $this->assertSame('RE: REVISED CLEANING SCOPE', $proforma->title);
+        $this->assertSame('1296.00', $proforma->total);
+        $this->assertSame('45.00', $proforma->deposit_percentage);
+        $this->assertSame($office->id, $proforma->synced_by_user_id);
+        $this->assertNotNull($proforma->synced_from_quote_at);
+        $this->assertDatabaseHas('proforma_invoice_items', [
+            'proforma_invoice_id' => $proforma->id,
+            'description' => 'Revised cleaning service',
+            'amount' => 1250,
+        ]);
+
+        $this->delete(route('admin.proforma-invoices.destroy', $proforma))
+            ->assertRedirect(route('admin.quotes.show', $quote));
+        $this->assertDatabaseMissing('proforma_invoices', ['id' => $proforma->id]);
+        $this->assertDatabaseMissing('proforma_invoice_items', ['proforma_invoice_id' => $proforma->id]);
+        $this->assertDatabaseHas('quotes', ['id' => $quote->id]);
+    }
+
+    public function test_issued_proforma_cannot_be_synced_or_deleted(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $quote = $this->quote($admin);
+        $this->actingAs($admin)->post(route('admin.proforma-invoices.store', $quote))->assertRedirect();
+        $proforma = $quote->fresh()->proformaInvoice;
+        $proforma->update(['status' => 'sent', 'sent_at' => now()]);
+
+        $this->post(route('admin.proforma-invoices.sync', $proforma))
+            ->assertSessionHasErrors('proforma');
+        $this->delete(route('admin.proforma-invoices.destroy', $proforma))
+            ->assertSessionHasErrors('proforma');
+
+        $this->assertDatabaseHas('proforma_invoices', ['id' => $proforma->id, 'status' => 'sent']);
+    }
 }
