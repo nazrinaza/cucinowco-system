@@ -84,9 +84,12 @@ class ProformaInvoiceTest extends TestCase
 
         $this->get(route('admin.proforma-invoices.index'))->assertOk()->assertSee($proforma->proforma_number);
         $this->get(route('admin.proforma-invoices.show', $proforma))->assertOk()
-            ->assertSee('Grand total')->assertSee('RM 432.00')->assertSee('RM 648.00');
+            ->assertSee('Grand total')->assertSee('Pay 40% deposit')->assertSee('RM 432.00')
+            ->assertSee('RM 648.00')->assertSee('Thursina Cleaning &amp; Services', false)
+            ->assertSee('8606139534')->assertSee('CIMB Bank');
         $this->get(route('admin.proforma-invoices.print', $proforma))->assertOk()
-            ->assertSee('Grand Total')->assertSee('Nur Sales')->assertSee('011-9876 5432');
+            ->assertSee('Grand Total')->assertSee('Pay 40% deposit')->assertSee('8606139534')
+            ->assertSee('Nur Sales')->assertSee('011-9876 5432');
 
         $this->post(route('admin.proforma-invoices.send', $proforma), ['recipients' => 'finance@acme.example'])
             ->assertSessionHasNoErrors();
