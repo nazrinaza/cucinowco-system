@@ -10,6 +10,11 @@ return [
     'notifications_email' => env('NOTIFICATION_EMAIL', env('COMPANY_EMAIL', 'hello@cucinow.co')),
     'whatsapp' => env('COMPANY_WHATSAPP', '601112428593'),
     'address' => env('COMPANY_ADDRESS', 'No.48A, Jalan BRP 1/2 Bukit Rahman Putra, Sungai Buloh. Malaysia'),
+    'bank' => [
+        'account_name' => 'Thursina Cleaning & Services',
+        'account_number' => '8606139534',
+        'name' => 'CIMB Bank',
+    ],
     'sst_enabled' => (bool) env('SST_ENABLED', false),
     'sst_rate' => (float) env('SST_RATE', 8),
     'quote_valid_days' => 14,
