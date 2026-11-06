@@ -15,6 +15,8 @@
                             </span>
                             @if($campaign->status === 'sent')
                                 <small>{{ number_format($campaign->recipient_count) }} recipients &middot; Delivery analytics available in Resend</small>
+                            @elseif($campaign->status === 'sending')
+                                <small>{{ number_format($campaign->processed_count) }} of {{ number_format($campaign->recipient_count) }} recipients submitted &middot; Batch {{ number_format($campaign->delivery_batch_number) }}</small>
                             @elseif($campaign->scheduled_at)
                                 <small>Scheduled {{ $campaign->scheduled_at->format('d M Y, g:i A') }}</small>
                             @endif
@@ -25,11 +27,13 @@
                             @if($campaign->recipient_count > 0 || in_array($campaign->status, ['sending', 'sent', 'failed']))
                                 <a class="admin-button secondary" href="{{ route('admin.campaigns.analytics', $campaign) }}">Delivery tracking</a>
                             @endif
-                            @if(in_array($campaign->status, ['draft', 'scheduled', 'failed']))
+                            @if(in_array($campaign->status, ['draft', 'scheduled']) || ($campaign->status === 'failed' && (int) $campaign->processed_count === 0))
                                 <a class="admin-button secondary" href="{{ route('admin.campaigns.edit', $campaign) }}">Edit</a>
+                            @endif
+                            @if(in_array($campaign->status, ['draft', 'scheduled', 'failed']))
                                 <form method="post" action="{{ route('admin.campaigns.send', $campaign) }}">
                                     @csrf
-                                    <button class="admin-button" type="submit">Send now</button>
+                                    <button class="admin-button" type="submit">{{ $campaign->status === 'failed' && (int) $campaign->processed_count > 0 ? 'Resume sending' : 'Send now' }}</button>
                                 </form>
                             @endif
                             <form method="post" action="{{ route('admin.campaigns.duplicate', $campaign) }}">

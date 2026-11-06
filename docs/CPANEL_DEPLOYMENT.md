@@ -43,12 +43,16 @@ RESEND_API_KEY=re_your_production_key
 RESEND_WEBHOOK_SECRET=whsec_your_signing_secret
 NOTIFICATION_EMAIL=hello@cucinow.co
 NEWSLETTER_QUEUE=newsletters
-NEWSLETTER_BATCH_SIZE=100
+NEWSLETTER_BATCH_SIZE=50
+NEWSLETTER_BATCH_DELAY_SECONDS=60
+NEWSLETTER_BATCH_LEASE_SECONDS=300
 ```
 
 Use an address on the verified domain for `MAIL_FROM_ADDRESS`. `NOTIFICATION_EMAIL` receives internal alerts for new site visit requests. Never add the real API key or webhook secret to GitHub.
 
 Set the `.env` permissions to `600` or the most restrictive value your host supports. Never place `.env` inside the public directory.
+
+Newsletter delivery is intentionally paced for shared hosting. Each queue execution sends one batch and exits; the scheduler releases the next batch after `NEWSLETTER_BATCH_DELAY_SECONDS`. With a batch size of 50 and a 60-second delay, a 500-recipient campaign takes approximately 10 minutes. Keep the existing `artisan schedule:run` cron running every minute. `NEWSLETTER_BATCH_LEASE_SECONDS` lets the scheduler recover a batch after an interrupted worker without restarting the campaign.
 
 Leave `APP_KEY=` blank only for the first deployment. The deployment task generates it once. Never delete or rotate the key after the site contains live data.
 

@@ -131,7 +131,7 @@ class EmailWorkflowTest extends TestCase
         $this->assertNotNull($campaign->sent_at);
     }
 
-    public function test_campaign_dispatch_splits_large_lists_into_resend_sized_batches(): void
+    public function test_campaign_dispatch_sends_one_resend_batch_per_queue_execution(): void
     {
         config(['newsletter.batch_size' => 100]);
         Subscriber::insert(collect(range(1, 205))->map(fn (int $number): array => [
@@ -155,11 +155,45 @@ class EmailWorkflowTest extends TestCase
             });
 
         (new SendNewsletterCampaign($campaign->id))->handle(batchSender: $batchSender);
+        $campaign->refresh();
+        $this->assertSame('sending', $campaign->status);
+        $this->assertSame(100, $campaign->processed_count);
+        $this->assertSame(1, $campaign->delivery_batch_number);
+        $this->assertNotNull($campaign->next_batch_at);
+
+        // The audience ceiling is frozen when delivery starts.
+        Subscriber::create([
+            'email' => 'late-subscriber@example.com',
+            'status' => 'subscribed',
+            'subscribed_at' => now(),
+        ]);
+
+        // A duplicate/stale job cannot advance or resend the campaign.
+        (new SendNewsletterCampaign($campaign->id))->handle(batchSender: $batchSender);
+
+        (new SendNewsletterCampaign(
+            $campaign->id,
+            (int) $campaign->delivery_cursor,
+            (int) $campaign->delivery_batch_number + 1,
+        ))->handle(batchSender: $batchSender);
+        $campaign->refresh();
+        $this->assertSame('sending', $campaign->status);
+        $this->assertSame(200, $campaign->processed_count);
+
+        (new SendNewsletterCampaign(
+            $campaign->id,
+            (int) $campaign->delivery_cursor,
+            (int) $campaign->delivery_batch_number + 1,
+        ))->handle(batchSender: $batchSender);
 
         $this->assertSame([100, 100, 5], $batchSizes);
         $this->assertSame([1, 2, 3], $batchNumbers);
-        $this->assertSame(205, $campaign->refresh()->recipient_count);
+        $campaign->refresh();
+        $this->assertSame(205, $campaign->recipient_count);
+        $this->assertSame(205, $campaign->processed_count);
         $this->assertSame('sent', $campaign->status);
+        $this->assertNull($campaign->next_batch_at);
+        $this->assertSame(205, $campaign->delivery_cursor);
     }
 
     public function test_newsletter_batch_sender_preserves_personalisation_unsubscribe_and_analytics_tags(): void
@@ -214,6 +248,50 @@ class EmailWorkflowTest extends TestCase
         $resend->shouldReceive('batch')->once()->andReturn($batchService);
 
         (new NewsletterBatchSender($resend))->send($campaign, collect([$subscriber]), 1);
+    }
+
+    public function test_failed_partial_campaign_resumes_from_its_next_batch_without_becoming_editable(): void
+    {
+        config(['newsletter.batch_size' => 2]);
+        foreach (range(1, 3) as $number) {
+            Subscriber::create([
+                'email' => "resume{$number}@example.com",
+                'status' => 'subscribed',
+                'subscribed_at' => now(),
+            ]);
+        }
+        $campaign = NewsletterCampaign::create([
+            'name' => 'Resume test',
+            'subject' => 'Subject',
+            'content' => 'Content',
+            'status' => 'queued',
+        ]);
+        $sender = Mockery::mock(NewsletterBatchSender::class);
+        $sender->shouldReceive('send')->once();
+        (new SendNewsletterCampaign($campaign->id))->handle(batchSender: $sender);
+        $campaign->refresh();
+
+        $failedBatch = new SendNewsletterCampaign(
+            $campaign->id,
+            (int) $campaign->delivery_cursor,
+            (int) $campaign->delivery_batch_number + 1,
+        );
+        $failedBatch->failed(new \RuntimeException('Temporary provider failure'));
+        $campaign->refresh();
+        $this->assertSame('failed', $campaign->status);
+        $this->assertSame(2, $campaign->processed_count);
+
+        $admin = User::factory()->create(['is_active' => true]);
+        $this->actingAs($admin)->get(route('admin.campaigns.edit', $campaign))
+            ->assertRedirect(route('admin.campaigns.index'));
+
+        Queue::fake();
+        $this->actingAs($admin)->post(route('admin.campaigns.send', $campaign))
+            ->assertSessionHas('success');
+        Queue::assertPushed(SendNewsletterCampaign::class, fn (SendNewsletterCampaign $job): bool => $job->campaignId === $campaign->id
+            && $job->expectedCursor === (int) $campaign->delivery_cursor
+            && $job->expectedBatchNumber === 2
+        );
     }
 
     public function test_admin_send_now_queues_campaign_dispatch_job(): void

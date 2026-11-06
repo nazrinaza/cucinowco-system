@@ -98,7 +98,7 @@ class CampaignController extends Controller
 
         if ($action === 'send') {
             $campaign = NewsletterCampaign::create([...$data, 'scheduled_at' => null, 'status' => 'queued']);
-            SendNewsletterCampaign::dispatch($campaign->id);
+            $this->dispatchCampaign($campaign);
 
             return back()->with('success', 'Campaign saved and queued for immediate delivery.');
         }
@@ -145,7 +145,7 @@ class CampaignController extends Controller
                 'status' => 'queued',
                 'delivery_error' => null,
             ]);
-            SendNewsletterCampaign::dispatch($campaign->id);
+            $this->dispatchCampaign($campaign->fresh());
 
             return redirect()->route('admin.campaigns.index')
                 ->with('success', 'Campaign updated and queued for immediate delivery.');
@@ -183,7 +183,7 @@ class CampaignController extends Controller
         }
 
         $campaign->update(['status' => 'queued', 'delivery_error' => null]);
-        SendNewsletterCampaign::dispatch($campaign->id);
+        $this->dispatchCampaign($campaign->fresh());
 
         return back()->with('success', 'Newsletter campaign queued for delivery.');
     }
@@ -225,6 +225,16 @@ class CampaignController extends Controller
 
     private function isEditable(NewsletterCampaign $campaign): bool
     {
-        return in_array($campaign->status, ['draft', 'scheduled', 'failed'], true);
+        return in_array($campaign->status, ['draft', 'scheduled'], true)
+            || ($campaign->status === 'failed' && (int) $campaign->processed_count === 0);
+    }
+
+    private function dispatchCampaign(NewsletterCampaign $campaign): void
+    {
+        SendNewsletterCampaign::dispatch(
+            $campaign->id,
+            (int) $campaign->delivery_cursor,
+            (int) $campaign->delivery_batch_number + 1,
+        );
     }
 }

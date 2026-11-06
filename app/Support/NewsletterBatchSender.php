@@ -14,8 +14,8 @@ class NewsletterBatchSender
 
     /**
      * Submit one batch to Resend. Every recipient remains an individually
-     * addressed email so merge tags, unsubscribe links and webhook analytics
-     * continue to work as before.
+     * addressed email so merge tags, unsubscribe links and Resend-side
+     * analytics remain available.
      *
      * @param  Collection<int, Subscriber>  $subscribers
      */

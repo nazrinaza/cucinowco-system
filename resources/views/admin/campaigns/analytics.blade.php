@@ -13,7 +13,7 @@
         <div>
             <p class="admin-kicker">{{ $campaign->name }}</p>
             <h2>{{ $campaign->subject }}</h2>
-            <small>{{ number_format($campaign->recipient_count) }} recipients &middot; {{ $campaign->sent_at ? 'Sent '.$campaign->sent_at->format('d M Y, g:i A') : 'Created '.$campaign->created_at->format('d M Y, g:i A') }}</small>
+            <small>@if($campaign->status === 'sent' && (int) $campaign->processed_count === 0){{ number_format($campaign->recipient_count) }} recipients @else{{ number_format($campaign->processed_count) }} of {{ number_format($campaign->recipient_count) }} recipients submitted @endif&middot; {{ $campaign->sent_at ? 'Sent '.$campaign->sent_at->format('d M Y, g:i A') : 'Created '.$campaign->created_at->format('d M Y, g:i A') }}</small>
         </div>
         <span class="status status-{{ $campaign->status }}">{{ ucfirst($campaign->status) }}</span>
     </section>
