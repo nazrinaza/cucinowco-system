@@ -14,6 +14,7 @@ class ProformaInvoice extends Model
     {
         return [
             'issued_at' => 'date', 'valid_until' => 'date', 'sent_at' => 'datetime',
+            'synced_from_quote_at' => 'datetime',
             'subtotal' => 'decimal:2', 'discount' => 'decimal:2', 'tax_rate' => 'decimal:2',
             'tax_amount' => 'decimal:2', 'total' => 'decimal:2', 'deposit_percentage' => 'decimal:2',
         ];
@@ -25,6 +26,7 @@ class ProformaInvoice extends Model
     public function createdBy(): BelongsTo { return $this->belongsTo(User::class, 'created_by_user_id'); }
     public function lastEditedBy(): BelongsTo { return $this->belongsTo(User::class, 'last_edited_by_user_id'); }
     public function sentBy(): BelongsTo { return $this->belongsTo(User::class, 'sent_by_user_id'); }
+    public function syncedBy(): BelongsTo { return $this->belongsTo(User::class, 'synced_by_user_id'); }
 
     public function getDepositAmountAttribute(): float
     {

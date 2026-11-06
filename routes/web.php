@@ -93,7 +93,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:web', EnsureActiveUser
         Route::get('/proforma-invoices/{proformaInvoice}/print', [ProformaInvoiceController::class, 'printable'])->name('proforma-invoices.print');
         Route::get('/proforma-invoices/{proformaInvoice}', [ProformaInvoiceController::class, 'show'])->name('proforma-invoices.show');
         Route::patch('/proforma-invoices/{proformaInvoice}', [ProformaInvoiceController::class, 'update'])->name('proforma-invoices.update');
+        Route::post('/proforma-invoices/{proformaInvoice}/sync-from-quote', [ProformaInvoiceController::class, 'syncFromQuote'])->name('proforma-invoices.sync');
         Route::post('/proforma-invoices/{proformaInvoice}/send', [ProformaInvoiceController::class, 'send'])->name('proforma-invoices.send');
+        Route::delete('/proforma-invoices/{proformaInvoice}', [ProformaInvoiceController::class, 'destroy'])->name('proforma-invoices.destroy');
         Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
         Route::get('/invoices/{invoice}/print', [InvoiceController::class, 'printable'])->name('invoices.print');
         Route::get('/invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');

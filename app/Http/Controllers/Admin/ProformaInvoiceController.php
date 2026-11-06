@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class ProformaInvoiceController extends Controller
@@ -52,6 +53,8 @@ class ProformaInvoiceController extends Controller
                 'sales_person_title' => $quote->sales_person_title,
                 'sales_person_phone' => $quote->sales_person_phone,
                 'created_by_user_id' => auth()->id(),
+                'synced_from_quote_at' => now(),
+                'synced_by_user_id' => auth()->id(),
             ]);
             foreach ($quote->items as $item) {
                 $proforma->items()->create($item->only(['description', 'quantity', 'unit', 'unit_price', 'amount', 'notes']));
@@ -65,10 +68,13 @@ class ProformaInvoiceController extends Controller
 
     public function show(ProformaInvoice $proformaInvoice): View
     {
-        $proformaInvoice->load(['customer', 'quote', 'items', 'createdBy', 'lastEditedBy', 'sentBy']);
+        $proformaInvoice->load(['customer', 'quote', 'items', 'createdBy', 'lastEditedBy', 'sentBy', 'syncedBy']);
 
         return view('admin.proforma-invoices.show', [
             'proformaInvoice' => $proformaInvoice, 'statuses' => self::STATUSES,
+            'canManageDraft' => $proformaInvoice->status === 'draft' && ! $proformaInvoice->sent_at,
+            'quotationChanged' => ! $proformaInvoice->synced_from_quote_at
+                || $proformaInvoice->quote->updated_at->gt($proformaInvoice->synced_from_quote_at),
             'emailHistory' => app(DocumentEmailHistory::class)->forDocument($proformaInvoice),
         ]);
     }
@@ -94,6 +100,66 @@ class ProformaInvoiceController extends Controller
         $proformaInvoice->update([...$data, 'last_edited_by_user_id' => $request->user()->id]);
 
         return back()->with('success', 'Proforma invoice updated.');
+    }
+
+    public function syncFromQuote(Request $request, ProformaInvoice $proformaInvoice): RedirectResponse
+    {
+        DB::transaction(function () use ($request, $proformaInvoice): void {
+            $quote = Quote::query()->lockForUpdate()->findOrFail($proformaInvoice->quote_id);
+            $quote->load('items');
+            $proforma = ProformaInvoice::query()->lockForUpdate()->findOrFail($proformaInvoice->id);
+
+            if ($proforma->status !== 'draft' || $proforma->sent_at) {
+                throw ValidationException::withMessages([
+                    'proforma' => 'Only a draft proforma invoice that has not been emailed can be synced from its quotation.',
+                ]);
+            }
+
+            $proforma->update([
+                'customer_id' => $quote->customer_id,
+                'title' => $quote->display_title,
+                'valid_until' => $quote->valid_until,
+                'subtotal' => $quote->subtotal,
+                'discount' => $quote->discount,
+                'tax_rate' => $quote->tax_rate,
+                'tax_amount' => $quote->tax_amount,
+                'total' => $quote->total,
+                'deposit_percentage' => $quote->deposit_percentage ?? 50,
+                'sales_person_name' => $quote->sales_person_name,
+                'sales_person_title' => $quote->sales_person_title,
+                'sales_person_phone' => $quote->sales_person_phone,
+                'last_edited_by_user_id' => $request->user()->id,
+                'synced_from_quote_at' => now(),
+                'synced_by_user_id' => $request->user()->id,
+            ]);
+
+            $proforma->items()->delete();
+            foreach ($quote->items as $item) {
+                $proforma->items()->create($item->only(['description', 'quantity', 'unit', 'unit_price', 'amount', 'notes']));
+            }
+        });
+
+        return back()->with('success', 'Draft proforma invoice synced with the latest quotation details.');
+    }
+
+    public function destroy(ProformaInvoice $proformaInvoice): RedirectResponse
+    {
+        $quoteId = $proformaInvoice->quote_id;
+
+        DB::transaction(function () use ($proformaInvoice): void {
+            $proforma = ProformaInvoice::query()->lockForUpdate()->findOrFail($proformaInvoice->id);
+
+            if ($proforma->status !== 'draft' || $proforma->sent_at) {
+                throw ValidationException::withMessages([
+                    'proforma' => 'Only a draft proforma invoice that has not been emailed can be deleted. Cancel an issued document instead.',
+                ]);
+            }
+
+            $proforma->delete();
+        });
+
+        return redirect()->route('admin.quotes.show', $quoteId)
+            ->with('success', 'Draft proforma invoice deleted. The quotation was not changed.');
     }
 
     public function send(Request $request, ProformaInvoice $proformaInvoice, DocumentEmailRecipients $recipientParser): RedirectResponse
