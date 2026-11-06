@@ -24,10 +24,40 @@ Schedule::call(function () {
                 ->update(['status' => 'queued', 'delivery_error' => null]);
 
             if ($claimed) {
-                SendNewsletterCampaign::dispatch($campaign->id);
+                $campaign->refresh();
+                SendNewsletterCampaign::dispatch(
+                    $campaign->id,
+                    (int) $campaign->delivery_cursor,
+                    (int) $campaign->delivery_batch_number + 1,
+                );
             }
         });
 })->everyMinute()->name('queue-due-newsletters')->withoutOverlapping(2);
+
+Schedule::call(function () {
+    $leaseSeconds = max(120, (int) config('newsletter.batch_lease_seconds', 300));
+
+    NewsletterCampaign::query()
+        ->where('status', 'sending')
+        ->whereNotNull('next_batch_at')
+        ->where('next_batch_at', '<=', now())
+        ->orderBy('id')
+        ->each(function (NewsletterCampaign $campaign) use ($leaseSeconds): void {
+            $cursor = (int) $campaign->delivery_cursor;
+            $batchNumber = (int) $campaign->delivery_batch_number + 1;
+            $claimed = NewsletterCampaign::query()
+                ->whereKey($campaign->id)
+                ->where('status', 'sending')
+                ->where('delivery_cursor', $cursor)
+                ->where('delivery_batch_number', $batchNumber - 1)
+                ->where('next_batch_at', '<=', now())
+                ->update(['next_batch_at' => now()->addSeconds($leaseSeconds)]);
+
+            if ($claimed) {
+                SendNewsletterCampaign::dispatch($campaign->id, $cursor, $batchNumber);
+            }
+        });
+})->everyMinute()->name('queue-next-newsletter-batches')->withoutOverlapping(2);
 
 Schedule::command('queue:work database --queue=default,newsletters --stop-when-empty --max-time=50 --max-jobs=25 --tries=3')
     ->everyMinute()
