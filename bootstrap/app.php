@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [CaptureReferral::class]);
         $middleware->validateCsrfTokens(except: [
             'newsletter/unsubscribe/*',
+            'webhooks/whatsapp',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
