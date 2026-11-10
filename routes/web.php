@@ -15,10 +15,12 @@ use App\Http\Controllers\Admin\ReferralSourceController;
 use App\Http\Controllers\Admin\SiteVisitController;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\WhatsAppEnquiryController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ServicePageController;
 use App\Http\Controllers\SubscriberController;
 use App\Http\Controllers\WhatsAppRedirectController;
+use App\Http\Controllers\WhatsAppWebhookController;
 use App\Http\Middleware\EnsureActiveUser;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +44,8 @@ Route::get('/sitemap.xml', function () {
         ->header('Content-Type', 'application/xml; charset=UTF-8');
 })->name('sitemap');
 Route::view('/resend/webhook', 'resend-webhook-status')->name('resend.webhook.status');
+Route::get('/webhooks/whatsapp', [WhatsAppWebhookController::class, 'verify'])->middleware('throttle:30,1')->name('whatsapp.webhook.verify');
+Route::post('/webhooks/whatsapp', [WhatsAppWebhookController::class, 'receive'])->middleware('throttle:120,1')->name('whatsapp.webhook.receive');
 Route::post('/newsletter', [SubscriberController::class, 'store'])->middleware('throttle:5,1')->name('newsletter.store');
 Route::match(['get', 'post'], '/newsletter/unsubscribe/{subscriber}', [SubscriberController::class, 'unsubscribe'])
     ->middleware('signed')
@@ -104,6 +108,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:web', EnsureActiveUser
         Route::post('/invoices/{invoice}/payments', [InvoiceController::class, 'payment'])->name('invoices.payments');
         Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
         Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
+        Route::get('/whatsapp-enquiries', [WhatsAppEnquiryController::class, 'index'])->name('whatsapp-enquiries.index');
         Route::post('/bookings/{booking}/send', [BookingController::class, 'send'])->name('bookings.send');
         Route::get('/staff', [StaffController::class, 'index'])->name('staff.index');
         Route::post('/staff', [StaffController::class, 'store'])->name('staff.store');

@@ -1,0 +1,7 @@
+<x-layouts.admin title="WhatsApp enquiries">
+    <form class="admin-filters" method="get"><select name="status"><option value="">All delivery statuses</option>@foreach(['not_configured','accepted','sent','delivered','read','failed'] as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ str($status)->replace('_', ' ')->title() }}</option>@endforeach</select><button class="admin-button" type="submit">Filter</button></form>
+    <div class="admin-card table-card"><div class="table-wrap"><table class="admin-table"><thead><tr><th>Reference</th><th>Contact</th><th>Message</th><th>WhatsApp</th><th>Received</th></tr></thead><tbody>
+        @forelse($enquiries as $enquiry)<tr><td><strong>{{ $enquiry->reference_number }}</strong><br><small>{{ str($enquiry->referral_code)->title() }}</small></td><td>{{ $enquiry->name }}<br><a href="tel:{{ $enquiry->phone }}">{{ $enquiry->phone }}</a>@if($enquiry->email)<br><a href="mailto:{{ $enquiry->email }}">{{ $enquiry->email }}</a>@endif</td><td>{{ str($enquiry->message)->limit(140) }}</td><td><span class="status status-{{ $enquiry->provider_status === 'failed' ? 'overdue' : 'sent' }}">{{ str($enquiry->provider_status ?: 'pending')->replace('_', ' ')->title() }}</span>@if($enquiry->failure_reason)<br><small>{{ $enquiry->failure_reason }}</small>@endif</td><td>{{ $enquiry->created_at->format('d M Y, g:i A') }}</td></tr>
+        @empty<tr><td colspan="5" class="empty-cell">No WhatsApp enquiries yet.</td></tr>@endforelse
+    </tbody></table></div></div>{{ $enquiries->links() }}
+</x-layouts.admin>

@@ -22,6 +22,21 @@ return [
         'key' => env('RESEND_API_KEY'),
     ],
 
+    'whatsapp' => [
+        'enabled' => env('WHATSAPP_ENABLED', false),
+        'api_version' => env('WHATSAPP_API_VERSION'),
+        'access_token' => env('WHATSAPP_ACCESS_TOKEN'),
+        'app_secret' => env('WHATSAPP_APP_SECRET'),
+        'business_account_id' => env('WHATSAPP_BUSINESS_ACCOUNT_ID'),
+        'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID'),
+        'webhook_verify_token' => env('WHATSAPP_WEBHOOK_VERIFY_TOKEN'),
+        'queue' => env('WHATSAPP_QUEUE', 'default'),
+        'template' => [
+            'name' => env('WHATSAPP_ENQUIRY_TEMPLATE', 'site_visit_enquiry_received'),
+            'language' => env('WHATSAPP_ENQUIRY_TEMPLATE_LANGUAGE', 'en'),
+        ],
+    ],
+
     'google' => [
         'tag_id' => env('GOOGLE_TAG_ID', 'G-FJDN5ZSLN6'),
         'calendar' => [

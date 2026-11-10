@@ -83,7 +83,7 @@
         </div>
         <div class="site-shell footer-bottom"><span>&copy; {{ date('Y') }} CuciNow.co by Thursina.</span><span>Privacy &middot; Terms &middot; Service policy</span></div>
     </footer>
-    <a class="whatsapp-float" href="https://wa.me/{{ config('company.whatsapp') }}?text={{ urlencode('Hi CuciNow, I would like to book a free site visit for a cleaning service.') }}" target="_blank" rel="noopener">WhatsApp <span>Book a visit</span></a>
+    <livewire:whats-app-enquiry-form />
     @livewireScripts
 </body>
 </html>
