@@ -10,6 +10,7 @@ use App\Models\SiteVisitRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -113,5 +114,22 @@ class ReferralTrackingTest extends TestCase
 
         $this->get('/?ref=paused')->assertSessionMissing('cucinow.referral_source_id');
         $this->get('/?ref=unknown')->assertSessionMissing('cucinow.referral_source_id');
+    }
+
+    public function test_referral_analytics_failure_does_not_break_the_public_page_or_attribution(): void
+    {
+        $source = ReferralSource::create([
+            'name' => 'Resilient Campaign',
+            'code' => 'resilient',
+            'channel' => 'campaign',
+            'is_active' => true,
+        ]);
+
+        Schema::drop('referral_visits');
+
+        $this->get('/?ref=resilient')
+            ->assertOk()
+            ->assertSessionHas('cucinow.referral_source_id', $source->id)
+            ->assertSessionHas('cucinow.referral_code', 'resilient');
     }
 }

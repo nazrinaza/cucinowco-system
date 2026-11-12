@@ -11,13 +11,19 @@ use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class CaptureReferral
 {
     public function handle(Request $request, Closure $next): Response
     {
         if (! $request->is('admin', 'admin/*', 'agents', 'agents/*') && ! $request->routeIs('agents.*')) {
-            $this->capture($request);
+            try {
+                $this->capture($request);
+            } catch (Throwable $exception) {
+                // Attribution is useful, but it must never make a public page fail.
+                report($exception);
+            }
         }
 
         return $next($request);
@@ -34,7 +40,12 @@ class CaptureReferral
                 return;
             }
 
-            $this->recordVisit($request, $source);
+            try {
+                $this->recordVisit($request, $source);
+            } catch (Throwable $exception) {
+                // Preserve the referral session even when analytics storage is unavailable.
+                report($exception);
+            }
 
             $request->session()->put([
                 'cucinow.referral_source_id' => $source->id,
@@ -88,24 +99,30 @@ class CaptureReferral
         if (! is_string($channel) || ! in_array($channel, ['link', 'qr', 'whatsapp', 'instagram', 'threads', 'facebook', 'newsletter'])) {
             $channel = 'link';
         }
-        DB::transaction(function () use ($request, $source, $ua, $channel) {
-            $visitorToken = $request->session()->get('cucinow.visitor_token');
-            if (! is_string($visitorToken) || $visitorToken === '') {
-                $visitorToken = (string) Str::uuid();
-                $request->session()->put('cucinow.visitor_token', $visitorToken);
-            }
-            $inserted = ReferralVisit::insertOrIgnore([
-                'referral_source_id' => $source->id,
-                'session_hash' => hash_hmac('sha256', $visitorToken, config('app.key')),
-                'channel' => $channel,
-                'landing_path' => $request->path() === '/' ? '/' : mb_substr('/'.$request->path(), 0, 255),
-                'origin_host' => mb_substr((string) parse_url($request->header('referer', ''), PHP_URL_HOST), 0, 255) ?: null,
-                'device' => preg_match('/iPad|Tablet/i', $ua) ? 'tablet' : (preg_match('/Mobile|Android|iPhone/i', $ua) ? 'mobile' : 'desktop'),
-                'created_at' => now(),
-            ]);
-            if ($inserted) {
-                $source->increment('visit_count');
-            }
-        });
+        $visitorToken = $request->session()->get('cucinow.visitor_token');
+        if (! is_string($visitorToken) || $visitorToken === '') {
+            $visitorToken = (string) Str::uuid();
+            $request->session()->put('cucinow.visitor_token', $visitorToken);
+        }
+
+        // Commit the child insert before locking the parent counter. Keeping both
+        // operations in one transaction can deadlock when concurrent visits hold
+        // foreign-key read locks and then try to upgrade the same source row.
+        $inserted = ReferralVisit::insertOrIgnore([
+            'referral_source_id' => $source->id,
+            'session_hash' => hash_hmac('sha256', $visitorToken, config('app.key')),
+            'channel' => $channel,
+            'landing_path' => $request->path() === '/' ? '/' : mb_substr('/'.$request->path(), 0, 255),
+            'origin_host' => mb_substr((string) parse_url($request->header('referer', ''), PHP_URL_HOST), 0, 255) ?: null,
+            'device' => preg_match('/iPad|Tablet/i', $ua) ? 'tablet' : (preg_match('/Mobile|Android|iPhone/i', $ua) ? 'mobile' : 'desktop'),
+            'created_at' => now(),
+        ]);
+
+        if ($inserted) {
+            DB::transaction(
+                fn () => ReferralSource::query()->whereKey($source->id)->increment('visit_count'),
+                3,
+            );
+        }
     }
 }
