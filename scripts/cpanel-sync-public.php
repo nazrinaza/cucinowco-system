@@ -74,7 +74,9 @@ try {
         throw new RuntimeException('Laravel public directory or configured cPanel webroot is missing.');
     }
 
-    if (! str_contains(str_replace('\\', '/', $webRoot), '/public_html/')) {
+    $normalisedWebRoot = rtrim(str_replace('\\', '/', $webRoot), '/');
+    if (! str_ends_with($normalisedWebRoot, '/public_html')
+        && ! str_contains($normalisedWebRoot, '/public_html/')) {
         throw new RuntimeException('Refusing to sync outside a cPanel public_html directory.');
     }
 
@@ -102,6 +104,24 @@ try {
     copyFileSafely($manifest, $nextManifest);
     if (! rename($nextManifest, $buildDestination.'/manifest.json')) {
         throw new RuntimeException('Unable to activate the new Vite manifest.');
+    }
+
+    // A fresh locked primary-domain webroot has no Laravel front controller.
+    // Create these only when absent so later deployments never overwrite a
+    // host-specific or deliberately customised production entry point.
+    if (! is_file($webRoot.'/index.php')) {
+        copyFileSafely($appRoot.'/scripts/cpanel-production-index.php', $webRoot.'/index.php');
+    }
+    if (! is_file($webRoot.'/.htaccess')) {
+        copyFileSafely($publicRoot.'/.htaccess', $webRoot.'/.htaccess');
+    }
+
+    $storageTarget = $appRoot.'/storage/app/public';
+    $storageLink = $webRoot.'/storage';
+    if (! file_exists($storageLink) && ! is_link($storageLink)) {
+        if (! is_dir($storageTarget) || ! @symlink($storageTarget, $storageLink)) {
+            throw new RuntimeException('Unable to create the public storage link.');
+        }
     }
 
     syncLog('PUBLIC ASSET SYNC COMPLETE: '.$webRoot);
