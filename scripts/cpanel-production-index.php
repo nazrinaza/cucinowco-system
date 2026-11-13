@@ -5,9 +5,20 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
-$appRoot = dirname(__DIR__, 2).'/cucinowco-system';
+$appRoot = null;
+foreach ([
+    // Primary domains commonly point directly to /home/USER/public_html.
+    dirname(__DIR__).'/cucinowco-system',
+    // Add-on domains commonly use /home/USER/public_html/DOMAIN.
+    dirname(__DIR__, 2).'/cucinowco-system',
+] as $candidate) {
+    if (is_file($candidate.'/bootstrap/app.php')) {
+        $appRoot = $candidate;
+        break;
+    }
+}
 
-if (! is_file($appRoot.'/vendor/autoload.php') || ! is_file($appRoot.'/bootstrap/app.php')) {
+if (! is_string($appRoot) || ! is_file($appRoot.'/vendor/autoload.php')) {
     http_response_code(503);
     exit('CuciNow is temporarily unavailable while the production release is being prepared.');
 }
