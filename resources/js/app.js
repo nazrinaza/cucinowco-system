@@ -60,6 +60,53 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    document.querySelectorAll('[data-code-check]').forEach((input) => {
+        const status = document.getElementById(input.getAttribute('aria-describedby'));
+        const pattern = /^[a-z0-9][a-z0-9_-]{2,39}$/;
+        let timer;
+        let controller;
+
+        const show = (state, message) => {
+            if (!status) return;
+            status.dataset.state = state;
+            status.textContent = message;
+        };
+
+        const check = async () => {
+            const code = input.value.trim().toLowerCase();
+            controller?.abort();
+            input.setCustomValidity('');
+
+            if (!code) return show('', status?.dataset.default ?? '');
+            if (code.length < 3) return show('', 'Keep typing — at least 3 characters.');
+            if (!pattern.test(code)) return show('taken', 'Use lowercase letters, numbers, hyphens or underscores, starting with a letter or number.');
+
+            show('checking', `Checking “${code}”…`);
+            controller = new AbortController();
+            try {
+                const url = new URL(input.dataset.codeCheck, window.location.href);
+                url.searchParams.set('code', code);
+                const response = await fetch(url, { headers: { Accept: 'application/json' }, signal: controller.signal });
+                if (!response.ok) throw new Error(String(response.status));
+                const result = await response.json();
+                if (result.code !== input.value.trim().toLowerCase()) return;
+                show(result.available ? 'available' : 'taken', result.message);
+                input.setCustomValidity(result.available ? '' : result.message);
+            } catch (error) {
+                // Network or rate-limit hiccup: stay quiet, the server still validates on submit.
+                if (error.name !== 'AbortError') show('', status?.dataset.default ?? '');
+            }
+        };
+
+        input.addEventListener('input', () => {
+            const lower = input.value.toLowerCase();
+            if (lower !== input.value) input.value = lower;
+            window.clearTimeout(timer);
+            timer = window.setTimeout(check, 400);
+        });
+        if (input.value) check();
+    });
+
     document.querySelectorAll('[data-agent-copy]').forEach((button) => {
         button.addEventListener('click', async () => {
             const value = button.dataset.agentCopy;

@@ -6,12 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Agent;
 use App\Models\AgentActivity;
 use App\Models\ReferralSource;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 
 class AuthController extends Controller
@@ -26,6 +27,24 @@ class AuthController extends Controller
         return Auth::guard('agent')->check() ? redirect()->route('agents.account') : view('agents.auth', ['mode' => 'register']);
     }
 
+    /** Live "is this referral code free?" check for the registration form. */
+    public function checkCode(Request $request): JsonResponse
+    {
+        $code = Str::lower(trim((string) $request->query('code')));
+        $validator = Validator::make(['requested_code' => $code], ['requested_code' => Agent::referralCodeRules()], [
+            'requested_code.required' => 'Enter a referral code.',
+            'requested_code.regex' => 'Use 3–40 lowercase letters, numbers, hyphens or underscores, starting with a letter or number.',
+            'requested_code.not_in' => 'This code is reserved. Please choose another.',
+            'requested_code.unique' => 'This code is already taken. Please choose another.',
+        ]);
+
+        return response()->json([
+            'code' => $code,
+            'available' => $validator->passes(),
+            'message' => $validator->errors()->first('requested_code') ?: 'Great, this code is available.',
+        ]);
+    }
+
     public function store(Request $request)
     {
         $request->merge(['email' => Str::lower(trim((string) $request->input('email'))), 'requested_code' => Str::lower(trim((string) $request->input('requested_code')))]);
@@ -34,7 +53,7 @@ class AuthController extends Controller
             'email' => ['required', 'email', 'max:160', 'unique:agents,email'],
             'phone' => ['required', 'string', 'min:9', 'max:30'],
             'location' => ['required', 'string', 'max:120'],
-            'requested_code' => ['required', 'regex:/^[a-z0-9][a-z0-9_-]{2,39}$/', Rule::notIn(['direct', 'admin', 'newsletter', 'instagram', 'threads', 'agents']), 'unique:agents,requested_code', 'unique:referral_sources,code'],
+            'requested_code' => Agent::referralCodeRules(),
             'password' => ['required', 'confirmed', PasswordRule::min(12)],
             'terms' => ['accepted'],
             'website' => ['prohibited'],

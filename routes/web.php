@@ -3,8 +3,8 @@
 use App\Http\Controllers\Admin\AgentController;
 use App\Http\Controllers\Admin\AgentMediaController;
 use App\Http\Controllers\Admin\BookingController;
-use App\Http\Controllers\Admin\CommissionController;
 use App\Http\Controllers\Admin\CampaignController;
+use App\Http\Controllers\Admin\CommissionController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\GoogleCalendarController;

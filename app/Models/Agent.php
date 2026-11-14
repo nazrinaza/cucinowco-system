@@ -8,12 +8,22 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Validation\Rule;
 
 class Agent extends Authenticatable
 {
     protected $fillable = ['name', 'email', 'phone', 'location', 'password', 'requested_code', 'social_links', 'terms_accepted_at'];
 
     protected $hidden = ['password', 'remember_token', 'hq_notes'];
+
+    /** Codes that would clash with built-in referral channels. */
+    public const RESERVED_CODES = ['direct', 'admin', 'newsletter', 'instagram', 'threads', 'agents'];
+
+    /** Validation for a requested referral code; shared by registration and the live availability check. */
+    public static function referralCodeRules(): array
+    {
+        return ['required', 'regex:/^[a-z0-9][a-z0-9_-]{2,39}$/', Rule::notIn(self::RESERVED_CODES), 'unique:agents,requested_code', 'unique:referral_sources,code'];
+    }
 
     protected function casts(): array
     {
