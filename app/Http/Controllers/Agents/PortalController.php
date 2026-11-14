@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Agents;
 use App\Http\Controllers\Controller;
 use App\Models\AgentActivity;
 use App\Models\AgentMedia;
+use App\Support\AgentCommissions;
 use App\Support\AgentReporting;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
@@ -14,12 +15,14 @@ use Illuminate\Support\Facades\Storage;
 
 class PortalController extends Controller
 {
-    public function dashboard(AgentReporting $report)
+    public function dashboard(AgentReporting $report, AgentCommissions $commissions)
     {
         $agent = Auth::guard('agent')->user();
 
         return view('agents.dashboard', [
             'agent' => $agent, 'summary' => $report->summary($agent),
+            'earnings' => $commissions->earnings($agent),
+            'rate' => $agent->effectiveCommissionRate(),
             'leads' => $report->leads($agent)->with(['quote.booking', 'quote.invoice', 'quotes.booking', 'quotes.invoice'])->latest()->limit(5)->get(),
             'media' => AgentMedia::available()->latest()->limit(3)->get(), 'report' => $report,
         ]);

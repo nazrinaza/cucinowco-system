@@ -32,14 +32,26 @@ class AgentReporting
         })->count();
         $leads = $this->leads($agent)->count();
 
+        $visits = $agent->referralSource?->visit_count ?? 0;
+        $paidInvoices = Invoice::whereIn('quote_id', $quoteIds)->where('status', 'paid')->where('balance', '<=', 0);
+        $paid = (clone $paidInvoices)->count();
+
         return [
-            'visits' => $agent->referralSource?->visit_count ?? 0,
+            'visits' => $visits,
             'leads' => $leads,
             'closed' => $closed,
             'completed' => Booking::whereIn('quote_id', $quoteIds)->where('status', 'completed')->count(),
-            'paid' => Invoice::whereIn('quote_id', $quoteIds)->where('status', 'paid')->where('balance', '<=', 0)->count(),
-            'conversion' => $leads ? round($closed / $leads * 100, 1) : 0,
+            'paid' => $paid,
+            'paid_sales' => (float) (clone $paidInvoices)->sum('total'),
+            'conversion' => self::percent($closed, $leads),
+            'visit_to_lead' => self::percent($leads, $visits),
+            'closed_to_paid' => self::percent($paid, $closed),
         ];
+    }
+
+    public static function percent(int|float $part, int|float $whole): float
+    {
+        return $whole > 0 ? round($part / $whole * 100, 1) : 0.0;
     }
 
     public function analytics(Agent $agent, CarbonImmutable $start, CarbonImmutable $end): array

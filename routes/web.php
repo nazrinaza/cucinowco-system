@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AgentController;
 use App\Http\Controllers\Admin\AgentMediaController;
 use App\Http\Controllers\Admin\BookingController;
+use App\Http\Controllers\Admin\CommissionController;
 use App\Http\Controllers\Admin\CampaignController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -76,6 +77,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:web', EnsureActiveUser
         Route::get('/agents', [AgentController::class, 'index'])->name('agents.index');
         Route::get('/agents/{agent}', [AgentController::class, 'show'])->name('agents.show');
         Route::patch('/agents/{agent}', [AgentController::class, 'update'])->name('agents.update');
+        Route::patch('/agents/{agent}/commission', [AgentController::class, 'updateCommission'])->name('agents.commission');
+        Route::get('/commissions', [CommissionController::class, 'index'])->name('commissions.index');
+        Route::get('/commissions/export', [CommissionController::class, 'export'])->name('commissions.export');
+        Route::post('/commissions/backfill', [CommissionController::class, 'backfill'])->name('commissions.backfill');
+        Route::post('/commission-plans', [CommissionController::class, 'storePlan'])->name('commissions.plans.store');
+        Route::patch('/commission-plans/{plan}', [CommissionController::class, 'updatePlan'])->name('commissions.plans.update');
+        Route::patch('/commissions/{commission}', [CommissionController::class, 'update'])->name('commissions.update');
         Route::get('/agent-media', [AgentMediaController::class, 'index'])->name('agent-media.index');
         Route::post('/agent-media', [AgentMediaController::class, 'store'])->name('agent-media.store');
         Route::patch('/agent-media/{media}', [AgentMediaController::class, 'update'])->name('agent-media.update');

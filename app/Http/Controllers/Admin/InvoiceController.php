@@ -9,10 +9,13 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Support\DocumentEmailHistory;
 use App\Support\DocumentEmailRecipients;
+use App\Support\AgentCommissions;
 use App\Support\ReferenceNumber;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class InvoiceController extends Controller
@@ -82,10 +85,20 @@ class InvoiceController extends Controller
             'method' => ['required', Rule::in(['fpx', 'ewallet', 'card', 'bank_transfer', 'cash'])],
             'paid_at' => ['required', 'date'], 'reference' => ['nullable', 'string', 'max:120'],
         ]);
-        $payment = $invoice->payments()->create([...$data, 'recorded_by_user_id' => $request->user()->id, 'payment_number' => ReferenceNumber::make('PAY', Payment::class, 'payment_number'), 'status' => 'completed']);
-        $paid = (float) $invoice->payments()->where('status', 'completed')->sum('amount');
-        $balance = max(0, (float) $invoice->total - $paid);
-        $invoice->update(['amount_paid' => $paid, 'balance' => $balance, 'status' => $balance <= 0 ? 'paid' : 'partial']);
+        // Lock the invoice so a double-submitted form cannot record more than the balance.
+        $payment = DB::transaction(function () use ($invoice, $data, $request) {
+            $locked = Invoice::lockForUpdate()->findOrFail($invoice->id);
+            if ((float) $data['amount'] > (float) $locked->balance) {
+                throw ValidationException::withMessages(['amount' => 'The amount exceeds the current outstanding balance of RM '.number_format((float) $locked->balance, 2).'.']);
+            }
+            $payment = $locked->payments()->create([...$data, 'recorded_by_user_id' => $request->user()->id, 'payment_number' => ReferenceNumber::make('PAY', Payment::class, 'payment_number'), 'status' => 'completed']);
+            $paid = (float) $locked->payments()->where('status', 'completed')->sum('amount');
+            $balance = max(0, (float) $locked->total - $paid);
+            $locked->update(['amount_paid' => $paid, 'balance' => $balance, 'status' => $balance <= 0 ? 'paid' : 'partial']);
+            app(AgentCommissions::class)->recordFor($locked);
+
+            return $payment;
+        });
 
         $payment->load('invoice.customer');
         $receiptQueued = false;

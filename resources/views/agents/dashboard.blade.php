@@ -3,6 +3,22 @@
     <section class="agent-metrics" aria-label="Lifetime performance">
         @foreach(['visits' => 'Referral visits', 'leads' => 'Leads received', 'closed' => 'Closed deals', 'completed' => 'Jobs completed', 'paid' => 'Paid invoices'] as $key => $label)<article><span>{{ $label }}</span><strong>{{ number_format($summary[$key]) }}</strong></article>@endforeach
     </section>
+    <section class="agent-card agent-earnings" aria-label="Your commission earnings">
+        <div class="agent-earnings-head">
+            <div><p class="agent-kicker">YOUR EARNINGS</p><h2>RM {{ number_format((float) $earnings['lifetime'], 2) }} <small>lifetime</small></h2></div>
+            <span class="agent-rate">{{ (float) $rate > 0 ? rtrim(rtrim($rate, '0'), '.').'% commission rate' : 'Rate to be confirmed by HQ' }}</span>
+        </div>
+        <div class="agent-earnings-grid">
+            <p><span>Pending HQ review</span><strong>RM {{ number_format((float) $earnings['pending'], 2) }}</strong></p>
+            <p><span>Approved for payout</span><strong>RM {{ number_format((float) $earnings['approved'], 2) }}</strong></p>
+            <p><span>Paid to you</span><strong>RM {{ number_format((float) $earnings['paid'], 2) }}</strong></p>
+        </div>
+        <div class="agent-funnel" aria-label="Conversion funnel">
+            @foreach([['Visit → lead', $summary['visit_to_lead']], ['Lead → closed deal', $summary['conversion']], ['Closed → paid', $summary['closed_to_paid']]] as [$label, $percent])
+                <div><p><span>{{ $label }}</span><strong>{{ $percent }}%</strong></p><i style="--w:{{ min(100, $percent) }}%"></i></div>
+            @endforeach
+        </div>
+    </section>
     <div class="agent-main-grid">
         <section class="agent-card agent-referral-card" data-referral-qr data-referral-url="{{ $agent->referralSource->tracking_url }}&via=qr" data-referral-copy-url="{{ $agent->referralSource->tracking_url }}" data-referral-name="{{ $agent->referralSource->code }}" data-referral-logo="{{ asset('images/favicon-512x512.png') }}">
             <div><p class="agent-kicker">YOUR PERSONAL INTRODUCTION</p><h2>One link. Every connection.</h2><p>Send customers to CuciNow for a free site assessment. Your referral code connects the enquiry back to you.</p><label class="agent-link-field"><span>Your referral link</span><input readonly value="{{ $agent->referralSource->tracking_url }}" aria-label="Your referral link"></label><div class="agent-inline"><button class="agent-button" type="button" data-copy-referral>Copy link</button><a class="agent-button agent-button-light" href="https://wa.me/?text={{ urlencode('Need professional cleaning? Book a free CuciNow site visit: '.$agent->referralSource->tracking_url.'&via=whatsapp') }}" target="_blank" rel="noopener">Share to WhatsApp ↗</a></div><p class="agent-note">Code: <strong>{{ $agent->referralSource->code }}</strong> · {{ config('agents.attribution_days') }}-day attribution</p></div>
@@ -15,5 +31,5 @@
     @include('agents.partials.lead-table')
     <div class="agent-section-head"><div><p class="agent-kicker">MADE BY HQ. READY FOR YOU.</p><h2>Fresh from the creative team</h2></div><a href="{{ route('agents.media') }}">Marketing tools →</a></div>
     <div class="agent-media-grid">@forelse($media as $item)<article class="agent-card agent-media-mini"><span class="agent-category">{{ ucfirst($item->category) }}</span><h3>{{ $item->title }}</h3><p>{{ Str::limit($item->description, 120) }}</p><a href="{{ route('agents.media') }}">Open library →</a></article>@empty<div class="agent-empty">HQ content will appear here when the creative team publishes it.</div>@endforelse</div>
-    <div class="agent-info-strip"><strong>{{ $summary['conversion'] }}% lead-to-deal conversion</strong><span>Commission and payout settings will be announced by HQ. No earnings are calculated yet.</span></div>
+    <div class="agent-info-strip"><strong>{{ $summary['conversion'] }}% lead-to-deal conversion</strong><span>Commission is recorded when a referred customer's invoice is fully paid, then reviewed by HQ before payout.</span></div>
 </x-layouts.agent>

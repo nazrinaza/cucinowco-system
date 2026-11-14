@@ -20,7 +20,7 @@
                     <label>Choose your referral code<input name="requested_code" value="{{ old('requested_code') }}" pattern="[a-z0-9][a-z0-9_-]{2,39}" placeholder="e.g. ahmad" minlength="3" maxlength="40" required><small>3–40 lowercase letters, numbers, hyphens or underscores. Activated after HQ approval.</small></label>
                     <label>Password<input type="password" name="password" autocomplete="new-password" minlength="12" required><small>At least 12 characters.</small></label>
                     <label>Confirm password<input type="password" name="password_confirmation" autocomplete="new-password" minlength="12" required></label>
-                    <label class="agent-check"><input type="checkbox" name="terms" value="1" required @checked(old('terms'))><span>I have read the <a href="{{ route('agents.guide') }}" target="_blank">programme guide and sharing rules</a>. I understand that commissions and payouts have not yet been configured.</span></label>
+                    <label class="agent-check"><input type="checkbox" name="terms" value="1" required @checked(old('terms'))><span>I have read the <a href="{{ route('agents.guide') }}" target="_blank">programme guide and sharing rules</a>. I understand that commissions are set by HQ and are only earned on fully paid invoices.</span></label>
                     <label class="form-honeypot" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
                     <button class="agent-button" type="submit">Apply to join →</button>
                     <p>Already a member? <a href="{{ route('agents.login') }}">Sign in</a></p>

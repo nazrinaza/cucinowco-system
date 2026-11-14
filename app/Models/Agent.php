@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Mail\AgentAccessMail;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
@@ -16,12 +17,37 @@ class Agent extends Authenticatable
 
     protected function casts(): array
     {
-        return ['password' => 'hashed', 'social_links' => 'array', 'email_verified_at' => 'datetime', 'terms_accepted_at' => 'datetime', 'approved_at' => 'datetime', 'last_login_at' => 'datetime'];
+        return ['password' => 'hashed', 'social_links' => 'array', 'email_verified_at' => 'datetime', 'terms_accepted_at' => 'datetime', 'approved_at' => 'datetime', 'last_login_at' => 'datetime', 'commission_rate_override' => 'decimal:2'];
     }
 
     public function referralSource(): BelongsTo
     {
         return $this->belongsTo(ReferralSource::class);
+    }
+
+    public function introducerSource(): BelongsTo
+    {
+        return $this->belongsTo(ReferralSource::class, 'introducer_source_id');
+    }
+
+    public function commissionPlan(): BelongsTo
+    {
+        return $this->belongsTo(CommissionPlan::class);
+    }
+
+    public function commissions(): HasMany
+    {
+        return $this->hasMany(AgentCommission::class);
+    }
+
+    public function effectiveCommissionPlan(): ?CommissionPlan
+    {
+        return $this->commissionPlan ?? CommissionPlan::default();
+    }
+
+    public function effectiveCommissionRate(): string
+    {
+        return (string) ($this->commission_rate_override ?? $this->effectiveCommissionPlan()?->rate_percent ?? '0.00');
     }
 
     public function sendVerificationEmail(): void
