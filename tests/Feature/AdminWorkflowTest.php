@@ -53,7 +53,7 @@ class AdminWorkflowTest extends TestCase
 
         $this->actingAs($user)->get(route('admin.quotes.create', ['site_visit' => $siteVisit->id]))
             ->assertOk()
-            ->assertSee('Internal pricing tool')
+            ->assertSee('Internal quotation tool')
             ->assertSee('Aina Rahman');
     }
 

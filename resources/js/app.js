@@ -135,7 +135,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const syncRichEditor = (editor) => {
             const canvas = editor?.querySelector('[data-quote-rich-canvas]');
             const source = editor?.querySelector('[data-quote-rich-source]');
-            if (canvas && source) source.value = canvas.innerHTML;
+            if (canvas && source && source.value !== canvas.innerHTML) {
+                source.value = canvas.innerHTML;
+                source.dispatchEvent(new Event('input', { bubbles: true }));
+            }
         };
 
         const recalculate = () => {
@@ -154,12 +157,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const taxable = Math.max(0, subtotal - discountCents);
             const tax = Math.round(taxable * cents(form.dataset.taxRate) / 10000);
             form.querySelector('[data-quote-subtotal]').textContent = money(subtotal);
-            form.querySelector('[data-quote-tax]').textContent = money(tax);
+            const taxOutput = form.querySelector('[data-quote-tax]');
+            if (taxOutput) taxOutput.textContent = money(tax);
             form.querySelector('[data-quote-total]').textContent = money(taxable + tax);
-            addButton.disabled = rows.length >= 100;
+            if (addButton) addButton.disabled = rows.length >= 100;
         };
 
-        addButton.addEventListener('click', () => {
+        addButton?.addEventListener('click', () => {
+            if (!template) return;
             const fragment = template.content.cloneNode(true);
             fragment.querySelectorAll('[name]').forEach((input) => {
                 input.name = input.name.replace('__INDEX__', String(nextIndex));
