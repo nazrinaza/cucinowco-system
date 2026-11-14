@@ -7,9 +7,11 @@ use App\Models\Quote;
 use App\Models\Service;
 use App\Models\SiteVisitRequest;
 use App\Models\User;
+use App\Support\QuotationHtmlSanitizer;
 use App\Support\ReferenceNumber;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -55,6 +57,10 @@ class QuoteEstimator extends Component
 
     public float $depositPercentage = 50;
 
+    public array $items = [];
+
+    public string $discount = '0.00';
+
     public ?int $salesPersonId = null;
 
     public bool $submitted = false;
@@ -86,6 +92,8 @@ class QuoteEstimator extends Component
             $this->notes = ($siteVisit->clean_types ? 'Requested clean types: '.$siteVisit->clean_types_label."\n" : '').(string) $siteVisit->customer_notes;
             $this->documentTitle = 'RE: QUOTATION FOR INITIAL CLEANING SERVICE AT '.strtoupper($siteVisit->customer->company_name ?: $siteVisit->customer->name);
         }
+
+        $this->setPrimaryServiceLine();
     }
 
     #[Computed]
@@ -99,14 +107,84 @@ class QuoteEstimator extends Component
     }
 
     #[Computed]
-    public function estimate(): float
+    public function linkedSiteVisit(): ?SiteVisitRequest
+    {
+        return $this->siteVisitId
+            ? SiteVisitRequest::with(['assessmentCompletedBy'])->find($this->siteVisitId)
+            : null;
+    }
+
+    #[Computed]
+    public function subtotal(): float
+    {
+        return collect($this->items)->sum(fn (array $item): float => $this->lineAmount($item));
+    }
+
+    #[Computed]
+    public function total(): float
+    {
+        return max(0, round($this->subtotal - (float) $this->discount, 2));
+    }
+
+    public function applySelectedService(): void
+    {
+        $this->setPrimaryServiceLine();
+    }
+
+    public function addItem(): void
+    {
+        if (count($this->items) >= 100) {
+            return;
+        }
+
+        $this->items[] = $this->emptyItem();
+    }
+
+    public function removeItem(int $index): void
+    {
+        if (count($this->items) <= 1 || ! array_key_exists($index, $this->items)) {
+            return;
+        }
+
+        unset($this->items[$index]);
+        $this->items = array_values($this->items);
+    }
+
+    private function setPrimaryServiceLine(): void
     {
         $service = Service::find($this->serviceId);
-        $base = (float) ($service?->base_price ?? 0);
-        $sizeMultiplier = ['under_1000' => 1, '1000_2000' => 1.45, '2000_5000' => 2.4, 'over_5000' => 4][$this->sizeBand] ?? 1;
-        $frequencyDiscount = ['one_off' => 0, 'weekly' => .15, 'fortnightly' => .10, 'monthly' => .05][$this->frequency] ?? 0;
 
-        return round($base * $sizeMultiplier * (1 - $frequencyDiscount), 2);
+        if (! $service) {
+            $this->items = $this->items ?: [$this->emptyItem()];
+
+            return;
+        }
+
+        $primary = $this->items[0] ?? $this->emptyItem();
+        $primary['description'] = $service->name;
+        $primary['unit'] = $service->unit ?: 'job';
+        $primary['unit_price'] = number_format((float) $service->base_price, 2, '.', '');
+        $this->items[0] = $primary;
+        $this->items = array_values($this->items);
+    }
+
+    private function emptyItem(): array
+    {
+        return [
+            'description' => '',
+            'quantity' => '1.00',
+            'unit' => 'job',
+            'unit_price' => '0.00',
+            'notes' => '',
+        ];
+    }
+
+    private function lineAmount(array $item): float
+    {
+        $quantityHundredths = (int) round((float) ($item['quantity'] ?? 0) * 100);
+        $rateCents = (int) round((float) ($item['unit_price'] ?? 0) * 100);
+
+        return intdiv($quantityHundredths * $rateCents + 50, 100) / 100;
     }
 
     #[Computed]
@@ -136,11 +214,43 @@ class QuoteEstimator extends Component
             'documentTitle' => ['nullable', 'string', 'max:255'],
             'depositPercentage' => ['required', 'numeric', 'min:0', 'max:100'],
             'salesPersonId' => ['nullable', Rule::exists('users', 'id')->where(fn ($query) => $query->where('is_active', true)->whereIn('role', ['admin', 'office']))],
+            'items' => ['required', 'array', 'min:1', 'max:100'],
+            'items.*' => ['required', 'array:description,quantity,unit,unit_price,notes'],
+            'items.*.description' => ['required', 'string', 'max:255'],
+            'items.*.quantity' => ['required', 'numeric', 'decimal:0,2', 'min:0.01', 'max:10000'],
+            'items.*.unit' => ['required', 'string', 'max:30'],
+            'items.*.unit_price' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:1000000'],
+            'items.*.notes' => ['nullable', 'string', 'max:3000'],
+            'discount' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:9999999999.99'],
         ]);
 
         $service = Service::findOrFail($validated['serviceId']);
+        $sanitizer = app(QuotationHtmlSanitizer::class);
+        $subtotalCents = 0;
+        $items = [];
+        foreach ($validated['items'] as $index => $item) {
+            $quantityHundredths = (int) round((float) $item['quantity'] * 100);
+            $rateCents = (int) round((float) $item['unit_price'] * 100);
+            $amountCents = intdiv($quantityHundredths * $rateCents + 50, 100);
+            $subtotalCents += $amountCents;
+            $items[] = [
+                ...$item,
+                'service_id' => $index === 0 ? $service->id : null,
+                'notes' => $sanitizer->sanitize($item['notes'] ?? null) ?: null,
+                'amount' => $amountCents / 100,
+            ];
+        }
 
-        $quote = DB::transaction(function () use ($validated, $service) {
+        $discountCents = (int) round((float) $validated['discount'] * 100);
+        if ($discountCents > $subtotalCents) {
+            throw ValidationException::withMessages(['discount' => 'Discount cannot exceed the services subtotal.']);
+        }
+        if ($subtotalCents > 999999999999) {
+            throw ValidationException::withMessages(['items' => 'The quotation total is too large. Reduce the quantities or rates.']);
+        }
+        $totalCents = $subtotalCents - $discountCents;
+
+        $quote = DB::transaction(function () use ($validated, $items, $subtotalCents, $discountCents, $totalCents) {
             $customer = Customer::query()->firstOrNew(['phone' => $validated['phone']]);
             $customer->fill([
                 'name' => $validated['name'],
@@ -154,8 +264,6 @@ class QuoteEstimator extends Component
             ])->save();
 
             $this->reference = ReferenceNumber::make('Q', Quote::class, 'quote_number');
-            $estimate = $this->estimate;
-
             $salesPerson = filled($validated['salesPersonId'] ?? null) ? User::find($validated['salesPersonId']) : null;
             $documentTitle = trim($validated['documentTitle'] ?? '') ?: 'RE: QUOTATION FOR INITIAL CLEANING SERVICE AT '.strtoupper($customer->company_name ?: $customer->name);
 
@@ -181,21 +289,14 @@ class QuoteEstimator extends Component
                 'postcode' => $validated['postcode'],
                 'city' => $validated['city'],
                 'state' => $validated['state'],
-                'subtotal' => $estimate,
-                'total' => $estimate,
+                'subtotal' => $subtotalCents / 100,
+                'discount' => $discountCents / 100,
+                'total' => $totalCents / 100,
                 'valid_until' => now()->addDays(config('company.quote_valid_days')),
                 'customer_notes' => $validated['notes'] ?: null,
             ]);
 
-            $quote->items()->create([
-                'service_id' => $service->id,
-                'description' => $service->name,
-                'quantity' => 1,
-                'unit' => 'job',
-                'unit_price' => $estimate,
-                'amount' => $estimate,
-                'notes' => 'Internal planning estimate; final scope and pricing require confirmation.',
-            ]);
+            $quote->items()->createMany($items);
 
             if ($this->siteVisitId) {
                 // Keep the legacy pointer on the newest quotation while the
