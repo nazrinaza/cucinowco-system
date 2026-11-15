@@ -1,0 +1,123 @@
+/* Agent "How it works" landing page. CuciNow palette: gold #f5b800 / #bd8900 / #8c6906, charcoal #25282d, cream #f5f3ed / #fffdf8. */
+html:has(.hiw) { scroll-behavior: smooth; }
+.hiw { --hiw-gold: #f5b800; --hiw-gold-deep: #8c6906; --hiw-ink: #25282d; --hiw-muted: #697078; --hiw-line: #e8e3d7; --hiw-card: #fffdf8; padding-bottom: 20px; }
+.hiw [id] { scroll-margin-top: 24px; }
+
+/* Hero */
+.hiw-hero { display: grid; grid-template-columns: 1.05fr .95fr; gap: 0; background: radial-gradient(ellipse at 0% 0%, #fff1bf 0, transparent 60%), radial-gradient(ellipse at 100% 100%, #fde8a5 0, transparent 55%), var(--hiw-card); border: 1px solid var(--hiw-line); border-radius: 32px; overflow: hidden; min-height: 520px; }
+.hiw-hero-copy { padding: clamp(32px, 5vw, 64px); display: flex; flex-direction: column; justify-content: center; }
+.agent-body .hiw-hero h1 { font-size: clamp(40px, 5.2vw, 72px); letter-spacing: -.055em; line-height: 1.02; margin: 0 0 22px; }
+.hiw-lede { font-size: 17px; color: var(--hiw-muted); max-width: 470px; margin: 0 0 30px; }
+.hiw-hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.hiw-hero-actions .agent-button { min-height: 52px; padding: 15px 24px; font-size: 14px; border-radius: 40px; }
+.hiw-jump { display: flex; flex-wrap: wrap; gap: 8px; }
+.hiw-jump a { padding: 11px 16px; border: 1px solid #ded7c7; border-radius: 40px; background: #fffdf8cc; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--hiw-ink); transition: background .2s, border-color .2s, transform .2s; }
+.hiw-jump a:hover { background: #fff; border-color: var(--hiw-gold); transform: translateY(-1px); }
+.hiw-hero-media { position: relative; min-height: 320px; }
+.hiw-hero-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 30% center; }
+.hiw-hero-media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, #fffdf8 0, #fffdf800 22%); }
+.hiw-hero-badge { position: absolute; left: 28px; bottom: 28px; z-index: 1; display: grid; gap: 2px; padding: 16px 20px; background: #25282dee; color: #fff; border-radius: 18px; backdrop-filter: blur(6px); box-shadow: 0 14px 30px #0003; }
+.hiw-hero-badge strong { font-size: 32px; letter-spacing: -.04em; color: var(--hiw-gold); line-height: 1; }
+.hiw-hero-badge span { font-size: 12px; color: #e8e4d8; }
+
+/* Trust strip */
+.hiw-trust { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 28px; padding: 26px 8px; margin: 10px 0 0; }
+.hiw-trust > p { margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #8a8f96; white-space: nowrap; }
+.hiw-logos { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+.hiw-logos img { height: 58px; width: auto; max-width: 118px; object-fit: contain; filter: grayscale(1); opacity: .7; transition: filter .25s, opacity .25s; }
+.hiw-logos img:hover { filter: none; opacity: 1; }
+
+/* Sections */
+.hiw-section { margin-top: clamp(56px, 8vw, 96px); }
+.hiw-section-head { max-width: 640px; margin-bottom: 30px; }
+.agent-body .hiw-section-head h2, .agent-body .hiw-earn h2, .agent-body .hiw-cta h2 { font-size: clamp(30px, 3.6vw, 46px); letter-spacing: -.05em; margin: 0 0 12px; }
+.hiw-section-head > p:not(.agent-kicker) { color: var(--hiw-muted); margin: 0; }
+.hiw-section-head a, .hiw-faq a { color: var(--hiw-gold-deep); font-weight: 750; }
+
+/* Steps */
+.hiw-steps { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; counter-reset: none; }
+.hiw-step { position: relative; padding: 28px 26px 30px; background: var(--hiw-card); border: 1px solid var(--hiw-line); border-radius: 24px; transition: transform .25s, box-shadow .25s, border-color .25s; }
+.hiw-step:hover { transform: translateY(-4px); border-color: #ecd690; box-shadow: 0 18px 36px #25282d0d; }
+.hiw-step:not(:last-child)::after { content: "→"; position: absolute; right: -14px; top: 34px; z-index: 1; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--hiw-gold); font-size: 13px; font-weight: 800; }
+.hiw-step-num { display: inline-grid; place-items: center; width: 46px; height: 46px; border-radius: 14px; background: #f7efd4; color: var(--hiw-gold-deep); font-weight: 850; font-size: 14px; }
+.agent-body .hiw-step h3 { font-size: 24px; margin: 22px 0 8px; }
+.hiw-step p { margin: 0; font-size: 14px; color: var(--hiw-muted); }
+.hiw-link-card { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 12px 40px; margin-top: 16px; padding: 24px 30px; background: var(--hiw-ink); color: #fff; border-radius: 24px; }
+.hiw-link-card .agent-kicker { color: var(--hiw-gold); margin-bottom: 8px; }
+.hiw-link-card code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: clamp(14px, 1.6vw, 18px); color: #fff; overflow-wrap: anywhere; }
+.hiw-link-card > p { margin: 0; color: #c9c6bd; font-size: 14px; }
+
+/* Commission example */
+.hiw-earn { display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: center; margin-top: clamp(56px, 8vw, 96px); padding: clamp(28px, 4vw, 52px); border-radius: 32px; background: linear-gradient(135deg, #f5b800, #ffd34d 60%, #ffe28a); color: var(--hiw-ink); }
+.hiw-earn .agent-kicker { color: #5c4500; }
+.hiw-earn > div > p:not(.agent-kicker) { color: #4a3d14; margin: 0; max-width: 460px; }
+.hiw-calc { margin: 0; padding: 26px 28px; background: #fffdf8; border-radius: 22px; box-shadow: 0 20px 40px #8c690626; display: grid; gap: 14px; }
+.hiw-calc > div { display: flex; justify-content: space-between; gap: 16px; font-size: 15px; }
+.hiw-calc dt { color: var(--hiw-muted); }
+.hiw-calc dd { margin: 0; font-weight: 750; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.hiw-calc-total { padding-top: 14px; border-top: 1px dashed #d9cfb2; }
+.hiw-calc-total dt { color: var(--hiw-ink); font-weight: 750; }
+.hiw-calc-total dd { font-size: 30px; letter-spacing: -.04em; color: var(--hiw-gold-deep); }
+.hiw-calc-pending strong { font-size: 20px; }
+.hiw-calc-pending p { margin: 0; color: var(--hiw-muted); font-size: 14px; }
+
+/* Benefits */
+.hiw-benefits { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.hiw-benefit { padding: 28px 26px; background: var(--hiw-card); border: 1px solid var(--hiw-line); border-radius: 24px; }
+.hiw-benefit > span { display: inline-grid; place-items: center; width: 50px; height: 50px; border-radius: 50%; background: var(--hiw-ink); color: var(--hiw-gold); font-weight: 850; font-size: 15px; }
+.agent-body .hiw-benefit h3 { font-size: 20px; margin: 20px 0 8px; }
+.hiw-benefit p { margin: 0; font-size: 14px; color: var(--hiw-muted); }
+.hiw-audience { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 18px; margin-top: 22px; padding: 22px 26px; border: 1px dashed #d8cfb6; border-radius: 22px; }
+.hiw-audience > p { margin: 0; font-weight: 750; font-size: 14px; }
+.hiw-audience ul { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0; padding: 0; }
+.hiw-audience li { padding: 8px 14px; background: #f7efd4; color: #5c4500; border-radius: 30px; font-size: 13px; font-weight: 650; }
+
+/* FAQ */
+.hiw-faq { display: grid; grid-template-columns: .8fr 1.2fr; gap: 40px; align-items: start; }
+.hiw-faq .hiw-section-head { position: sticky; top: 24px; }
+.hiw-faq-list { display: grid; gap: 10px; }
+.hiw-faq details { background: var(--hiw-card); border: 1px solid var(--hiw-line); border-radius: 18px; transition: border-color .2s, box-shadow .2s; }
+.hiw-faq details[open] { border-color: #ecd690; box-shadow: 0 10px 26px #25282d0a; }
+.hiw-faq summary { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 20px 24px; cursor: pointer; list-style: none; font-weight: 750; font-size: 16px; }
+.hiw-faq summary::-webkit-details-marker { display: none; }
+.hiw-faq summary::after { content: "+"; flex-shrink: 0; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #f7efd4; color: var(--hiw-gold-deep); font-size: 18px; transition: transform .25s, background .25s; }
+.hiw-faq details[open] summary::after { transform: rotate(45deg); background: var(--hiw-gold); color: var(--hiw-ink); }
+.hiw-faq summary:focus-visible { outline: 3px solid #f5b80066; outline-offset: 2px; border-radius: 18px; }
+.hiw-faq details > p { margin: 0; padding: 0 24px 22px; color: var(--hiw-muted); font-size: 15px; }
+
+/* Final CTA */
+.hiw-cta { margin-top: clamp(56px, 8vw, 96px); padding: clamp(40px, 6vw, 72px) clamp(24px, 5vw, 64px); text-align: center; background: radial-gradient(ellipse at 50% 0%, #f5b80033 0, transparent 60%), var(--hiw-ink); color: #fff; border-radius: 32px; }
+.hiw-cta .agent-kicker { color: var(--hiw-gold); }
+.hiw-cta em { color: var(--hiw-gold) !important; }
+.hiw-cta > p:not(.agent-kicker) { color: #c9c6bd; margin: 0 0 28px; }
+.hiw-cta .hiw-hero-actions { justify-content: center; }
+.agent-button-ghost { background: transparent; color: #fff; border-color: #ffffff40; }
+.agent-button-ghost:hover { background: #ffffff14; }
+
+/* Scroll reveal (only when JS has marked the page, and never for reduced motion) */
+.hiw-js [data-reveal] { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s cubic-bezier(.2, .7, .2, 1); transition-delay: var(--d, 0ms); }
+.hiw-js [data-reveal].is-visible { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+    html:has(.hiw) { scroll-behavior: auto; }
+    .hiw-js [data-reveal] { opacity: 1; transform: none; transition: none; }
+    .hiw-step, .hiw-jump a { transition: none; }
+}
+
+/* Responsive */
+@media (max-width: 1080px) {
+    .hiw-steps, .hiw-benefits { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .hiw-step:nth-child(2)::after { display: none; }
+}
+@media (max-width: 760px) {
+    .hiw-hero { grid-template-columns: 1fr; border-radius: 24px; }
+    .hiw-hero-media { order: -1; min-height: 240px; }
+    .hiw-hero-media::after { background: linear-gradient(0deg, #fffdf8 0, #fffdf800 35%); }
+    .hiw-trust { grid-template-columns: 1fr; gap: 14px; }
+    .hiw-logos { gap: 0 6px; }
+    .hiw-logos img { height: 44px; max-width: 92px; }
+    .hiw-steps, .hiw-benefits { grid-template-columns: 1fr; }
+    .hiw-step:not(:last-child)::after { display: none; }
+    .hiw-link-card, .hiw-earn, .hiw-faq { grid-template-columns: 1fr; gap: 20px; }
+    .hiw-faq .hiw-section-head { position: static; }
+    .hiw-earn, .hiw-cta { border-radius: 24px; }
+}

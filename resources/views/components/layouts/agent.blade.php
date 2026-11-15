@@ -1,9 +1,9 @@
-@props(['title' => 'Agent network'])
+@props(['title' => 'Agent network', 'indexable' => false])
 @php($portalAgent = Auth::guard('agent')->user())
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="{{ $indexable ? 'index,follow' : 'noindex,nofollow' }}">
     <title>{{ $title }} | CuciNow Agents</title>
     <meta name="description" content="Join the CuciNow agent network. Share your personal referral link, follow referred enquiries and access ready-to-share content from HQ.">
     <meta property="og:type" content="website">
@@ -40,7 +40,7 @@
                 <form action="{{ route('agents.logout') }}" method="post">@csrf<button type="submit">Sign out</button></form>
             @else
                 <a href="{{ route('agents.register') }}" @class(['active' => request()->routeIs('agents.register')])>Become an agent</a>
-                <a href="{{ route('agents.guide') }}" @class(['active' => request()->routeIs('agents.guide')])>How it works</a>
+                <a href="{{ route('agents.how-it-works') }}" @class(['active' => request()->routeIs('agents.how-it-works')])>How it works</a>
                 <a href="{{ route('agents.login') }}" @class(['active' => request()->routeIs('agents.login')])>Agent sign in</a>
             @endif
         </nav>

@@ -6,7 +6,7 @@
             <h1>Your network.<br>Our expertise.<br><em>New possibilities.</em></h1>
             <p>Connect offices, halls and businesses with professional cleaning. Share your link, follow every referral and get the right tools from HQ.</p>
             <div class="agent-auth-features"><span>01 <strong>A link that’s yours</strong></span><span>02 <strong>Ready-to-share content</strong></span><span>03 <strong>Clear lead progress</strong></span></div>
-            <a href="{{ route('agents.guide') }}">Explore the programme →</a>
+            <a href="{{ route('agents.how-it-works') }}">See how it works →</a>
         </section>
         <section class="agent-card agent-auth-form">
             <p class="agent-kicker">{{ $mode === 'register' ? 'BECOME A PARTNER' : 'AGENT ACCESS' }}</p>

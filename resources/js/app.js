@@ -60,6 +60,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    const revealRoot = document.querySelector('.hiw');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (revealRoot && 'IntersectionObserver' in window && !reduceMotion) {
+        // Hide-then-reveal only once JS is running, so content is never stuck invisible.
+        revealRoot.classList.add('hiw-js');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+            });
+        }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
+        revealRoot.querySelectorAll('[data-reveal]').forEach((el) => observer.observe(el));
+    }
+
     document.querySelectorAll('[data-code-check]').forEach((input) => {
         const status = document.getElementById(input.getAttribute('aria-describedby'));
         const pattern = /^[a-z0-9][a-z0-9_-]{2,39}$/;

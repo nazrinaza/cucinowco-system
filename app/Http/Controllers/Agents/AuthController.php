@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Agents;
 use App\Http\Controllers\Controller;
 use App\Models\Agent;
 use App\Models\AgentActivity;
+use App\Models\CommissionPlan;
 use App\Models\ReferralSource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,6 +26,22 @@ class AuthController extends Controller
     public function register()
     {
         return Auth::guard('agent')->check() ? redirect()->route('agents.account') : view('agents.auth', ['mode' => 'register']);
+    }
+
+    /** Public landing page explaining the programme. Uses live plan rates so the example never goes stale. */
+    public function howItWorks()
+    {
+        $plan = CommissionPlan::default();
+        $agent = Auth::guard('agent')->user();
+
+        return view('agents.how-it-works', [
+            'rate' => (float) ($plan?->rate_percent ?? 0),
+            'introducerRate' => (float) ($plan?->introducer_rate_percent ?? 0),
+            'basis' => $plan?->basis ?? 'net_sales',
+            'exampleLink' => $agent?->referralSource?->tracking_url
+                ?? rtrim(config('agents.public_url'), '/').'/?ref=yourname',
+            'clients' => ['Maybank', 'CIMB', 'Tenaga Nasional', 'Proton', 'Perodua', 'MRT', 'J&T Express', 'UiTM', 'University of Malaya', 'JKR'],
+        ]);
     }
 
     /** Live "is this referral code free?" check for the registration form. */
