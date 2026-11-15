@@ -117,6 +117,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }));
     }
 
+    // Dashboard referral card: share icon reveals the network icons inline (NBDY style).
+    document.querySelectorAll('[data-share-strip]').forEach((strip) => {
+        const toggle = strip.querySelector('[data-share-strip-toggle]');
+        const icons = strip.querySelector('.agent-share-icons');
+        toggle?.addEventListener('click', () => {
+            const open = icons.hidden;
+            icons.hidden = !open;
+            toggle.setAttribute('aria-expanded', String(open));
+            strip.classList.toggle('is-open', open);
+            if (open) icons.querySelector('a')?.focus();
+        });
+        strip.querySelector('[data-share-strip-qr]')?.addEventListener('click', (event) => {
+            const qr = document.getElementById('referral-qr');
+            if (!qr) return;
+            event.preventDefault();
+            qr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            qr.classList.remove('is-highlight');
+            void qr.offsetWidth;
+            qr.classList.add('is-highlight');
+            qr.focus({ preventScroll: true });
+        });
+    });
+
     // Share menu: copy as HTML / text / image, or open a network with a channel-tagged referral link.
     const escapeHtml = (s) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const closeAllShareMenus = (except) => document.querySelectorAll('[data-share-menu]').forEach((box) => {
