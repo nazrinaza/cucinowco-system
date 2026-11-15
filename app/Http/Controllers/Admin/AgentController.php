@@ -6,11 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Mail\AgentAccessMail;
 use App\Models\Agent;
 use App\Models\AgentActivity;
+use App\Models\CommissionPlan;
 use App\Models\ReferralSource;
+use App\Support\AgentCommissions;
 use App\Support\AgentReporting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -27,14 +30,39 @@ class AgentController extends Controller
         return view('admin.agents.index', ['agents' => $agents, 'counts' => Agent::selectRaw('status, COUNT(*) AS total')->groupBy('status')->pluck('total', 'status')]);
     }
 
-    public function show(Agent $agent, AgentReporting $report)
+    public function photo(Agent $agent)
+    {
+        abort_unless($agent->profile_photo_path && Storage::disk('local')->exists($agent->profile_photo_path), 404);
+
+        return response()->file(Storage::disk('local')->path($agent->profile_photo_path), ['X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'private, max-age=600']);
+    }
+
+    public function show(Agent $agent, AgentReporting $report, AgentCommissions $commissions)
     {
         return view('admin.agents.show', [
             'agent' => $agent, 'summary' => $report->summary($agent),
             'sources' => ReferralSource::where('channel', 'agent')->whereDoesntHave('agent')->orderBy('name')->get(),
             'activities' => AgentActivity::where('agent_id', $agent->id)->latest('id')->limit(30)->get(),
             'leads' => $report->leads($agent)->with('customer')->latest()->paginate(15),
+            'plans' => CommissionPlan::orderByDesc('is_default')->orderBy('name')->get(),
+            'earnings' => $commissions->earnings($agent),
+            'commissions' => $agent->commissions()->with('invoice')->latest('id')->limit(10)->get(),
         ]);
+    }
+
+    public function updateCommission(Request $request, Agent $agent)
+    {
+        $data = $request->validate([
+            'commission_plan_id' => ['nullable', 'integer', 'exists:commission_plans,id'],
+            'commission_rate_override' => ['nullable', 'numeric', 'min:0', 'max:50', 'decimal:0,2'],
+        ]);
+        $agent->forceFill([
+            'commission_plan_id' => $data['commission_plan_id'] ?? null,
+            'commission_rate_override' => $data['commission_rate_override'] ?? null,
+        ])->save();
+        AgentActivity::create(['agent_id' => $agent->id, 'user_id' => $request->user()->id, 'action' => 'commission.settings_updated', 'details' => $data]);
+
+        return back()->with('success', 'Commission settings saved. They apply to invoices paid from now on.');
     }
 
     public function update(Request $request, Agent $agent)

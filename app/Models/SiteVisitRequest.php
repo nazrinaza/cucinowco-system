@@ -15,6 +15,7 @@ class SiteVisitRequest extends Model
     {
         return [
             'clean_types' => 'array',
+            'promo_discount_percent' => 'decimal:2',
             'assessment_data' => 'array',
             'assessment_completed_at' => 'datetime',
             'preferred_date' => 'date',
