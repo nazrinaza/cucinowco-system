@@ -117,34 +117,119 @@ document.addEventListener('DOMContentLoaded', () => {
         }));
     }
 
-    // Share via the phone's share sheet; attach the file when the browser allows it.
-    document.querySelectorAll('[data-share]').forEach((button) => {
-        button.addEventListener('click', async () => {
-            const textSource = button.dataset.shareTextFrom ? document.querySelector(button.dataset.shareTextFrom) : null;
-            const text = textSource ? textSource.value : (button.dataset.shareText || '');
-            const label = button.textContent;
-            const done = (message) => { button.textContent = message; window.setTimeout(() => { button.textContent = label; }, 1800); };
+    // Share menu: copy as HTML / text / image, or open a network with a channel-tagged referral link.
+    const escapeHtml = (s) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const closeAllShareMenus = (except) => document.querySelectorAll('[data-share-menu]').forEach((box) => {
+        if (box === except) return;
+        box.querySelector('.mt-share-menu').hidden = true;
+        box.querySelector('.mt-share-toggle').setAttribute('aria-expanded', 'false');
+    });
+    document.addEventListener('click', (event) => { if (!event.target.closest('[data-share-menu]')) closeAllShareMenus(); });
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        const open = document.querySelector('[data-share-menu] .mt-share-menu:not([hidden])');
+        if (!open) return;
+        closeAllShareMenus();
+        open.closest('[data-share-menu]').querySelector('.mt-share-toggle').focus();
+    });
+
+    document.querySelectorAll('[data-share-menu]').forEach((box) => {
+        const toggle = box.querySelector('.mt-share-toggle');
+        const menu = box.querySelector('.mt-share-menu');
+        const status = box.querySelector('.mt-share-status');
+        const items = () => [...menu.querySelectorAll('[role=menuitem]:not([hidden])')];
+        if (navigator.share) menu.querySelector('[data-share-action=native]').hidden = false;
+
+        const ref = box.dataset.refUrl || '';
+        const currentText = () => (box.dataset.textFrom ? document.querySelector(box.dataset.textFrom)?.value : box.dataset.text) || ref;
+        // Tag every copy of the referral link with the channel, so Analytics shows where visits came from.
+        const tagged = (text, via) => {
+            if (!via) return text;
+            return text.replace(/https?:\/\/[^\s"'<>]+[?&]ref=[a-z0-9_-]+[^\s"'<>]*/gi, (url) => {
+                try { const u = new URL(url); u.searchParams.set('via', via); return u.toString(); } catch { return url; }
+            });
+        };
+        const firstLink = (text) => (text.match(/https?:\/\/[^\s"'<>]+/) || [ref])[0];
+        const say = (message) => { status.textContent = message; window.setTimeout(() => { if (status.textContent === message) status.textContent = ''; }, 2200); };
+        const open = (url) => window.open(url, '_blank', 'noopener,noreferrer,width=640,height=720');
+
+        const setOpen = (isOpen) => {
+            closeAllShareMenus(box);
+            menu.hidden = !isOpen;
+            toggle.setAttribute('aria-expanded', String(isOpen));
+            if (isOpen) {
+                // Open upwards when there is no room below.
+                menu.classList.toggle('is-up', toggle.getBoundingClientRect().bottom + 380 > window.innerHeight && toggle.getBoundingClientRect().top > 380);
+                items()[0]?.focus();
+            }
+        };
+        toggle.addEventListener('click', () => setOpen(menu.hidden));
+        menu.addEventListener('keydown', (event) => {
+            const list = items();
+            const i = list.indexOf(document.activeElement);
+            if (event.key === 'ArrowDown') { event.preventDefault(); list[(i + 1) % list.length].focus(); }
+            if (event.key === 'ArrowUp') { event.preventDefault(); list[(i - 1 + list.length) % list.length].focus(); }
+            if (event.key === 'Tab') setOpen(false);
+        });
+
+        const actions = {
+            'copy-text': async () => { await navigator.clipboard.writeText(currentText()); say('Text copied'); },
+            'copy-html': async () => {
+                const text = currentText();
+                const link = firstLink(text);
+                const body = escapeHtml(text).replace(/https?:\/\/[^\s<]+/g, (u) => `<a href="${u}">${u}</a>`).replace(/\n/g, '<br>');
+                const image = box.dataset.imageUrl ? `<a href="${escapeHtml(link)}"><img src="${escapeHtml(box.dataset.imageUrl)}" alt="${escapeHtml(box.dataset.title)}" style="max-width:100%;height:auto"></a>\n` : '';
+                const html = `${image}<p>${body}</p>`;
+                if (window.ClipboardItem) {
+                    await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type: 'text/html' }), 'text/plain': new Blob([html], { type: 'text/plain' }) })]);
+                } else {
+                    await navigator.clipboard.writeText(html);
+                }
+                say('HTML copied');
+            },
+            'copy-image': async () => {
+                // Clipboards only accept PNG, so redraw the picture on a canvas first.
+                const png = new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = () => {
+                        const canvas = Object.assign(document.createElement('canvas'), { width: img.naturalWidth, height: img.naturalHeight });
+                        canvas.getContext('2d').drawImage(img, 0, 0);
+                        canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('blank'))), 'image/png');
+                    };
+                    img.onerror = reject;
+                    img.src = box.dataset.imageUrl;
+                });
+                await navigator.clipboard.write([new ClipboardItem({ 'image/png': png })]);
+                say('Image copied — paste it into your post');
+            },
+            whatsapp: () => open(`https://wa.me/?text=${encodeURIComponent(tagged(currentText(), 'whatsapp'))}`),
+            facebook: () => open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(firstLink(tagged(currentText(), 'facebook')))}`),
+            threads: () => open(`https://www.threads.net/intent/post?text=${encodeURIComponent(tagged(currentText(), 'threads'))}`),
+            x: () => open(`https://x.com/intent/post?text=${encodeURIComponent(currentText())}`),
+            pinterest: () => open(`https://www.pinterest.com/pin/create/button/?url=${encodeURIComponent(firstLink(currentText()))}&media=${encodeURIComponent(box.dataset.imageUrl)}&description=${encodeURIComponent(currentText())}`),
+            native: async () => {
+                const text = currentText();
+                if (box.dataset.file && navigator.canShare) {
+                    say('Preparing…');
+                    const blob = await fetch(box.dataset.file, { credentials: 'same-origin' }).then((r) => { if (!r.ok) throw new Error('download'); return r.blob(); });
+                    const file = new File([blob], box.dataset.fileName || 'cucinow', { type: box.dataset.fileType || blob.type });
+                    if (navigator.canShare({ files: [file] })) { status.textContent = ''; await navigator.share({ files: [file], text }); return; }
+                }
+                await navigator.share({ text });
+            },
+        };
+
+        menu.addEventListener('click', async (event) => {
+            const item = event.target.closest('[data-share-action]');
+            if (!item) return;
+            const action = item.dataset.shareAction;
             try {
-                if (button.dataset.shareFile && navigator.canShare) {
-                    button.textContent = 'Preparing…';
-                    const blob = await fetch(button.dataset.shareFile, { credentials: 'same-origin' }).then((r) => { if (!r.ok) throw new Error(); return r.blob(); });
-                    const file = new File([blob], button.dataset.shareName || 'cucinow', { type: button.dataset.shareType || blob.type });
-                    if (navigator.canShare({ files: [file] })) {
-                        button.textContent = label;
-                        await navigator.share({ files: [file], text });
-                        return;
-                    }
-                }
-                if (navigator.share) {
-                    button.textContent = label;
-                    await navigator.share({ text });
-                    return;
-                }
-                await navigator.clipboard.writeText(text);
-                done('Copied to share');
+                await actions[action]();
+                if (!action.startsWith('copy')) setOpen(false);
             } catch (error) {
-                if (error?.name === 'AbortError') { button.textContent = label; return; }
-                try { await navigator.clipboard.writeText(text); done('Copied to share'); } catch { done('Copy failed'); }
+                if (error?.name === 'AbortError') return;
+                try { await navigator.clipboard.writeText(currentText()); say('Could not do that here — text copied instead'); } catch { say('Your browser blocked this. Copy the text manually.'); }
             }
         });
     });

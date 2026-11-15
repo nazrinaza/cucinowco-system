@@ -17,6 +17,8 @@ Route::domain(config('agents.domain'))->prefix(config('agents.domain') ? '' : 'a
         Route::post('/register', [AuthController::class, 'store'])->middleware('throttle:3,10')->name('register.store');
         Route::view('/guide', 'agents.guide')->name('guide');
         Route::get('/how-it-works', [AuthController::class, 'howItWorks'])->name('how-it-works');
+        // Signed, expiring public copy of published HQ content, so Pinterest and pasted HTML can show the image.
+        Route::get('/shared/{media}', [PortalController::class, 'shared'])->middleware(['signed', 'throttle:120,1'])->name('media.shared');
         Route::get('/verify/{agent}/{hash}', [AuthController::class, 'verify'])->middleware(['signed', 'throttle:10,1'])->name('verify');
         Route::get('/forgot-password', [AuthController::class, 'forgot'])->name('password.request');
         Route::post('/forgot-password', [AuthController::class, 'emailReset'])->middleware('throttle:3,1')->name('password.email');

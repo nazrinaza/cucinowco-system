@@ -15,7 +15,7 @@
                 <label>Your link<input type="text" readonly data-link-output value="{{ $referralUrl }}"></label>
                 <div class="mt-actions">
                     <button type="button" class="agent-button" data-link-copy>Copy link</button>
-                    <button type="button" class="agent-button agent-button-light" data-share data-share-text-from="[data-link-output]">Share…</button>
+                    <x-agent-share-menu text-from="[data-link-output]" :ref-url="$referralUrl" title="CuciNow" />
                 </div>
             </div>
         </section>
@@ -71,7 +71,9 @@
                 @if($caption)<label class="agent-caption-label">Ready-to-share caption<textarea readonly rows="4">{{ $caption }}</textarea></label>@endif
                 <div class="mt-actions">
                     @if($caption)<button type="button" class="agent-button agent-button-light" data-agent-copy="{{ $caption }}">Copy caption</button>@endif
-                    <button type="button" class="agent-button agent-button-light" data-share data-share-text="{{ $caption ?: $referralUrl }}" @if($item->path) data-share-file="{{ route('agents.media.download', $item) }}" data-share-name="{{ $item->original_name }}" data-share-type="{{ $item->mime_type }}" @endif>Share</button>
+                    <x-agent-share-menu :text="$caption ?: (string) $referralUrl" :ref-url="$referralUrl" :title="$item->title"
+                        :image-url="$item->isImage() ? \Illuminate\Support\Facades\URL::temporarySignedRoute('agents.media.shared', now()->addDays(30), $item) : null"
+                        :file="$item->path ? route('agents.media.download', $item) : null" :file-name="$item->original_name" :file-type="$item->mime_type" />
                     @if($item->path)<a class="agent-button" href="{{ route('agents.media.download', $item) }}">Download ↓</a>@endif
                 </div>
             </div>

@@ -92,6 +92,25 @@ class AgentToolkitTest extends TestCase
         $this->withHeader('Range', 'bytes=0-99')->get(route('agents.media.preview', $video))->assertStatus(206);
     }
 
+    public function test_share_menu_uses_a_signed_public_image_link(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put('agent-media/poster.png', 'png-bytes');
+        $poster = $this->media(['title' => 'Poster', 'path' => 'agent-media/poster.png', 'original_name' => 'poster.png', 'mime_type' => 'image/png', 'size' => 9]);
+
+        $page = $this->actingAs($this->agent(), 'agent')->get(route('agents.media'))->assertOk()
+            ->assertSee('data-share-menu', false)->assertSee('Copy as HTML')->assertSee('Pinterest')->assertSee('WhatsApp');
+        preg_match('/data-image-url="([^"]+)"/', $page->getContent(), $m);
+        $signed = html_entity_decode($m[1]);
+
+        auth('agent')->logout();
+        $this->get($signed)->assertOk()->assertHeader('Content-Type', 'image/png');
+        $this->get(route('agents.media.shared', $poster))->assertForbidden();
+
+        $poster->update(['is_published' => false]);
+        $this->get($signed)->assertNotFound();
+    }
+
     public function test_hq_manages_folders_without_losing_content(): void
     {
         $parent = AgentMediaFolder::create(['name' => 'Parent']);

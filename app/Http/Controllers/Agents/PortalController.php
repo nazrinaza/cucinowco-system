@@ -104,6 +104,18 @@ class PortalController extends Controller
         ]);
     }
 
+    /** Public, signed and expiring: still only serves content HQ has published and not expired. */
+    public function shared(AgentMedia $media)
+    {
+        abort_unless(AgentMedia::available()->whereKey($media->id)->exists() && ($media->isImage() || $media->isVideo()), 404);
+        abort_unless($media->path && Storage::disk('local')->exists($media->path), 404);
+
+        return response()->file(Storage::disk('local')->path($media->path), [
+            'Content-Type' => $media->mime_type, 'X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'public, max-age=86400',
+            'Content-Disposition' => 'inline; filename="'.addcslashes($media->original_name ?? 'cucinow', '"\\').'"',
+        ]);
+    }
+
     public function account()
     {
         return view('agents.account', ['agent' => Auth::guard('agent')->user()]);
