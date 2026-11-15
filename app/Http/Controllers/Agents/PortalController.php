@@ -7,11 +7,13 @@ use App\Models\AgentActivity;
 use App\Models\AgentMedia;
 use App\Support\AgentCommissions;
 use App\Support\AgentReporting;
+use App\Support\MalaysianBanks;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class PortalController extends Controller
 {
@@ -97,5 +99,40 @@ class PortalController extends Controller
         AgentActivity::create(['agent_id' => $agent->id, 'action' => 'profile.updated']);
 
         return back()->with('success', 'Your profile has been updated.');
+    }
+
+    /** Bank account HQ pays commission into. Needs the current password: a hijacked session must not redirect payouts. */
+    public function updatePayout(Request $request)
+    {
+        $request->merge([
+            'payout_account_number' => preg_replace('/[\s-]+/', '', (string) $request->input('payout_account_number')),
+            'payout_account_name' => preg_replace('/\s+/', ' ', trim((string) $request->input('payout_account_name'))),
+        ]);
+        $data = $request->validateWithBag('payout', [
+            'payout_bank' => ['required', Rule::in(array_keys(MalaysianBanks::LIST))],
+            'payout_account_name' => ['required', 'string', 'min:3', 'max:120', "regex:/^[\\pL\\pM\\s.'@\\/&(),-]+$/u"],
+            'payout_account_number' => ['required', 'regex:/^\d{6,20}$/'],
+            'payout_password' => ['required', 'string'],
+        ], [
+            'payout_bank.required' => 'Choose your bank.',
+            'payout_account_name.regex' => 'Use the account holder name exactly as it appears on your bank account.',
+            'payout_account_number.regex' => 'Enter 6–20 digits only (spaces and dashes are removed automatically).',
+            'payout_password.required' => 'Enter your current password to save bank details.',
+        ]);
+        $agent = Auth::guard('agent')->user();
+        if (! Hash::check($data['payout_password'], $agent->password)) {
+            return back()->withErrors(['payout_password' => 'Your current password is incorrect.'], 'payout')->withInput($request->except('payout_password'));
+        }
+
+        $agent->forceFill([
+            'payout_bank' => $data['payout_bank'],
+            'payout_account_name' => mb_strtoupper($data['payout_account_name']),
+            'payout_account_number' => $data['payout_account_number'],
+            'payout_details_updated_at' => now(),
+        ])->save();
+        // Never log the full number; the last four digits are enough to spot a change.
+        AgentActivity::create(['agent_id' => $agent->id, 'action' => 'payout.updated', 'details' => ['bank' => $data['payout_bank'], 'account_last4' => substr($data['payout_account_number'], -4)]]);
+
+        return back()->with('success', 'Your bank details have been saved. HQ will pay approved commission into this account.');
     }
 }

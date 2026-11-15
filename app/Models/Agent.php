@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Mail\AgentAccessMail;
+use App\Support\MalaysianBanks;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -14,7 +15,7 @@ class Agent extends Authenticatable
 {
     protected $fillable = ['name', 'email', 'phone', 'location', 'password', 'requested_code', 'social_links', 'terms_accepted_at'];
 
-    protected $hidden = ['password', 'remember_token', 'hq_notes'];
+    protected $hidden = ['password', 'remember_token', 'hq_notes', 'payout_account_number'];
 
     /** Codes that would clash with built-in referral channels. */
     public const RESERVED_CODES = ['direct', 'admin', 'newsletter', 'instagram', 'threads', 'agents'];
@@ -27,7 +28,23 @@ class Agent extends Authenticatable
 
     protected function casts(): array
     {
-        return ['password' => 'hashed', 'social_links' => 'array', 'email_verified_at' => 'datetime', 'terms_accepted_at' => 'datetime', 'approved_at' => 'datetime', 'last_login_at' => 'datetime', 'commission_rate_override' => 'decimal:2'];
+        return ['password' => 'hashed', 'social_links' => 'array', 'email_verified_at' => 'datetime', 'terms_accepted_at' => 'datetime', 'approved_at' => 'datetime', 'last_login_at' => 'datetime', 'commission_rate_override' => 'decimal:2', 'payout_account_number' => 'encrypted', 'payout_details_updated_at' => 'datetime'];
+    }
+
+    public function hasPayoutDetails(): bool
+    {
+        return filled($this->payout_bank) && filled($this->payout_account_name) && filled($this->payout_account_number);
+    }
+
+    public function payoutBankName(): ?string
+    {
+        return MalaysianBanks::label($this->payout_bank);
+    }
+
+    /** e.g. "•••• 6789", for screens the agent sees. HQ sees the full number to make the transfer. */
+    public function maskedPayoutAccountNumber(): ?string
+    {
+        return $this->payout_account_number ? '•••• '.substr($this->payout_account_number, -4) : null;
     }
 
     public function referralSource(): BelongsTo

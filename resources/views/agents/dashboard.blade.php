@@ -13,6 +13,11 @@
             <p><span>Approved for payout</span><strong>RM {{ number_format((float) $earnings['approved'], 2) }}</strong></p>
             <p><span>Paid to you</span><strong>RM {{ number_format((float) $earnings['paid'], 2) }}</strong></p>
         </div>
+        @if(! $agent->hasPayoutDetails())
+            <p class="agent-payout-prompt">Add your bank account so HQ can pay your commission. <a href="{{ route('agents.account') }}#payout">Add bank details →</a></p>
+        @else
+            <p class="agent-payout-prompt">Payouts go to {{ $agent->payoutBankName() }} {{ $agent->maskedPayoutAccountNumber() }}. <a href="{{ route('agents.account') }}#payout">Change</a></p>
+        @endif
         <div class="agent-funnel" aria-label="Conversion funnel">
             @foreach([['Visit → lead', $summary['visit_to_lead']], ['Lead → closed deal', $summary['conversion']], ['Closed → paid', $summary['closed_to_paid']]] as [$label, $percent])
                 <div><p><span>{{ $label }}</span><strong>{{ $percent }}%</strong></p><i style="--w:{{ min(100, $percent) }}%"></i></div>

@@ -89,8 +89,13 @@
                                         <button name="status" value="approved" class="admin-button">Approve</button>
                                         <button name="status" value="void" class="commission-link">Void</button>
                                     @elseif($row->status === 'approved')
-                                        <input name="payout_reference" placeholder="Payout ref" maxlength="120" aria-label="Payout reference">
-                                        <button name="status" value="paid" class="admin-button">Mark paid</button>
+                                        @if($row->agent->hasPayoutDetails())
+                                            <small class="commission-bank">{{ $row->agent->payoutBankName() }} · {{ $row->agent->payout_account_number }}<br>{{ $row->agent->payout_account_name }}</small>
+                                            <input name="payout_reference" placeholder="Payout ref" maxlength="120" aria-label="Payout reference">
+                                            <button name="status" value="paid" class="admin-button">Mark paid</button>
+                                        @else
+                                            <small class="commission-payout-missing">No bank details yet</small>
+                                        @endif
                                         <button name="status" value="void" class="commission-link">Void</button>
                                     @else
                                         <button name="status" value="pending" class="commission-link">Restore</button>

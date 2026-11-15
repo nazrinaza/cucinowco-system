@@ -30,6 +30,19 @@
                 <p class="muted">Effective rate now: <strong>{{ rtrim(rtrim($agent->effectiveCommissionRate(), '0'), '.') }}%</strong>. Changes apply to invoices paid from now on.</p>
                 <button class="admin-button">Save commission settings</button>
             </form>
+            <div class="commission-payout">
+                <p class="muted">Payout bank account</p>
+                @if($agent->hasPayoutDetails())
+                    <dl class="detail-list">
+                        <div><dt>Bank</dt><dd>{{ $agent->payoutBankName() }}</dd></div>
+                        <div><dt>Account name</dt><dd>{{ $agent->payout_account_name }}</dd></div>
+                        <div><dt>Account number</dt><dd><strong>{{ $agent->payout_account_number }}</strong></dd></div>
+                        <div><dt>Last changed</dt><dd>{{ $agent->payout_details_updated_at?->format('d M Y, g:i A') }}</dd></div>
+                    </dl>
+                @else
+                    <p class="commission-payout-missing">Not provided yet. The agent adds this under My account; commission cannot be marked paid until they do.</p>
+                @endif
+            </div>
         </section>
     </div>
     <section class="admin-card" style="margin-top:24px"><div class="card-head"><div><p>Attributed enquiries</p><h2>Referred leads</h2></div></div><div class="mini-list">@forelse($leads as $lead)<a href="{{ route('admin.site-visits.show', $lead) }}"><strong>{{ $lead->reference_number }} · {{ $lead->customer->name }}</strong><span>{{ ucfirst($lead->status) }}</span></a>@empty<p class="empty-cell">No referred leads yet.</p>@endforelse</div><div class="pagination-wrap">{{ $leads->links() }}</div></section>

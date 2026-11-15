@@ -25,6 +25,7 @@ Route::domain(config('agents.domain'))->prefix(config('agents.domain') ? '' : 'a
             Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
             Route::get('/account', [PortalController::class, 'account'])->name('account');
             Route::patch('/account', [PortalController::class, 'update'])->name('account.update');
+            Route::patch('/account/payout', [PortalController::class, 'updatePayout'])->middleware('throttle:10,1')->name('account.payout');
             Route::post('/verification-email', [AuthController::class, 'resend'])->middleware('throttle:1,1')->name('verification.send');
             Route::middleware(ApprovedAgent::class)->group(function () {
                 Route::get('/', [PortalController::class, 'dashboard'])->name('dashboard');

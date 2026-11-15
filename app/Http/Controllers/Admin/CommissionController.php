@@ -74,6 +74,9 @@ class CommissionController extends Controller
             if ($data['status'] !== $commission->status && ! in_array($data['status'], self::TRANSITIONS[$commission->status], true)) {
                 throw ValidationException::withMessages(['status' => "A {$commission->status} commission cannot be moved to {$data['status']}."]);
             }
+            if ($data['status'] === 'paid' && $commission->status !== 'paid' && ! $commission->agent->hasPayoutDetails()) {
+                throw ValidationException::withMessages(['status' => "{$commission->agent->name} has not added bank details yet, so this commission cannot be marked paid."]);
+            }
             $commission->forceFill([
                 'status' => $data['status'],
                 'notes' => $data['notes'] ?? $commission->notes,
@@ -108,10 +111,13 @@ class CommissionController extends Controller
 
         return response()->streamDownload(function () use ($filters) {
             $out = fopen('php://output', 'w');
-            fputcsv($out, ['ID', 'Agent', 'Agent email', 'Type', 'Invoice', 'Invoice paid', 'Basis', 'Basis amount (RM)', 'Rate %', 'Commission (RM)', 'Rounding reserve (RM)', 'Status', 'Payout reference', 'Paid at']);
+            fputcsv($out, ['ID', 'Agent', 'Agent email', 'Type', 'Invoice', 'Invoice paid', 'Basis', 'Basis amount (RM)', 'Rate %', 'Commission (RM)', 'Rounding reserve (RM)', 'Status', 'Payout reference', 'Paid at', 'Bank', 'Account name', 'Account number']);
             $this->filtered($filters)->with(['agent', 'invoice'])->orderBy('id')->chunk(200, function ($rows) use ($out) {
                 foreach ($rows as $row) {
-                    fputcsv($out, [$row->id, $row->agent->name, $row->agent->email, $row->type, $row->invoice->invoice_number, $row->created_at->toDateString(), $row->basis, $row->basis_amount, $row->rate_percent, $row->amount, $row->rounding_remainder, $row->status, $row->payout_reference, $row->paid_at?->toDateString()]);
+                    fputcsv($out, [$row->id, $row->agent->name, $row->agent->email, $row->type, $row->invoice->invoice_number, $row->created_at->toDateString(), $row->basis, $row->basis_amount, $row->rate_percent, $row->amount, $row->rounding_remainder, $row->status, $row->payout_reference, $row->paid_at?->toDateString(),
+                        $row->agent->payoutBankName(), $row->agent->payout_account_name,
+                        // ="…" keeps leading zeros and stops Excel turning long numbers into 1.23E+11. Digits only, so no formula injection.
+                        $row->agent->payout_account_number ? '="'.$row->agent->payout_account_number.'"' : null]);
                 }
             });
             fclose($out);

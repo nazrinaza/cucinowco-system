@@ -156,12 +156,18 @@ class AgentCommissionTest extends TestCase
     public function test_hq_workflow_approve_pay_and_paid_is_final(): void
     {
         $this->setDefaultRate('10');
-        $this->pay($this->referredInvoice($this->agent('aina')), 1080);
+        $agent = $this->agent('aina');
+        $this->pay($this->referredInvoice($agent), 1080);
         $row = AgentCommission::sole();
 
         $this->actingAs($this->admin)->patch(route('admin.commissions.update', $row), ['status' => 'paid', 'payout_reference' => 'X'])->assertSessionHasErrors('status');
         $this->patch(route('admin.commissions.update', $row), ['status' => 'approved'])->assertSessionHasNoErrors();
         $this->patch(route('admin.commissions.update', $row), ['status' => 'paid'])->assertSessionHasErrors('payout_reference');
+
+        // No bank account yet: HQ cannot record a payout.
+        $this->patch(route('admin.commissions.update', $row), ['status' => 'paid', 'payout_reference' => 'DUITNOW-123'])->assertSessionHasErrors('status');
+        $agent->forceFill(['payout_bank' => 'maybank', 'payout_account_name' => 'AINA', 'payout_account_number' => '112233445566'])->save();
+
         $this->patch(route('admin.commissions.update', $row), ['status' => 'paid', 'payout_reference' => 'DUITNOW-123'])->assertSessionHasNoErrors();
         $this->patch(route('admin.commissions.update', $row), ['status' => 'void'])->assertSessionHasErrors('status');
 
