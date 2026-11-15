@@ -1,9 +1,9 @@
-@props(['title' => 'Agent network'])
+@props(['title' => 'Agent network', 'indexable' => false])
 @php($portalAgent = Auth::guard('agent')->user())
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="{{ $indexable ? 'index,follow' : 'noindex,nofollow' }}">
     <title>{{ $title }} | CuciNow Agents</title>
     <meta name="description" content="Join the CuciNow agent network. Share your personal referral link, follow referred enquiries and access ready-to-share content from HQ.">
     <meta property="og:type" content="website">
@@ -29,18 +29,18 @@
     <a href="#agent-main" class="skip-link">Skip to content</a>
     <header class="agent-header">
         <a href="{{ route('agents.dashboard') }}" class="agent-brand"><img src="{{ asset('images/cucinow-logo.png') }}" alt="CuciNow by Thursina"><span>AGENT NETWORK</span></a>
-        <div class="agent-header-right"><a href="{{ config('agents.public_url') }}" target="_blank" rel="noopener">Visit CuciNow ↗</a>@if($portalAgent)<span class="agent-avatar">{{ mb_substr($portalAgent->name, 0, 1) }}</span>@endif</div>
+        <div class="agent-header-right"><a href="{{ config('agents.public_url') }}" target="_blank" rel="noopener">Visit CuciNow ↗</a>@if($portalAgent)<a href="{{ route('agents.account') }}" class="agent-avatar" title="My account">@if($portalAgent->profile_photo_path)<img src="{{ route('agents.account.photo') }}?v={{ $portalAgent->updated_at?->timestamp }}" alt="">@else{{ mb_substr($portalAgent->name, 0, 1) }}@endif</a>@endif</div>
     </header>
     <div class="agent-shell">
         <nav class="agent-nav" aria-label="Agent navigation">
             @if($portalAgent)
-                @foreach(['dashboard' => 'Overview', 'media' => 'Marketing tools', 'leads' => 'My leads', 'analytics' => 'Analytics', 'guide' => 'Platform guide', 'account' => 'My account'] as $key => $label)
+                @foreach(['dashboard' => 'Overview', 'media' => 'Marketing tools', 'sales-kit' => 'Sales kit', 'leads' => 'My leads', 'analytics' => 'Analytics', 'guide' => 'Platform guide', 'account' => 'My account'] as $key => $label)
                     <a href="{{ route('agents.'.$key) }}" @class(['active' => request()->routeIs('agents.'.$key)])>{{ $label }}</a>
                 @endforeach
                 <form action="{{ route('agents.logout') }}" method="post">@csrf<button type="submit">Sign out</button></form>
             @else
                 <a href="{{ route('agents.register') }}" @class(['active' => request()->routeIs('agents.register')])>Become an agent</a>
-                <a href="{{ route('agents.guide') }}" @class(['active' => request()->routeIs('agents.guide')])>How it works</a>
+                <a href="{{ route('agents.how-it-works') }}" @class(['active' => request()->routeIs('agents.how-it-works')])>How it works</a>
                 <a href="{{ route('agents.login') }}" @class(['active' => request()->routeIs('agents.login')])>Agent sign in</a>
             @endif
         </nav>

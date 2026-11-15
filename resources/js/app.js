@@ -60,6 +60,294 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Marketing tools: build a referral link for any page on the public site.
+    document.querySelectorAll('[data-link-builder]').forEach((box) => {
+        const base = new URL(box.dataset.publicUrl);
+        const select = box.querySelector('[data-link-page]');
+        const paste = box.querySelector('[data-link-paste]');
+        const output = box.querySelector('[data-link-output]');
+        const error = box.querySelector('[data-link-error]');
+        const build = (target) => {
+            target.searchParams.set('ref', box.dataset.ref);
+            output.value = target.toString();
+        };
+        select?.addEventListener('change', () => {
+            if (paste) paste.value = '';
+            if (error) error.textContent = '';
+            build(new URL(select.value, base));
+        });
+        paste?.addEventListener('input', () => {
+            const value = paste.value.trim();
+            if (error) error.textContent = '';
+            if (!value) return;
+            let target;
+            try { target = new URL(value.includes('://') ? value : `https://${value}`); } catch { return; }
+            if (target.hostname.replace(/^www\./, '') !== base.hostname.replace(/^www\./, '')) {
+                if (error) error.textContent = `Only ${base.hostname} links can carry your referral code.`;
+                output.value = '';
+                return;
+            }
+            target.protocol = base.protocol;
+            target.hash = '';
+            build(target);
+        });
+        box.querySelector('[data-link-copy]')?.addEventListener('click', async (event) => {
+            const button = event.currentTarget;
+            try { await navigator.clipboard.writeText(output.value); } catch { output.select(); document.execCommand('copy'); }
+            const label = button.textContent;
+            button.textContent = 'Copied';
+            window.setTimeout(() => { button.textContent = label; }, 1500);
+        });
+    });
+
+    // Marketing tools: remember grid or list per browser.
+    const mediaList = document.querySelector('[data-media-list]');
+    if (mediaList) {
+        const buttons = document.querySelectorAll('[data-view]');
+        const apply = (view) => {
+            mediaList.classList.toggle('is-list', view === 'list');
+            buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+        };
+        let saved = 'grid';
+        try { saved = localStorage.getItem('cucinow.media-view') || 'grid'; } catch { /* private mode */ }
+        apply(saved);
+        buttons.forEach((b) => b.addEventListener('click', () => {
+            apply(b.dataset.view);
+            try { localStorage.setItem('cucinow.media-view', b.dataset.view); } catch { /* ignore */ }
+        }));
+    }
+
+    // Forms that submit as soon as a file is chosen (profile photo).
+    document.querySelectorAll('form[data-auto-submit] input[type=file]').forEach((input) => {
+        input.addEventListener('change', () => { if (input.files?.length) input.form.submit(); });
+    });
+
+    // Dashboard referral card: share icon reveals the network icons inline (NBDY style).
+    document.querySelectorAll('[data-share-strip]').forEach((strip) => {
+        const toggle = strip.querySelector('[data-share-strip-toggle]');
+        const icons = strip.querySelector('.agent-share-icons');
+        toggle?.addEventListener('click', () => {
+            const open = icons.hidden;
+            icons.hidden = !open;
+            toggle.setAttribute('aria-expanded', String(open));
+            strip.classList.toggle('is-open', open);
+            if (open) icons.querySelector('a')?.focus();
+        });
+        strip.querySelector('[data-share-strip-qr]')?.addEventListener('click', (event) => {
+            const qr = document.getElementById('referral-qr');
+            if (!qr) return;
+            event.preventDefault();
+            qr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            qr.classList.remove('is-highlight');
+            void qr.offsetWidth;
+            qr.classList.add('is-highlight');
+            qr.focus({ preventScroll: true });
+        });
+    });
+
+    // Share menu: copy as HTML / text / image, or open a network with a channel-tagged referral link.
+    const escapeHtml = (s) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const closeAllShareMenus = (except) => document.querySelectorAll('[data-share-menu]').forEach((box) => {
+        if (box === except) return;
+        box.querySelector('.mt-share-menu').hidden = true;
+        box.querySelector('.mt-share-toggle').setAttribute('aria-expanded', 'false');
+    });
+    document.addEventListener('click', (event) => { if (!event.target.closest('[data-share-menu]')) closeAllShareMenus(); });
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        const open = document.querySelector('[data-share-menu] .mt-share-menu:not([hidden])');
+        if (!open) return;
+        closeAllShareMenus();
+        open.closest('[data-share-menu]').querySelector('.mt-share-toggle').focus();
+    });
+
+    document.querySelectorAll('[data-share-menu]').forEach((box) => {
+        const toggle = box.querySelector('.mt-share-toggle');
+        const menu = box.querySelector('.mt-share-menu');
+        const status = box.querySelector('.mt-share-status');
+        const items = () => [...menu.querySelectorAll('[role=menuitem]:not([hidden])')];
+        if (navigator.share) menu.querySelector('[data-share-action=native]').hidden = false;
+
+        const ref = box.dataset.refUrl || '';
+        const currentText = () => (box.dataset.textFrom ? document.querySelector(box.dataset.textFrom)?.value : box.dataset.text) || ref;
+        // Tag every copy of the referral link with the channel, so Analytics shows where visits came from.
+        const tagged = (text, via) => {
+            if (!via) return text;
+            return text.replace(/https?:\/\/[^\s"'<>]+[?&]ref=[a-z0-9_-]+[^\s"'<>]*/gi, (url) => {
+                try { const u = new URL(url); u.searchParams.set('via', via); return u.toString(); } catch { return url; }
+            });
+        };
+        const firstLink = (text) => (text.match(/https?:\/\/[^\s"'<>]+/) || [ref])[0];
+        const say = (message) => { status.textContent = message; window.setTimeout(() => { if (status.textContent === message) status.textContent = ''; }, 2200); };
+        const open = (url) => window.open(url, '_blank', 'noopener,noreferrer,width=640,height=720');
+
+        const setOpen = (isOpen) => {
+            closeAllShareMenus(box);
+            menu.hidden = !isOpen;
+            toggle.setAttribute('aria-expanded', String(isOpen));
+            if (isOpen) {
+                // Open upwards when there is no room below.
+                menu.classList.toggle('is-up', toggle.getBoundingClientRect().bottom + 380 > window.innerHeight && toggle.getBoundingClientRect().top > 380);
+                items()[0]?.focus();
+            }
+        };
+        toggle.addEventListener('click', () => setOpen(menu.hidden));
+        menu.addEventListener('keydown', (event) => {
+            const list = items();
+            const i = list.indexOf(document.activeElement);
+            if (event.key === 'ArrowDown') { event.preventDefault(); list[(i + 1) % list.length].focus(); }
+            if (event.key === 'ArrowUp') { event.preventDefault(); list[(i - 1 + list.length) % list.length].focus(); }
+            if (event.key === 'Tab') setOpen(false);
+        });
+
+        const actions = {
+            'copy-text': async () => { await navigator.clipboard.writeText(currentText()); say('Text copied'); },
+            'copy-html': async () => {
+                const text = currentText();
+                const link = firstLink(text);
+                const body = escapeHtml(text).replace(/https?:\/\/[^\s<]+/g, (u) => `<a href="${u}">${u}</a>`).replace(/\n/g, '<br>');
+                const image = box.dataset.imageUrl ? `<a href="${escapeHtml(link)}"><img src="${escapeHtml(box.dataset.imageUrl)}" alt="${escapeHtml(box.dataset.title)}" style="max-width:100%;height:auto"></a>\n` : '';
+                const html = `${image}<p>${body}</p>`;
+                if (window.ClipboardItem) {
+                    await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type: 'text/html' }), 'text/plain': new Blob([html], { type: 'text/plain' }) })]);
+                } else {
+                    await navigator.clipboard.writeText(html);
+                }
+                say('HTML copied');
+            },
+            'copy-image': async () => {
+                // Clipboards only accept PNG, so redraw the picture on a canvas first.
+                const png = new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = () => {
+                        const canvas = Object.assign(document.createElement('canvas'), { width: img.naturalWidth, height: img.naturalHeight });
+                        canvas.getContext('2d').drawImage(img, 0, 0);
+                        canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('blank'))), 'image/png');
+                    };
+                    img.onerror = reject;
+                    img.src = box.dataset.imageUrl;
+                });
+                await navigator.clipboard.write([new ClipboardItem({ 'image/png': png })]);
+                say('Image copied — paste it into your post');
+            },
+            whatsapp: () => open(`https://wa.me/?text=${encodeURIComponent(tagged(currentText(), 'whatsapp'))}`),
+            facebook: () => open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(firstLink(tagged(currentText(), 'facebook')))}`),
+            threads: () => open(`https://www.threads.net/intent/post?text=${encodeURIComponent(tagged(currentText(), 'threads'))}`),
+            x: () => open(`https://x.com/intent/post?text=${encodeURIComponent(currentText())}`),
+            pinterest: () => open(`https://www.pinterest.com/pin/create/button/?url=${encodeURIComponent(firstLink(currentText()))}&media=${encodeURIComponent(box.dataset.imageUrl)}&description=${encodeURIComponent(currentText())}`),
+            native: async () => {
+                const text = currentText();
+                if (box.dataset.file && navigator.canShare) {
+                    say('Preparing…');
+                    const blob = await fetch(box.dataset.file, { credentials: 'same-origin' }).then((r) => { if (!r.ok) throw new Error('download'); return r.blob(); });
+                    const file = new File([blob], box.dataset.fileName || 'cucinow', { type: box.dataset.fileType || blob.type });
+                    if (navigator.canShare({ files: [file] })) { status.textContent = ''; await navigator.share({ files: [file], text }); return; }
+                }
+                await navigator.share({ text });
+            },
+        };
+
+        menu.addEventListener('click', async (event) => {
+            const item = event.target.closest('[data-share-action]');
+            if (!item) return;
+            const action = item.dataset.shareAction;
+            try {
+                await actions[action]();
+                if (!action.startsWith('copy')) setOpen(false);
+            } catch (error) {
+                if (error?.name === 'AbortError') return;
+                try { await navigator.clipboard.writeText(currentText()); say('Could not do that here — text copied instead'); } catch { say('Your browser blocked this. Copy the text manually.'); }
+            }
+        });
+    });
+
+    // Sales kit quiz: mark answers in place.
+    document.querySelectorAll('[data-quiz]').forEach((form) => {
+        const result = form.querySelector('[data-quiz-result]');
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            let score = 0;
+            const sets = form.querySelectorAll('fieldset');
+            sets.forEach((set) => {
+                const answer = set.dataset.answer;
+                set.querySelectorAll('label').forEach((label) => {
+                    const input = label.querySelector('input');
+                    label.classList.toggle('is-right', input.value === answer);
+                    label.classList.toggle('is-wrong', input.checked && input.value !== answer);
+                });
+                if (set.querySelector('input:checked')?.value === answer) score += 1;
+            });
+            result.textContent = score === sets.length ? `${score}/${sets.length} — you're ready to go!` : `${score}/${sets.length} — check the highlighted answers and try again.`;
+        });
+        form.addEventListener('reset', () => {
+            form.querySelectorAll('label').forEach((l) => l.classList.remove('is-right', 'is-wrong'));
+            result.textContent = '';
+        });
+    });
+
+    const revealRoot = document.querySelector('.hiw');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (revealRoot && 'IntersectionObserver' in window && !reduceMotion) {
+        // Hide-then-reveal only once JS is running, so content is never stuck invisible.
+        revealRoot.classList.add('hiw-js');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+            });
+        }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
+        revealRoot.querySelectorAll('[data-reveal]').forEach((el) => observer.observe(el));
+    }
+
+    document.querySelectorAll('[data-code-check]').forEach((input) => {
+        const status = document.getElementById(input.getAttribute('aria-describedby'));
+        const pattern = /^[a-z0-9][a-z0-9_-]{2,39}$/;
+        let timer;
+        let controller;
+
+        const show = (state, message) => {
+            if (!status) return;
+            status.dataset.state = state;
+            status.textContent = message;
+        };
+
+        const check = async () => {
+            const code = input.value.trim().toLowerCase();
+            controller?.abort();
+            input.setCustomValidity('');
+
+            if (!code) return show('', status?.dataset.default ?? '');
+            if (code.length < 3) return show('', 'Keep typing — at least 3 characters.');
+            if (!pattern.test(code)) return show('taken', 'Use lowercase letters, numbers, hyphens or underscores, starting with a letter or number.');
+
+            show('checking', `Checking “${code}”…`);
+            controller = new AbortController();
+            try {
+                const url = new URL(input.dataset.codeCheck, window.location.href);
+                url.searchParams.set('code', code);
+                const response = await fetch(url, { headers: { Accept: 'application/json' }, signal: controller.signal });
+                if (!response.ok) throw new Error(String(response.status));
+                const result = await response.json();
+                if (result.code !== input.value.trim().toLowerCase()) return;
+                show(result.available ? 'available' : 'taken', result.message);
+                input.setCustomValidity(result.available ? '' : result.message);
+            } catch (error) {
+                // Network or rate-limit hiccup: stay quiet, the server still validates on submit.
+                if (error.name !== 'AbortError') show('', status?.dataset.default ?? '');
+            }
+        };
+
+        input.addEventListener('input', () => {
+            const lower = input.value.toLowerCase();
+            if (lower !== input.value) input.value = lower;
+            window.clearTimeout(timer);
+            timer = window.setTimeout(check, 400);
+        });
+        if (input.value) check();
+    });
+
     document.querySelectorAll('[data-agent-copy]').forEach((button) => {
         button.addEventListener('click', async () => {
             const value = button.dataset.agentCopy;

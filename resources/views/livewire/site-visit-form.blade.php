@@ -20,6 +20,8 @@
                 <label><span>Email</span><input type="email" wire:model="email" autocomplete="email" placeholder="you@company.com" required maxlength="160">@error('email')<small>{{ $message }}</small>@enderror</label>
                 <label><span>Phone number</span><input type="tel" wire:model="phone" autocomplete="tel" placeholder="01X-XXXXXXX" required maxlength="30">@error('phone')<small>{{ $message }}</small>@enderror</label>
             </div>
+            @php($agentDiscount = app(\App\Support\ProgrammeSettings::class)->customerDiscountPercent())
+            <label><span>Agent code <em>optional</em></span><input type="text" wire:model="agentCode" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="40" placeholder="e.g. ahmad">@error('agentCode')<small>{{ $message }}</small>@else<small class="visit-hint">Referred by a CuciNow agent? Enter their code{{ $agentDiscount > 0 ? ' to get '.rtrim(rtrim(number_format($agentDiscount, 2), '0'), '.').'% off your quotation' : '' }}.</small>@enderror</label>
             <label><span>Space type</span><select wire:model="spaceType" required>@foreach(config('site_visits.spaces') as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>@error('spaceType')<small>{{ $message }}</small>@enderror</label>
             <fieldset class="visit-clean-types">
                 <legend>Clean type <span>Select one or more</span></legend>

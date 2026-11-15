@@ -15,6 +15,7 @@
                 @endforeach
                 @can('manage-documents')
                     <a href="{{ route('admin.agents.index') }}" @class(['active' => request()->routeIs('admin.agents.*')])><span>AG</span>Agents</a>
+                    <a href="{{ route('admin.commissions.index') }}" @class(['active' => request()->routeIs('admin.commissions.*')])><span>CM</span>Commissions</a>
                     <a href="{{ route('admin.agent-media.index') }}" @class(['active' => request()->routeIs('admin.agent-media.*')])><span>HQ</span>Agent content</a>
                 @endcan
                 @can('manage-users')<a href="{{ route('admin.users.index') }}" @class(['active' => request()->routeIs('admin.users.*')])><span>US</span>Team accounts</a>@endcan

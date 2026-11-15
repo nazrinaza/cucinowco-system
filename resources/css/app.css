@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import './agents.css';
+@import './how-it-works.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -169,3 +170,13 @@
 .admin-sidebar nav::-webkit-scrollbar-track{background:transparent}
 .admin-sidebar nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:999px}
 .admin-sidebar-foot{flex:0 0 auto;margin-top:0}
+.commission-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.6fr);gap:18px;align-items:start}.commission-plans{display:grid}.commission-plan-row{display:grid;grid-template-columns:1.3fr .8fr .8fr 1.6fr auto auto;gap:10px;align-items:end;padding:16px 22px;border-bottom:1px solid #ecebe7}.commission-plan-row label span{display:block;margin-bottom:5px;color:var(--muted);font-size:9px;font-weight:900;text-transform:uppercase}.commission-plan-row input:not([type=checkbox]),.commission-plan-row select{width:100%;min-height:38px;padding:7px 9px;border:1px solid #d6d5cf;border-radius:8px;background:#fff}.commission-plan-row>small{grid-column:1/-1;color:var(--muted);font-size:10px}.commission-check{display:flex;align-items:center;gap:6px;min-height:38px}.commission-check span{margin:0!important}.commission-new summary{padding:14px 22px;color:#8c6906;font-size:11px;font-weight:850;cursor:pointer}.commission-filters{padding:16px 22px 0}.commission-action{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.commission-action .admin-button{min-height:30px;padding:5px 10px}.commission-action input{width:110px;min-height:30px;padding:4px 8px;border:1px solid #d6d5cf;border-radius:7px}.commission-link{padding:0;color:#8a271f;background:none;border:0;font-size:10px;font-weight:850;cursor:pointer}.commission-errors{margin-bottom:16px;padding:12px 16px;color:#8a271f;background:#fce8e6;border-radius:10px;font-size:12px}.commission-earnings{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #ecebe7}.commission-earnings p{margin:0;padding:16px 20px}.commission-earnings span{display:block;color:var(--muted);font-size:9px;font-weight:900;text-transform:uppercase}.commission-earnings strong{display:block;margin-top:6px;font-size:16px}
+@media(max-width:1050px){.commission-grid{grid-template-columns:1fr}.commission-plan-row{grid-template-columns:1fr 1fr}.commission-earnings{grid-template-columns:1fr 1fr}}
+.commission-payout{margin-top:20px;padding-top:18px;border-top:1px solid #ebe7dc}.commission-payout .detail-list{margin-top:8px}.commission-payout-missing{color:#b3261e;font-weight:600}.commission-bank{display:block;margin-bottom:6px;line-height:1.45;color:#3c4148}
+.media-folder-new{display:grid;grid-template-columns:1.4fr 1.4fr auto auto;gap:12px;align-items:end;margin:14px 0}.media-folder-new label{margin:0}.media-folder-list{display:grid;gap:8px;margin-top:8px}.media-folder-list details{border:1px solid #ebe7dc;border-radius:12px;padding:10px 14px;background:#fffdf8}.media-folder-list summary{cursor:pointer;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}.media-folder-list summary small{color:#747a82}.media-folder-list summary a{margin-left:auto;font-size:12px}
+@media(max-width:760px){.media-folder-new{grid-template-columns:1fr}}
+.commission-settings-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.payout-row{display:grid;grid-template-columns:1fr auto;gap:8px 16px;align-items:center;padding:14px 0;border-top:1px solid #ebe7dc}.payout-row:first-of-type{border-top:0}.payout-row small{display:block;color:#747a82;margin-top:3px}.payout-row .commission-action{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center}.payout-amount{font-size:18px}.payout-row.is-held{opacity:.85}
+@media(max-width:760px){.commission-settings-row{grid-template-columns:1fr}}
+.promo-badge{display:inline-block;padding:4px 10px;border-radius:20px;background:#fff3c7;color:#6b5000;font-weight:700;font-size:12px}
+.visit-form label small.visit-hint{color:var(--muted);font-weight:500}
+.agent-admin-photo{width:72px;height:72px;border-radius:16px;object-fit:cover;border:1px solid #ebe7dc;margin-bottom:10px}

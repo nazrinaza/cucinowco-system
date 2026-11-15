@@ -9,6 +9,7 @@ use App\Models\SiteVisitRequest;
 use App\Models\User;
 use App\Observers\BookingObserver;
 use App\Observers\SiteVisitRequestObserver;
+use App\Support\ProgrammeSettings;
 use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -30,7 +31,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->scoped(ProgrammeSettings::class);
     }
 
     /**
