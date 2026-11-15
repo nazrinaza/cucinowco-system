@@ -43,13 +43,14 @@
         </section>
 
         {{-- Social proof --}}
-        <section class="hiw-trust" aria-label="Organisations that have worked with CuciNow">
-            <p>Trusted by teams at</p>
+        <section class="hiw-trust" aria-label="Organisations in our project experience">
+            <p>Project experience includes</p>
             <div class="hiw-logos">
                 @foreach($clients as $client)
                     <img src="{{ asset('images/clients/small/'.rawurlencode($client).'.webp') }}" alt="{{ $client }}" width="360" height="203" loading="lazy">
                 @endforeach
             </div>
+            <small class="hiw-trust-note">Through Thursina Cleaning &amp; Services since 2000. Logos reflect past project experience and do not imply current contracts or endorsements.</small>
         </section>
 
         {{-- How it works --}}

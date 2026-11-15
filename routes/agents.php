@@ -33,6 +33,7 @@ Route::domain(config('agents.domain'))->prefix(config('agents.domain') ? '' : 'a
                 Route::get('/leads', [PortalController::class, 'leads'])->name('leads');
                 Route::get('/analytics', [PortalController::class, 'analytics'])->name('analytics');
                 Route::get('/marketing-tools', [PortalController::class, 'media'])->name('media');
+                Route::view('/sales-kit', 'agents.sales-kit')->name('sales-kit');
                 Route::get('/marketing-tools/{media}/download', [PortalController::class, 'download'])->name('media.download');
                 Route::get('/marketing-tools/{media}/preview', [PortalController::class, 'preview'])->name('media.preview');
             });

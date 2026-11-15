@@ -59,6 +59,46 @@
         </section>
     </div>
 
+    <div class="commission-grid" style="margin-top:18px">
+        <section class="admin-card">
+            <div class="card-head"><div><p>Programme rules</p><h2>Payouts &amp; customer discount</h2></div></div>
+            <form method="post" action="{{ route('admin.commissions.settings') }}" class="admin-form">
+                @csrf @method('patch')
+                <div class="commission-settings-row">
+                    <label><span>Minimum payout (RM)</span><input name="payout_minimum" type="number" step="0.01" min="0" value="{{ old('payout_minimum', $settings->payoutMinimum()) }}" required></label>
+                    <label><span>Payout days of month</span><input name="payout_days" value="{{ old('payout_days', implode(',', $settings->payoutDays())) }}" placeholder="10,28" required></label>
+                    <label><span>Customer discount with agent code (%)</span><input name="customer_discount_percent" type="number" step="0.01" min="0" max="50" value="{{ old('customer_discount_percent', $settings->customerDiscountPercent()) }}" required></label>
+                </div>
+                <p class="muted">Next payout date: <strong>{{ $settings->nextPayoutDate()->format('d M Y') }}</strong>. Agents see the schedule and minimum on their dashboard. A discount of 0% turns the customer code off; the code still credits the agent.</p>
+                <button class="admin-button">Save programme settings</button>
+            </form>
+        </section>
+        <section class="admin-card">
+            <div class="card-head"><div><p>Ready to transfer</p><h2>Payout queue</h2></div></div>
+            @forelse($payoutQueue as $q)
+                <div class="payout-row @if(! $q->eligible) is-held @endif">
+                    <div>
+                        <strong><a href="{{ route('admin.agents.show', $q->agent) }}">{{ $q->agent->name }}</a></strong>
+                        <small>{{ $q->rows }} approved row(s)@if($q->agent->hasPayoutDetails()) · {{ $q->agent->payoutBankName() }} {{ $q->agent->payout_account_number }} · {{ $q->agent->payout_account_name }}@endif</small>
+                    </div>
+                    <strong class="payout-amount">RM {{ number_format((float) $q->total, 2) }}</strong>
+                    @if($q->agent->hasPayoutDetails())
+                        <form method="post" action="{{ route('admin.commissions.pay-agent', $q->agent) }}" class="commission-action">
+                            @csrf
+                            @if($q->reason)<small class="commission-payout-missing">{{ $q->reason }}</small>@endif
+                            <input name="payout_reference" placeholder="Transfer ref" maxlength="120" required aria-label="Transfer reference for {{ $q->agent->name }}">
+                            <button class="admin-button">Mark all paid</button>
+                        </form>
+                    @else
+                        <small class="commission-payout-missing">No bank details</small>
+                    @endif
+                </div>
+            @empty
+                <p class="empty-cell">No approved commission waiting. Approve pending rows below first.</p>
+            @endforelse
+        </section>
+    </div>
+
     <section class="admin-card" style="margin-top:18px">
         <div class="card-head">
             <div><p>Ledger</p><h2>Commission rows</h2></div>

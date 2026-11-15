@@ -15,7 +15,7 @@ class AgentHowItWorksPageTest extends TestCase
     public function test_guests_see_the_page_with_apply_links_and_it_is_indexable(): void
     {
         $this->get(route('agents.how-it-works'))->assertOk()
-            ->assertSee('Four steps from introduction to payout.')
+            ->assertSee('Four steps from introduction to payout.')->assertSee('do not imply current contracts')
             ->assertSee('Questions, answered.')
             ->assertSee('href="'.route('agents.register').'"', false)
             ->assertSee('<meta name="robots" content="index,follow">', false)

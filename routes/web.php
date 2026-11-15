@@ -81,6 +81,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:web', EnsureActiveUser
         Route::get('/commissions', [CommissionController::class, 'index'])->name('commissions.index');
         Route::get('/commissions/export', [CommissionController::class, 'export'])->name('commissions.export');
         Route::post('/commissions/backfill', [CommissionController::class, 'backfill'])->name('commissions.backfill');
+        Route::patch('/commissions/settings', [CommissionController::class, 'updateSettings'])->name('commissions.settings');
+        Route::post('/commissions/agents/{agent}/pay', [CommissionController::class, 'payAgent'])->name('commissions.pay-agent');
         Route::post('/commission-plans', [CommissionController::class, 'storePlan'])->name('commissions.plans.store');
         Route::patch('/commission-plans/{plan}', [CommissionController::class, 'updatePlan'])->name('commissions.plans.update');
         Route::patch('/commissions/{commission}', [CommissionController::class, 'update'])->name('commissions.update');
@@ -88,6 +90,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:web', EnsureActiveUser
         Route::post('/agent-media', [AgentMediaController::class, 'store'])->name('agent-media.store');
         Route::patch('/agent-media/{media}', [AgentMediaController::class, 'update'])->name('agent-media.update');
         Route::get('/agent-media/{media}/download', [AgentMediaController::class, 'download'])->name('agent-media.download');
+        Route::post('/agent-media-folders', [AgentMediaController::class, 'storeFolder'])->name('agent-media.folders.store');
+        Route::patch('/agent-media-folders/{folder}', [AgentMediaController::class, 'updateFolder'])->name('agent-media.folders.update');
+        Route::delete('/agent-media-folders/{folder}', [AgentMediaController::class, 'destroyFolder'])->name('agent-media.folders.destroy');
         Route::get('/', DashboardController::class)->name('dashboard');
         Route::get('/quotes/create', [QuoteController::class, 'create'])->name('quotes.create');
         Route::get('/quotes', [QuoteController::class, 'index'])->name('quotes.index');

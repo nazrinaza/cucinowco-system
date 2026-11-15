@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Agents;
 use App\Http\Controllers\Controller;
 use App\Models\AgentActivity;
 use App\Models\AgentMedia;
+use App\Models\AgentMediaFolder;
 use App\Support\AgentCommissions;
 use App\Support\AgentReporting;
 use App\Support\MalaysianBanks;
@@ -50,9 +51,37 @@ class PortalController extends Controller
 
     public function media(Request $request)
     {
-        $category = $request->validate(['category' => ['nullable', 'string', 'max:40']])['category'] ?? null;
+        $filters = $request->validate(['category' => ['nullable', 'string', 'max:40'], 'folder' => ['nullable', 'integer']]);
+        $category = $filters['category'] ?? null;
+        $folders = AgentMediaFolder::orderBy('position')->orderBy('name')->get()->keyBy('id');
+        $folder = isset($filters['folder']) ? $folders->get($filters['folder']) : null;
+        abort_if(isset($filters['folder']) && ! $folder, 404);
 
-        return view('agents.media', ['media' => AgentMedia::available()->when($category, fn ($q) => $q->where('category', $category))->latest()->paginate(12)->withQueryString()]);
+        // A folder is shown only when it (or a subfolder) holds content agents can see.
+        $visible = [];
+        foreach (AgentMedia::available()->whereNotNull('folder_id')->distinct()->pluck('folder_id') as $id) {
+            for ($guard = 0; $id && $guard < 10 && ! isset($visible[$id]); $guard++) {
+                $visible[$id] = true;
+                $id = $folders->get($id)?->parent_id;
+            }
+        }
+        $subfolders = $category ? collect() : $folders->filter(fn ($f) => $f->parent_id === $folder?->id && isset($visible[$f->id]))->values();
+
+        // Category filters search the whole library; otherwise show the open folder's own items.
+        $media = AgentMedia::available()
+            ->when($category, fn ($q) => $q->where('category', $category), fn ($q) => $q->where('folder_id', $folder?->id))
+            ->latest()->paginate(24)->withQueryString();
+
+        $agent = Auth::guard('agent')->user();
+
+        return view('agents.media', [
+            'media' => $media, 'folder' => $folder, 'subfolders' => $subfolders, 'category' => $category,
+            'trail' => $folder?->trail() ?? collect(),
+            'counts' => AgentMedia::available()->whereIn('folder_id', $subfolders->pluck('id'))->selectRaw('folder_id, COUNT(*) AS total')->groupBy('folder_id')->pluck('total', 'folder_id'),
+            'referralUrl' => $agent->referralSource?->tracking_url,
+            'publicUrl' => rtrim(config('agents.public_url'), '/'),
+            'pages' => ['/' => 'Home page', ...collect(config('cleaning-services'))->mapWithKeys(fn ($s, $slug) => ['/services/'.$slug => $s['name']])->all()],
+        ]);
     }
 
     public function download(AgentMedia $media)
@@ -66,10 +95,13 @@ class PortalController extends Controller
 
     public function preview(AgentMedia $media)
     {
-        abort_unless(AgentMedia::available()->whereKey($media->id)->exists() && in_array($media->mime_type, ['image/jpeg', 'image/png', 'image/webp']), 404);
-        abort_unless(Storage::disk('local')->exists($media->path), 404);
+        abort_unless(AgentMedia::available()->whereKey($media->id)->exists() && ($media->isImage() || $media->isVideo()), 404);
+        abort_unless($media->path && Storage::disk('local')->exists($media->path), 404);
 
-        return Storage::disk('local')->response($media->path, null, ['Content-Type' => $media->mime_type, 'X-Content-Type-Options' => 'nosniff']);
+        // BinaryFileResponse honours Range requests, which Safari/iOS need to play video.
+        return response()->file(Storage::disk('local')->path($media->path), [
+            'Content-Type' => $media->mime_type, 'X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'private, max-age=3600',
+        ]);
     }
 
     public function account()

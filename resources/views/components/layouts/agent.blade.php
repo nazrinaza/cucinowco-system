@@ -34,7 +34,7 @@
     <div class="agent-shell">
         <nav class="agent-nav" aria-label="Agent navigation">
             @if($portalAgent)
-                @foreach(['dashboard' => 'Overview', 'media' => 'Marketing tools', 'leads' => 'My leads', 'analytics' => 'Analytics', 'guide' => 'Platform guide', 'account' => 'My account'] as $key => $label)
+                @foreach(['dashboard' => 'Overview', 'media' => 'Marketing tools', 'sales-kit' => 'Sales kit', 'leads' => 'My leads', 'analytics' => 'Analytics', 'guide' => 'Platform guide', 'account' => 'My account'] as $key => $label)
                     <a href="{{ route('agents.'.$key) }}" @class(['active' => request()->routeIs('agents.'.$key)])>{{ $label }}</a>
                 @endforeach
                 <form action="{{ route('agents.logout') }}" method="post">@csrf<button type="submit">Sign out</button></form>

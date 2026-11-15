@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Agent;
+use App\Models\AgentActivity;
 use App\Models\AgentCommission;
 use App\Models\CommissionPlan;
 use App\Models\Invoice;
@@ -31,6 +32,14 @@ class AgentCommissions
         if (! $agent) {
             return $created;
         }
+        if ($this->isSelfReferral($agent, $invoice)) {
+            // Agents cannot earn on their own purchases; the whole sale is excluded.
+            $details = ['invoice_id' => $invoice->id, 'invoice_number' => $invoice->invoice_number];
+            AgentActivity::where('agent_id', $agent->id)->where('action', 'commission.self_referral_blocked')->where('details', 'like', '%"invoice_id":'.$invoice->id.',%')->exists()
+                || AgentActivity::create(['agent_id' => $agent->id, 'action' => 'commission.self_referral_blocked', 'details' => $details]);
+
+            return $created;
+        }
         $plan = $agent->effectiveCommissionPlan();
         $basis = $plan?->basis ?? 'net_sales';
         $basisSen = $this->basisSen($invoice, $basis);
@@ -45,6 +54,20 @@ class AgentCommissions
         }
 
         return $created;
+    }
+
+    /** Same phone (ignoring +60 / leading 0 and formatting) or same email as the agent. */
+    public function isSelfReferral(Agent $agent, Invoice $invoice): bool
+    {
+        $customer = $invoice->customer;
+        if (! $customer) {
+            return false;
+        }
+        $phone = fn (?string $p) => ltrim(preg_replace('/^60/', '', preg_replace('/\D+/', '', (string) $p)), '0');
+        $samePhone = $phone($agent->phone) !== '' && strlen($phone($agent->phone)) >= 8 && $phone($agent->phone) === $phone($customer->phone);
+        $sameEmail = filled($customer->email) && mb_strtolower(trim($customer->email)) === mb_strtolower(trim((string) $agent->email));
+
+        return $samePhone || $sameEmail;
     }
 
     public function agentFor(Invoice $invoice): ?Agent

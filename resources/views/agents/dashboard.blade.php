@@ -18,6 +18,8 @@
         @else
             <p class="agent-payout-prompt">Payouts go to {{ $agent->payoutBankName() }} {{ $agent->maskedPayoutAccountNumber() }}. <a href="{{ route('agents.account') }}#payout">Change</a></p>
         @endif
+        @php($programme = app(\App\Support\ProgrammeSettings::class))
+        <p class="agent-payout-schedule">Next payout <strong>{{ $programme->nextPayoutDate()->format('d M Y') }}</strong> · paid on the {{ collect($programme->payoutDays())->map(fn ($d) => $d.(in_array($d % 100, [11, 12, 13]) ? 'th' : ([1 => 'st', 2 => 'nd', 3 => 'rd'][$d % 10] ?? 'th')))->join(', ', ' and ') }} of each month · minimum RM {{ number_format((float) $programme->payoutMinimum(), 2) }}@if((float) $programme->payoutMinimum() > 0 && (float) $earnings['approved'] > 0 && (float) $earnings['approved'] < (float) $programme->payoutMinimum()) · RM {{ number_format((float) $programme->payoutMinimum() - (float) $earnings['approved'], 2) }} more approved to reach it @endif</p>
         <div class="agent-funnel" aria-label="Conversion funnel">
             @foreach([['Visit → lead', $summary['visit_to_lead']], ['Lead → closed deal', $summary['conversion']], ['Closed → paid', $summary['closed_to_paid']]] as [$label, $percent])
                 <div><p><span>{{ $label }}</span><strong>{{ $percent }}%</strong></p><i style="--w:{{ min(100, $percent) }}%"></i></div>

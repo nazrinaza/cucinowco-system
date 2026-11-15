@@ -9,6 +9,7 @@ use App\Models\AgentCommission;
 use App\Models\CommissionPlan;
 use App\Models\Invoice;
 use App\Support\AgentCommissions;
+use App\Support\ProgrammeSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -42,7 +43,68 @@ class CommissionController extends Controller
             'totals' => $totals, 'filters' => $filters, 'reserve' => $commissions->roundingReserve(),
             'agents' => Agent::whereHas('commissions')->orderBy('name')->get(['id', 'name']),
             'bases' => CommissionPlan::BASES,
+            'settings' => $settings = app(ProgrammeSettings::class),
+            'payoutQueue' => $this->payoutQueue($settings),
         ]);
+    }
+
+    public function updateSettings(Request $request, ProgrammeSettings $settings): RedirectResponse
+    {
+        $data = $request->validate([
+            'payout_minimum' => ['required', 'numeric', 'min:0', 'max:100000', 'decimal:0,2'],
+            'payout_days' => ['required', 'string', 'max:20', 'regex:/^\s*([1-9]|1\d|2[0-8])(\s*,\s*([1-9]|1\d|2[0-8]))*\s*$/'],
+            'customer_discount_percent' => ['required', 'numeric', 'min:0', 'max:50', 'decimal:0,2'],
+        ], ['payout_days.regex' => 'Use days between 1 and 28, separated by commas, e.g. 10,28.']);
+        $data['payout_days'] = preg_replace('/\s+/', '', $data['payout_days']);
+        $settings->update($data);
+        AgentActivity::create(['user_id' => $request->user()->id, 'action' => 'programme.settings_updated', 'details' => $data]);
+
+        return back()->with('success', 'Programme settings saved.');
+    }
+
+    /** One bank transfer covers all of an agent's approved commission: mark every approved row paid with the same reference. */
+    public function payAgent(Request $request, Agent $agent): RedirectResponse
+    {
+        $data = $request->validate(['payout_reference' => ['required', 'string', 'max:120']]);
+        if (! $agent->hasPayoutDetails()) {
+            throw ValidationException::withMessages(['payout_reference' => "{$agent->name} has not added bank details yet."]);
+        }
+
+        $paid = DB::transaction(function () use ($agent, $data, $request) {
+            $rows = AgentCommission::where('agent_id', $agent->id)->where('status', 'approved')->lockForUpdate()->get();
+            foreach ($rows as $row) {
+                $row->forceFill(['status' => 'paid', 'paid_at' => now(), 'payout_reference' => $data['payout_reference']])->save();
+            }
+            if ($rows->isNotEmpty()) {
+                AgentActivity::create(['agent_id' => $agent->id, 'user_id' => $request->user()->id, 'action' => 'commission.payout', 'details' => [
+                    'rows' => $rows->count(), 'amount' => AgentCommissions::fromSen($rows->sum(fn ($r) => AgentCommissions::toSen($r->amount))), 'reference' => $data['payout_reference'],
+                ]]);
+            }
+
+            return $rows;
+        });
+
+        return back()->with('success', $paid->isEmpty() ? 'Nothing approved to pay for this agent.' : "{$paid->count()} commission row(s) for {$agent->name} marked paid.");
+    }
+
+    /** Agents with approved, unpaid commission, largest first, flagged when below the minimum or missing bank details. */
+    private function payoutQueue(ProgrammeSettings $settings)
+    {
+        $minimumSen = AgentCommissions::toSen($settings->payoutMinimum());
+        $sums = AgentCommission::where('status', 'approved')->selectRaw('agent_id, COUNT(*) AS rows_count, SUM(amount) AS total')->groupBy('agent_id')->get()->keyBy('agent_id');
+        if ($sums->isEmpty()) {
+            return collect();
+        }
+
+        return Agent::whereIn('id', $sums->keys())->get()->map(function (Agent $agent) use ($sums, $minimumSen) {
+            $totalSen = AgentCommissions::toSen($sums[$agent->id]->total);
+
+            return (object) [
+                'agent' => $agent, 'rows' => (int) $sums[$agent->id]->rows_count, 'total' => AgentCommissions::fromSen($totalSen),
+                'eligible' => $totalSen >= $minimumSen && $agent->hasPayoutDetails(),
+                'reason' => ! $agent->hasPayoutDetails() ? 'No bank details' : ($totalSen < $minimumSen ? 'Below minimum' : null),
+            ];
+        })->sortByDesc(fn ($q) => AgentCommissions::toSen($q->total))->values();
     }
 
     public function storePlan(Request $request): RedirectResponse

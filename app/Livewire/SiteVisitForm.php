@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\ReferralSource;
 use App\Models\SiteVisitRequest;
 use App\Support\ClientIpResolver;
+use App\Support\ProgrammeSettings;
 use App\Support\ReferenceNumber;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -33,6 +34,9 @@ class SiteVisitForm extends Component
 
     public string $website = '';
 
+    /** Optional agent code typed by the customer; credits the agent and may carry a discount. */
+    public string $agentCode = '';
+
     public bool $submitted = false;
 
     public string $reference = '';
@@ -40,6 +44,16 @@ class SiteVisitForm extends Component
     public function mount(): void
     {
         $this->preferredDate = now()->addDays(2)->format('Y-m-d');
+        // Visitors who arrived through an agent's link see that agent's code already filled in.
+        $sessionCode = session('cucinow.referral_code');
+        if (is_string($sessionCode) && $this->agentSource($sessionCode)) {
+            $this->agentCode = $sessionCode;
+        }
+    }
+
+    private function agentSource(string $code): ?ReferralSource
+    {
+        return ReferralSource::query()->trackable()->where('code', mb_strtolower(trim($code)))->whereHas('agent', fn ($q) => $q->where('status', 'approved'))->first();
     }
 
     public function submit(): void
@@ -60,15 +74,26 @@ class SiteVisitForm extends Component
             'preferredDate' => ['required', 'date', 'after_or_equal:today'],
             'preferredTimeSlot' => ['required', Rule::in(['morning', 'afternoon', 'flexible'])],
             'website' => ['prohibited'],
+            'agentCode' => ['nullable', 'string', 'max:40'],
         ]);
 
-        $referral = ReferralSource::query()
+        $agentCode = mb_strtolower(trim($this->agentCode));
+        $typedSource = $agentCode !== '' ? $this->agentSource($agentCode) : null;
+        if ($agentCode !== '' && ! $typedSource) {
+            $this->addError('agentCode', 'We could not find that agent code. Check the spelling or leave it blank.');
+
+            return;
+        }
+        $discount = app(ProgrammeSettings::class)->customerDiscountPercent();
+
+        // A code the customer typed is an explicit choice, so it wins over an earlier link visit.
+        $referral = $typedSource ?? ReferralSource::query()
             ->whereKey(session('cucinow.referral_source_id'))
             ->trackable()
             ->first();
         $clientIp = app(ClientIpResolver::class)->resolve(request());
 
-        $siteVisit = DB::transaction(function () use ($validated, $referral, $clientIp) {
+        $siteVisit = DB::transaction(function () use ($validated, $referral, $clientIp, $typedSource, $discount) {
             $customer = Customer::query()->firstOrNew(['phone' => $validated['phone']]);
             $customer->fill([
                 'name' => $validated['name'],
@@ -93,6 +118,8 @@ class SiteVisitForm extends Component
                 'preferred_date' => $validated['preferredDate'],
                 'preferred_time_slot' => $validated['preferredTimeSlot'],
                 'site_address' => '',
+                'promo_code' => $typedSource?->code,
+                'promo_discount_percent' => $typedSource && $discount > 0 ? $discount : null,
             ]);
             $referral?->increment('lead_count');
 

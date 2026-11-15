@@ -60,6 +60,119 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Marketing tools: build a referral link for any page on the public site.
+    document.querySelectorAll('[data-link-builder]').forEach((box) => {
+        const base = new URL(box.dataset.publicUrl);
+        const select = box.querySelector('[data-link-page]');
+        const paste = box.querySelector('[data-link-paste]');
+        const output = box.querySelector('[data-link-output]');
+        const error = box.querySelector('[data-link-error]');
+        const build = (target) => {
+            target.searchParams.set('ref', box.dataset.ref);
+            output.value = target.toString();
+        };
+        select?.addEventListener('change', () => {
+            if (paste) paste.value = '';
+            if (error) error.textContent = '';
+            build(new URL(select.value, base));
+        });
+        paste?.addEventListener('input', () => {
+            const value = paste.value.trim();
+            if (error) error.textContent = '';
+            if (!value) return;
+            let target;
+            try { target = new URL(value.includes('://') ? value : `https://${value}`); } catch { return; }
+            if (target.hostname.replace(/^www\./, '') !== base.hostname.replace(/^www\./, '')) {
+                if (error) error.textContent = `Only ${base.hostname} links can carry your referral code.`;
+                output.value = '';
+                return;
+            }
+            target.protocol = base.protocol;
+            target.hash = '';
+            build(target);
+        });
+        box.querySelector('[data-link-copy]')?.addEventListener('click', async (event) => {
+            const button = event.currentTarget;
+            try { await navigator.clipboard.writeText(output.value); } catch { output.select(); document.execCommand('copy'); }
+            const label = button.textContent;
+            button.textContent = 'Copied';
+            window.setTimeout(() => { button.textContent = label; }, 1500);
+        });
+    });
+
+    // Marketing tools: remember grid or list per browser.
+    const mediaList = document.querySelector('[data-media-list]');
+    if (mediaList) {
+        const buttons = document.querySelectorAll('[data-view]');
+        const apply = (view) => {
+            mediaList.classList.toggle('is-list', view === 'list');
+            buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+        };
+        let saved = 'grid';
+        try { saved = localStorage.getItem('cucinow.media-view') || 'grid'; } catch { /* private mode */ }
+        apply(saved);
+        buttons.forEach((b) => b.addEventListener('click', () => {
+            apply(b.dataset.view);
+            try { localStorage.setItem('cucinow.media-view', b.dataset.view); } catch { /* ignore */ }
+        }));
+    }
+
+    // Share via the phone's share sheet; attach the file when the browser allows it.
+    document.querySelectorAll('[data-share]').forEach((button) => {
+        button.addEventListener('click', async () => {
+            const textSource = button.dataset.shareTextFrom ? document.querySelector(button.dataset.shareTextFrom) : null;
+            const text = textSource ? textSource.value : (button.dataset.shareText || '');
+            const label = button.textContent;
+            const done = (message) => { button.textContent = message; window.setTimeout(() => { button.textContent = label; }, 1800); };
+            try {
+                if (button.dataset.shareFile && navigator.canShare) {
+                    button.textContent = 'Preparing…';
+                    const blob = await fetch(button.dataset.shareFile, { credentials: 'same-origin' }).then((r) => { if (!r.ok) throw new Error(); return r.blob(); });
+                    const file = new File([blob], button.dataset.shareName || 'cucinow', { type: button.dataset.shareType || blob.type });
+                    if (navigator.canShare({ files: [file] })) {
+                        button.textContent = label;
+                        await navigator.share({ files: [file], text });
+                        return;
+                    }
+                }
+                if (navigator.share) {
+                    button.textContent = label;
+                    await navigator.share({ text });
+                    return;
+                }
+                await navigator.clipboard.writeText(text);
+                done('Copied to share');
+            } catch (error) {
+                if (error?.name === 'AbortError') { button.textContent = label; return; }
+                try { await navigator.clipboard.writeText(text); done('Copied to share'); } catch { done('Copy failed'); }
+            }
+        });
+    });
+
+    // Sales kit quiz: mark answers in place.
+    document.querySelectorAll('[data-quiz]').forEach((form) => {
+        const result = form.querySelector('[data-quiz-result]');
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            let score = 0;
+            const sets = form.querySelectorAll('fieldset');
+            sets.forEach((set) => {
+                const answer = set.dataset.answer;
+                set.querySelectorAll('label').forEach((label) => {
+                    const input = label.querySelector('input');
+                    label.classList.toggle('is-right', input.value === answer);
+                    label.classList.toggle('is-wrong', input.checked && input.value !== answer);
+                });
+                if (set.querySelector('input:checked')?.value === answer) score += 1;
+            });
+            result.textContent = score === sets.length ? `${score}/${sets.length} — you're ready to go!` : `${score}/${sets.length} — check the highlighted answers and try again.`;
+        });
+        form.addEventListener('reset', () => {
+            form.querySelectorAll('label').forEach((l) => l.classList.remove('is-right', 'is-wrong'));
+            result.textContent = '';
+        });
+    });
+
     const revealRoot = document.querySelector('.hiw');
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (revealRoot && 'IntersectionObserver' in window && !reduceMotion) {
