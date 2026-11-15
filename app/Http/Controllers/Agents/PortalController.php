@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Agents;
 
 use App\Http\Controllers\Controller;
+use App\Models\Agent;
 use App\Models\AgentActivity;
 use App\Models\AgentMedia;
 use App\Models\AgentMediaFolder;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class PortalController extends Controller
 {
@@ -121,25 +123,74 @@ class PortalController extends Controller
         return view('agents.account', ['agent' => Auth::guard('agent')->user()]);
     }
 
+    public function updatePhoto(Request $request)
+    {
+        $request->validateWithBag('photo', ['photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048', 'dimensions:min_width=100,min_height=100,max_width=6000,max_height=6000']]);
+        $agent = Auth::guard('agent')->user();
+        $path = $request->file('photo')->store('agent-photos', 'local');
+        abort_unless($path, 500, 'The photo could not be stored.');
+        if ($agent->profile_photo_path) {
+            Storage::disk('local')->delete($agent->profile_photo_path);
+        }
+        $agent->forceFill(['profile_photo_path' => $path])->save();
+        AgentActivity::create(['agent_id' => $agent->id, 'action' => 'profile.photo_updated']);
+
+        return back()->with('success', 'Profile photo updated.');
+    }
+
+    public function deletePhoto()
+    {
+        $agent = Auth::guard('agent')->user();
+        if ($agent->profile_photo_path) {
+            Storage::disk('local')->delete($agent->profile_photo_path);
+            $agent->forceFill(['profile_photo_path' => null])->save();
+        }
+
+        return back()->with('success', 'Profile photo removed.');
+    }
+
+    /** The signed-in agent's own photo; HQ uses its own route. Files stay private. */
+    public function photo()
+    {
+        $path = Auth::guard('agent')->user()->profile_photo_path;
+        abort_unless($path && Storage::disk('local')->exists($path), 404);
+
+        return response()->file(Storage::disk('local')->path($path), ['X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'private, max-age=600']);
+    }
+
     public function update(Request $request)
     {
+        // The form shows a fixed +60 prefix, so the agent types e.g. "12-345 6789"; a pasted +60 / 0 is fine too.
+        $request->merge(['phone_local' => ltrim(preg_replace('/^60/', '', preg_replace('/\D+/', '', (string) $request->input('phone_local'))), '0')]);
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:120'], 'phone' => ['required', 'string', 'min:9', 'max:30'],
+            'name' => ['required', 'string', 'max:120'],
+            'phone_local' => ['required', 'regex:/^1\d{7,9}$|^[3-9]\d{7,8}$/'],
             'location' => ['required', 'string', 'max:120'],
-            'social_links' => ['nullable', 'array:website,instagram,facebook,threads,tiktok'],
-            'social_links.*' => ['nullable', 'url:http,https', 'max:255'],
+            'social_links' => ['nullable', 'array:'.implode(',', array_keys(Agent::SOCIALS))],
+            'social_links.*' => ['nullable', 'string', 'max:200'],
             'current_password' => ['required_with:password', 'nullable', 'string'],
             'password' => ['nullable', 'string', 'min:12', 'confirmed'],
-        ]);
+        ], ['phone_local.regex' => 'Enter a Malaysian number, e.g. 12-345 6789.']);
+
+        $socials = [];
+        foreach (Agent::SOCIALS as $key => [$label]) {
+            $url = Agent::socialUrl($key, $data['social_links'][$key] ?? null);
+            if ($url !== null && (! filter_var($url, FILTER_VALIDATE_URL) || ($key !== 'website' && ! preg_match('#/@?[\w.\-]{1,100}$#u', $url)))) {
+                throw ValidationException::withMessages(["social_links.$key" => "Check your {$label} handle."]);
+            }
+            $socials[$key] = $url;
+        }
+
         $agent = Auth::guard('agent')->user();
         if (! empty($data['password']) && ! Hash::check($data['current_password'], $agent->password)) {
             return back()->withErrors(['current_password' => 'Your current password is incorrect.']);
         }
-        unset($data['current_password']);
-        if (empty($data['password'])) {
-            unset($data['password']);
-        }
-        $agent->fill($data)->save();
+        $agent->fill([
+            'name' => $data['name'], 'location' => $data['location'],
+            'phone' => '+60'.$data['phone_local'],
+            'social_links' => array_filter($socials) ?: null,
+            ...(empty($data['password']) ? [] : ['password' => $data['password']]),
+        ])->save();
         AgentActivity::create(['agent_id' => $agent->id, 'action' => 'profile.updated']);
 
         return back()->with('success', 'Your profile has been updated.');

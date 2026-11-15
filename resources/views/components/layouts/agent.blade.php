@@ -29,7 +29,7 @@
     <a href="#agent-main" class="skip-link">Skip to content</a>
     <header class="agent-header">
         <a href="{{ route('agents.dashboard') }}" class="agent-brand"><img src="{{ asset('images/cucinow-logo.png') }}" alt="CuciNow by Thursina"><span>AGENT NETWORK</span></a>
-        <div class="agent-header-right"><a href="{{ config('agents.public_url') }}" target="_blank" rel="noopener">Visit CuciNow ↗</a>@if($portalAgent)<span class="agent-avatar">{{ mb_substr($portalAgent->name, 0, 1) }}</span>@endif</div>
+        <div class="agent-header-right"><a href="{{ config('agents.public_url') }}" target="_blank" rel="noopener">Visit CuciNow ↗</a>@if($portalAgent)<a href="{{ route('agents.account') }}" class="agent-avatar" title="My account">@if($portalAgent->profile_photo_path)<img src="{{ route('agents.account.photo') }}?v={{ $portalAgent->updated_at?->timestamp }}" alt="">@else{{ mb_substr($portalAgent->name, 0, 1) }}@endif</a>@endif</div>
     </header>
     <div class="agent-shell">
         <nav class="agent-nav" aria-label="Agent navigation">

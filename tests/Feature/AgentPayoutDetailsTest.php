@@ -67,7 +67,7 @@ class AgentPayoutDetailsTest extends TestCase
         $this->save();
 
         $this->actingAs($this->agent->fresh(), 'agent')->get(route('agents.account'))->assertOk()
-            ->assertSee('Where should HQ pay you?')
+            ->assertSee('Payment settings')
             ->assertSee(MalaysianBanks::LIST['bank_islam'])
             ->assertSee('•••• 5566')
             ->assertDontSee('112233445566');

@@ -13,6 +13,7 @@ use App\Support\AgentReporting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -27,6 +28,13 @@ class AgentController extends Controller
             ->latest()->paginate(20)->withQueryString();
 
         return view('admin.agents.index', ['agents' => $agents, 'counts' => Agent::selectRaw('status, COUNT(*) AS total')->groupBy('status')->pluck('total', 'status')]);
+    }
+
+    public function photo(Agent $agent)
+    {
+        abort_unless($agent->profile_photo_path && Storage::disk('local')->exists($agent->profile_photo_path), 404);
+
+        return response()->file(Storage::disk('local')->path($agent->profile_photo_path), ['X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'private, max-age=600']);
     }
 
     public function show(Agent $agent, AgentReporting $report, AgentCommissions $commissions)

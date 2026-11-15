@@ -17,6 +17,57 @@ class Agent extends Authenticatable
 
     protected $hidden = ['password', 'remember_token', 'hq_notes', 'payout_account_number'];
 
+    /**
+     * Social profiles: label, the prefix shown in front of the input, and the URL the handle becomes.
+     * Full URLs are stored, so links elsewhere keep working; agents only type the handle.
+     */
+    public const SOCIALS = [
+        'website' => ['Website', 'https://', 'https://%s'],
+        'instagram' => ['Instagram', '@', 'https://instagram.com/%s'],
+        'tiktok' => ['TikTok', '@', 'https://www.tiktok.com/@%s'],
+        'threads' => ['Threads', '@', 'https://www.threads.net/@%s'],
+        'x' => ['X (Twitter)', '@', 'https://x.com/%s'],
+        'youtube' => ['YouTube', 'youtube.com/@', 'https://www.youtube.com/@%s'],
+        'facebook' => ['Facebook', 'fb.com/', 'https://facebook.com/%s'],
+    ];
+
+    /** Turn whatever the agent typed (handle, @handle or a pasted URL) into a stored URL, or null. */
+    public static function socialUrl(string $key, ?string $input): ?string
+    {
+        $value = trim((string) $input);
+        if ($value === '') {
+            return null;
+        }
+        if ($key === 'website') {
+            return 'https://'.preg_replace('#^https?://#i', '', $value);
+        }
+        // Pasted profile URL: keep only the handle part after the host (and any leading @).
+        $value = preg_replace('#^(https?://)?(www\.|m\.)?[a-z0-9.-]+\.[a-z]{2,}/#i', '', $value);
+        $value = trim(explode('?', $value)[0], "/@ \t");
+
+        return $value === '' ? null : sprintf(self::SOCIALS[$key][2], $value);
+    }
+
+    /** The handle to show back in the input, e.g. "bell.naza" from https://instagram.com/bell.naza. */
+    public function socialHandle(string $key): string
+    {
+        $url = (string) ($this->social_links[$key] ?? '');
+        if ($url === '') {
+            return '';
+        }
+        if ($key === 'website') {
+            return preg_replace('#^https?://#i', '', $url);
+        }
+
+        return trim(preg_replace('#^(https?://)?(www\.|m\.)?[a-z0-9.-]+\.[a-z]{2,}/#i', '', $url), '/@');
+    }
+
+    /** Malaysian number without +60 or the leading 0, for the input next to the +60 prefix. */
+    public function phoneLocal(): string
+    {
+        return ltrim(preg_replace('/^60/', '', preg_replace('/\D+/', '', (string) $this->phone)), '0');
+    }
+
     /** Codes that would clash with built-in referral channels. */
     public const RESERVED_CODES = ['direct', 'admin', 'newsletter', 'instagram', 'threads', 'agents'];
 

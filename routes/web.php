@@ -78,6 +78,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:web', EnsureActiveUser
         Route::get('/agents/{agent}', [AgentController::class, 'show'])->name('agents.show');
         Route::patch('/agents/{agent}', [AgentController::class, 'update'])->name('agents.update');
         Route::patch('/agents/{agent}/commission', [AgentController::class, 'updateCommission'])->name('agents.commission');
+        Route::get('/agents/{agent}/photo', [AgentController::class, 'photo'])->name('agents.photo');
         Route::get('/commissions', [CommissionController::class, 'index'])->name('commissions.index');
         Route::get('/commissions/export', [CommissionController::class, 'export'])->name('commissions.export');
         Route::post('/commissions/backfill', [CommissionController::class, 'backfill'])->name('commissions.backfill');

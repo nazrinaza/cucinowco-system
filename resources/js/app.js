@@ -117,6 +117,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }));
     }
 
+    // Forms that submit as soon as a file is chosen (profile photo).
+    document.querySelectorAll('form[data-auto-submit] input[type=file]').forEach((input) => {
+        input.addEventListener('change', () => { if (input.files?.length) input.form.submit(); });
+    });
+
     // Dashboard referral card: share icon reveals the network icons inline (NBDY style).
     document.querySelectorAll('[data-share-strip]').forEach((strip) => {
         const toggle = strip.querySelector('[data-share-strip-toggle]');
