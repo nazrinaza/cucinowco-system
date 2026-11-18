@@ -80,6 +80,7 @@ class QuoteController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'document_date' => ['required', 'date'],
             'deposit_percentage' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:100'],
+            'preferred_date' => ['nullable', 'date'],
             'service_address' => ['nullable', 'string', 'max:1000'],
             'postcode' => ['nullable', 'string', 'max:10'],
             'city' => ['nullable', 'string', 'max:100'],
@@ -91,6 +92,7 @@ class QuoteController extends Controller
         $updates = [
             'status' => $data['status'], 'title' => trim($data['title']),
             'document_date' => $data['document_date'], 'deposit_percentage' => $data['deposit_percentage'],
+            'preferred_date' => $data['preferred_date'] ?? null,
             'service_address' => filled($data['service_address'] ?? null) ? trim($data['service_address']) : null,
             'postcode' => filled($data['postcode'] ?? null) ? trim($data['postcode']) : null,
             'city' => filled($data['city'] ?? null) ? trim($data['city']) : null,
