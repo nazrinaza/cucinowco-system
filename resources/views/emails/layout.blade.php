@@ -23,10 +23,12 @@
                 .email-footer-row>td{border-radius:0 0 17px 17px!important}
                 .email-content-row>td{padding:24px!important}
                 .email-footer-row>td{padding:16px 24px!important}
-                .email-card-row,.email-card-row>td,.document-line-table,.document-line-table tr,.document-line-table td{break-inside:auto!important;page-break-inside:auto!important}
+                .email-card-row,.email-card-row>td,.document-line-table,.document-line-table td{break-inside:auto!important;page-break-inside:auto!important}
                 .document-line-table thead{display:table-header-group}
                 .document-line-header{break-after:avoid;page-break-after:avoid}
+                .document-line-table tr.document-line-item,.document-line-table tr.document-line-item>td{break-inside:avoid!important;page-break-inside:avoid!important}
                 .document-totals,.document-totals-table{break-inside:avoid!important;page-break-inside:avoid!important}
+                .document-service-location,.document-payment-terms{break-inside:avoid!important;page-break-inside:avoid!important}
                 .document-line-item p{margin:4px 0 7px!important;line-height:1.42!important}
                 .document-line-item ul,.document-line-item ol{margin:5px 0 8px!important}
                 .document-line-item li{margin-bottom:3px!important;line-height:1.4!important}

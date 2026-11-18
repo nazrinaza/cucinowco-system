@@ -35,6 +35,8 @@ class DocumentPrintViewTest extends TestCase
             ->assertSee('Q-PRINT-1')->assertSee('Deep cleaning')->assertSee('Aina')->assertSee('Print Client Sdn Bhd')
             ->assertSee('document-print-toolbar', false)->assertSee('window.print()', false)
             ->assertSee('document-totals-table', false)
+            ->assertSee('.document-line-table tr.document-line-item', false)
+            ->assertSee('.document-service-location,.document-payment-terms', false)
             ->assertSee('border-radius:18px!important', false)
             ->assertSee('background:#f7f4ec!important', false)
             ->assertSee('Grand Total')
