@@ -124,12 +124,10 @@ class QuoteController extends Controller
             'discount' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:9999999999.99'],
         ]);
 
-        DB::transaction(function () use ($quote, $data, $request, $sanitizer) {
+        $hasDownstreamDocuments = false;
+        DB::transaction(function () use ($quote, $data, $request, $sanitizer, &$hasDownstreamDocuments) {
             $quote = Quote::query()->lockForUpdate()->findOrFail($quote->id);
-
-            if ($quote->invoice()->exists() || $quote->booking()->exists()) {
-                throw ValidationException::withMessages(['items' => 'This quotation already has an invoice or booking. Create a separate quotation for additional work.']);
-            }
+            $hasDownstreamDocuments = $quote->invoice()->exists() || $quote->booking()->exists();
 
             $subtotalCents = 0;
             $lines = [];
@@ -172,18 +170,28 @@ class QuoteController extends Controller
                 $retainedIds[] = $item->id;
             }
             $quote->items()->whereNotIn('id', $retainedIds)->delete();
-            $quote->update([
+            $updates = [
                 'last_edited_by_user_id' => $request->user()->id,
                 'subtotal' => $subtotalCents / 100,
                 'discount' => $discountCents / 100,
                 'tax_amount' => $taxCents / 100,
                 'total' => $totalCents / 100,
-                'status' => 'draft',
-                'sent_at' => null, 'viewed_at' => null, 'accepted_at' => null, 'rejected_at' => null,
-            ]);
+            ];
+            if (! $hasDownstreamDocuments) {
+                $updates = [
+                    ...$updates,
+                    'status' => 'draft',
+                    'sent_at' => null, 'viewed_at' => null, 'accepted_at' => null, 'rejected_at' => null,
+                ];
+            }
+            $quote->update($updates);
         });
 
-        return redirect()->route('admin.quotes.show', $quote)->with('success', 'Quotation services and totals saved as a draft. You can now email the revised quotation.');
+        $message = $hasDownstreamDocuments
+            ? 'Quotation services and totals updated. The existing invoice or booking was not changed.'
+            : 'Quotation services and totals saved as a draft. You can now email the revised quotation.';
+
+        return redirect()->route('admin.quotes.show', $quote)->with('success', $message);
     }
 
     public function updateContacts(Request $request, Quote $quote): RedirectResponse
