@@ -39,12 +39,14 @@ class DocumentPrintViewTest extends TestCase
             ->assertSee('background:#f7f4ec!important', false)
             ->assertSee('Grand Total')
             ->assertSee('Proposed service date')->assertSee('08 Dec 2026')
+            ->assertDontSee('1.00 job @ RM 500.00')
             ->assertDontSee('Reply to this email or contact us on WhatsApp')
             ->assertDontSee('Discuss this quotation')
             ->assertDontSee('tr,img{break-inside:avoid', false);
 
         $email = (new QuoteMail($quote->load(['customer', 'items'])))->render();
         $this->assertStringContainsString('Deep cleaning', $email);
+        $this->assertStringContainsString('1.00 job @ RM 500.00', $email);
         $this->assertStringContainsString('Project contacts', $email);
         $this->assertStringContainsString('Print Client Sdn Bhd', $email);
         $this->assertStringContainsString('Proposed service date', $email);
