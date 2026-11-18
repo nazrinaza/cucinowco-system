@@ -14,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -120,6 +121,8 @@ class SiteVisitController extends Controller
         $data = $request->validate([
             'status' => ['required', Rule::in(self::STATUSES)],
             'staff_id' => ['nullable', 'exists:staff,id'],
+            'customer_name' => ['sometimes', 'required', 'string', 'max:120'],
+            'company_name' => ['sometimes', 'nullable', 'string', 'max:160'],
             'preferred_date' => ['nullable', 'date'],
             'preferred_time_slot' => ['nullable', Rule::in(['morning', 'afternoon', 'evening', 'flexible'])],
             'scheduled_start' => [Rule::requiredIf(fn (): bool => in_array($request->input('status'), ['scheduled', 'completed'], true)), 'nullable', 'date'],
@@ -132,6 +135,15 @@ class SiteVisitController extends Controller
                 : ['nullable', 'string', 'max:180'],
         ]);
 
+        $customerData = [];
+        if (array_key_exists('customer_name', $data)) {
+            $customerData['name'] = $data['customer_name'];
+        }
+        if (array_key_exists('company_name', $data)) {
+            $customerData['company_name'] = $data['company_name'] ?: null;
+        }
+        unset($data['customer_name'], $data['company_name']);
+
         $updates = $data;
 
         if ($data['status'] === 'contacted' && ! $siteVisit->contacted_at) {
@@ -142,7 +154,12 @@ class SiteVisitController extends Controller
             $updates['completed_at'] = now();
         }
 
-        $siteVisit->update($updates);
+        DB::transaction(function () use ($siteVisit, $customerData, $updates): void {
+            if ($customerData) {
+                $siteVisit->customer()->lockForUpdate()->firstOrFail()->update($customerData);
+            }
+            $siteVisit->update($updates);
+        });
 
         return back()->with('success', 'Site visit request updated.');
     }

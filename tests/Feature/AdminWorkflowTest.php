@@ -100,7 +100,7 @@ class AdminWorkflowTest extends TestCase
     public function test_admin_can_edit_the_public_site_visit_information(): void
     {
         $user = User::factory()->create(['is_active' => true]);
-        $customer = Customer::create(['name' => 'Address Client', 'phone' => '0112222444']);
+        $customer = Customer::create(['name' => 'Address Client', 'company_name' => 'Old Company', 'phone' => '0112222444']);
         $siteVisit = SiteVisitRequest::create([
             'reference_number' => 'SV-ADDRESS-EDIT', 'customer_id' => $customer->id,
             'status' => 'new', 'space_type' => 'office', 'site_address' => '',
@@ -108,6 +108,8 @@ class AdminWorkflowTest extends TestCase
 
         $this->actingAs($user)->get(route('admin.site-visits.show', $siteVisit))
             ->assertOk()
+            ->assertSee('name="customer_name"', false)
+            ->assertSee('name="company_name"', false)
             ->assertSee('Preferred visit date')
             ->assertSee('name="preferred_date"', false)
             ->assertSee('name="preferred_time_slot"', false)
@@ -116,6 +118,8 @@ class AdminWorkflowTest extends TestCase
 
         $this->patch(route('admin.site-visits.update', $siteVisit), [
             'status' => 'contacted',
+            'customer_name' => 'Updated Customer',
+            'company_name' => 'Updated Company Sdn Bhd',
             'preferred_date' => '2026-12-05',
             'preferred_time_slot' => 'afternoon',
             'site_address' => 'Level 8, Menara CuciNow, Shah Alam, Selangor',
@@ -124,6 +128,9 @@ class AdminWorkflowTest extends TestCase
         ])->assertSessionHasNoErrors();
 
         $siteVisit->refresh();
+        $customer->refresh();
+        $this->assertSame('Updated Customer', $customer->name);
+        $this->assertSame('Updated Company Sdn Bhd', $customer->company_name);
         $this->assertSame('2026-12-05', $siteVisit->preferred_date->format('Y-m-d'));
         $this->assertSame('afternoon', $siteVisit->preferred_time_slot);
         $this->assertSame('Level 8, Menara CuciNow, Shah Alam, Selangor', $siteVisit->site_address);
