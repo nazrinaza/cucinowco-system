@@ -51,6 +51,7 @@ class ProformaInvoiceTest extends TestCase
         $this->actingAs($admin)->patch(route('admin.quotes.update', $quote), [
             'title' => 'RE: QUOTATION FOR PERIODIC CLEANING AT ACME INDUSTRIES SDN BHD',
             'document_date' => '2026-10-30', 'deposit_percentage' => 35,
+            'preferred_date' => '2026-11-15',
             'service_address' => '  Level 8, Menara CuciNow  ', 'postcode' => '47810',
             'city' => 'Petaling Jaya', 'state' => 'Selangor',
             'sales_person_user_id' => $sales->id, 'status' => 'draft', 'internal_notes' => '',
@@ -59,6 +60,7 @@ class ProformaInvoiceTest extends TestCase
         $quote->refresh();
         $this->assertSame('Farah Sales', $quote->sales_person_name);
         $this->assertSame('011-5555 7788', $quote->sales_person_phone);
+        $this->assertSame('2026-11-15', $quote->preferred_date->format('Y-m-d'));
         $this->assertSame('Level 8, Menara CuciNow', $quote->service_address);
         $this->assertSame('47810', $quote->postcode);
         $this->assertSame('Petaling Jaya', $quote->city);
@@ -68,7 +70,8 @@ class ProformaInvoiceTest extends TestCase
         $this->get(route('admin.quotes.print', $quote))->assertOk()
             ->assertSee('30 Oct 2026')->assertSee('Grand Total')->assertSee('Farah Sales')
             ->assertSee('Deposit payment of 35% to confirm slot')->assertSee('RM 378.00')->assertSee('011-5555 7788')
-            ->assertSee('Level 8, Menara CuciNow')->assertSee('47810 Petaling Jaya, Selangor');
+            ->assertSee('Level 8, Menara CuciNow')->assertSee('47810 Petaling Jaya, Selangor')
+            ->assertSee('Proposed service date')->assertSee('15 Nov 2026');
     }
 
     public function test_proforma_invoice_is_snapshotted_from_quote_and_can_be_printed_and_emailed(): void

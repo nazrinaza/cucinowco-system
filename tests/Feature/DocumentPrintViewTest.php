@@ -21,6 +21,7 @@ class DocumentPrintViewTest extends TestCase
         $quote = Quote::create([
             'quote_number' => 'Q-PRINT-1', 'customer_id' => $customer->id,
             'status' => 'draft', 'subtotal' => 500, 'total' => 500,
+            'preferred_date' => '2026-12-08',
             'service_address' => 'Print Office', 'postcode' => '40160', 'city' => 'Shah Alam', 'state' => 'Selangor',
             'contact_people' => [['name' => 'Aina', 'role' => 'Facilities Manager', 'email' => 'aina@example.com']],
         ]);
@@ -37,6 +38,7 @@ class DocumentPrintViewTest extends TestCase
             ->assertSee('border-radius:18px!important', false)
             ->assertSee('background:#f7f4ec!important', false)
             ->assertSee('Grand Total')
+            ->assertSee('Proposed service date')->assertSee('08 Dec 2026')
             ->assertDontSee('Reply to this email or contact us on WhatsApp')
             ->assertDontSee('Discuss this quotation')
             ->assertDontSee('tr,img{break-inside:avoid', false);
@@ -45,6 +47,8 @@ class DocumentPrintViewTest extends TestCase
         $this->assertStringContainsString('Deep cleaning', $email);
         $this->assertStringContainsString('Project contacts', $email);
         $this->assertStringContainsString('Print Client Sdn Bhd', $email);
+        $this->assertStringContainsString('Proposed service date', $email);
+        $this->assertStringContainsString('08 Dec 2026', $email);
         $this->assertStringContainsString('Reply to this email or contact us on WhatsApp', $email);
         $this->assertStringContainsString('Discuss this quotation', $email);
         $this->assertStringNotContainsString('document-print-toolbar', $email);
