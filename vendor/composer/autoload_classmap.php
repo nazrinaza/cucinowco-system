@@ -29,6 +29,7 @@ return array(
     'App\\Http\\Controllers\\Agents\\PortalController' => $baseDir . '/app/Http/Controllers/Agents/PortalController.php',
     'App\\Http\\Controllers\\AuthController' => $baseDir . '/app/Http/Controllers/AuthController.php',
     'App\\Http\\Controllers\\Controller' => $baseDir . '/app/Http/Controllers/Controller.php',
+    'App\\Http\\Controllers\\PublicQuoteController' => $baseDir . '/app/Http/Controllers/PublicQuoteController.php',
     'App\\Http\\Controllers\\ServicePageController' => $baseDir . '/app/Http/Controllers/ServicePageController.php',
     'App\\Http\\Controllers\\SubscriberController' => $baseDir . '/app/Http/Controllers/SubscriberController.php',
     'App\\Http\\Controllers\\WhatsAppRedirectController' => $baseDir . '/app/Http/Controllers/WhatsAppRedirectController.php',

@@ -525,6 +525,7 @@ class ComposerStaticInitee521a8475827814193025509abf0409
         'App\\Http\\Controllers\\Agents\\PortalController' => __DIR__ . '/../..' . '/app/Http/Controllers/Agents/PortalController.php',
         'App\\Http\\Controllers\\AuthController' => __DIR__ . '/../..' . '/app/Http/Controllers/AuthController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
+        'App\\Http\\Controllers\\PublicQuoteController' => __DIR__ . '/../..' . '/app/Http/Controllers/PublicQuoteController.php',
         'App\\Http\\Controllers\\ServicePageController' => __DIR__ . '/../..' . '/app/Http/Controllers/ServicePageController.php',
         'App\\Http\\Controllers\\SubscriberController' => __DIR__ . '/../..' . '/app/Http/Controllers/SubscriberController.php',
         'App\\Http\\Controllers\\WhatsAppRedirectController' => __DIR__ . '/../..' . '/app/Http/Controllers/WhatsAppRedirectController.php',
