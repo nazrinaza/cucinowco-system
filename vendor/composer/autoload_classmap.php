@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'AllowDynamicProperties' => $vendorDir . '/symfony/polyfill-php82/Resources/stubs/AllowDynamicProperties.php',
+    'App\\Actions\\PurgeTestCustomer' => $baseDir . '/app/Actions/PurgeTestCustomer.php',
     'App\\Exceptions\\GoogleCalendarException' => $baseDir . '/app/Exceptions/GoogleCalendarException.php',
     'App\\Http\\Controllers\\Admin\\AgentController' => $baseDir . '/app/Http/Controllers/Admin/AgentController.php',
     'App\\Http\\Controllers\\Admin\\AgentMediaController' => $baseDir . '/app/Http/Controllers/Admin/AgentMediaController.php',

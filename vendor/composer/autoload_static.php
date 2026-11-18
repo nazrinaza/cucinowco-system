@@ -503,6 +503,7 @@ class ComposerStaticInitee521a8475827814193025509abf0409
 
     public static $classMap = array (
         'AllowDynamicProperties' => __DIR__ . '/..' . '/symfony/polyfill-php82/Resources/stubs/AllowDynamicProperties.php',
+        'App\\Actions\\PurgeTestCustomer' => __DIR__ . '/../..' . '/app/Actions/PurgeTestCustomer.php',
         'App\\Exceptions\\GoogleCalendarException' => __DIR__ . '/../..' . '/app/Exceptions/GoogleCalendarException.php',
         'App\\Http\\Controllers\\Admin\\AgentController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/AgentController.php',
         'App\\Http\\Controllers\\Admin\\AgentMediaController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/AgentMediaController.php',
