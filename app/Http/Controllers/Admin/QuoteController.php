@@ -18,6 +18,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -59,6 +60,7 @@ class QuoteController extends Controller
             'availableSiteVisits' => $availableSiteVisits,
             'salesPeople' => User::where('is_active', true)->whereIn('role', ['admin', 'office'])->orderBy('name')->get(),
             'emailHistory' => app(DocumentEmailHistory::class)->forDocument($quote),
+            'publicQuoteUrl' => $quote->status === 'draft' ? null : URL::signedRoute('quotes.public', ['quote' => $quote]),
         ]);
     }
 

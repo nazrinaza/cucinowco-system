@@ -7,6 +7,10 @@
         @if(!$quote->invoice)<form method="post" action="{{ route('admin.quotes.convert',$quote) }}">@csrf<button class="admin-button secondary" type="submit">Convert to invoice</button></form>@else<a class="admin-button secondary" href="{{ route('admin.invoices.show',$quote->invoice) }}">View invoice</a>@endif
     </div></x-slot:actions>
     @include('admin.partials.document-email-form', ['documentLabel' => 'quotation', 'sendRoute' => route('admin.quotes.send', $quote), 'defaultEmail' => $quote->customer->email])
+    <section class="admin-card public-document-share">
+        <div><p>Customer access</p><h2>Public quotation permalink</h2><small>@if($publicQuoteUrl)Anyone with this secure link can view the final quotation without signing in.@else Set the quotation status to Sent, Viewed or Accepted to create its public link.@endif</small></div>
+        @if($publicQuoteUrl)<div class="public-document-share-controls"><input aria-label="Public quotation permalink" value="{{ $publicQuoteUrl }}" readonly><button class="admin-button secondary" type="button" data-copy-text="{{ $publicQuoteUrl }}">Copy link</button><a class="admin-button" href="{{ $publicQuoteUrl }}" target="_blank" rel="noopener noreferrer">Open public view</a></div>@endif
+    </section>
     <section class="admin-card quotation-owner">
         <div><p>Owning site-visit session</p><strong>{{ $quote->siteVisit?->reference_number ?? 'Direct quotation — no site visit linked' }}</strong></div>
         <form method="post" action="{{ route('admin.quotes.site-visit.update', $quote) }}">
