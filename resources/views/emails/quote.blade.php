@@ -26,7 +26,7 @@
         <thead><tr class="document-line-header" style="color:#fff;background:#25282d"><th align="left" style="padding:11px">Description</th><th align="right" style="padding:11px">Amount</th></tr></thead>
         <tbody>
         @foreach($quote->items as $item)
-            <tr class="document-line-item"><td style="padding:13px 11px;border-bottom:1px solid #dedbd2"><strong>{{ $item->description }}</strong>@if($item->notes)<div style="margin-top:7px">{!! app(\App\Support\QuotationHtmlSanitizer::class)->forEmail($item->notes) !!}</div>@endif @unless($printMode ?? false)<span style="color:#73777d">{{ number_format($item->quantity, 2) }} {{ $item->unit }} @ RM {{ number_format($item->unit_price, 2) }}</span>@endunless</td><td align="right" style="padding:13px 11px;border-bottom:1px solid #dedbd2;vertical-align:top">RM {{ number_format($item->amount, 2) }}</td></tr>
+            <tr class="document-line-item"><td style="padding:13px 11px;border-bottom:1px solid #dedbd2"><strong>{{ $item->description }}</strong>@if($item->notes)<div style="margin-top:7px">{!! app(\App\Support\QuotationHtmlSanitizer::class)->forEmail($item->notes) !!}</div>@endif @unless($printMode ?? false)<span class="document-unit-rate" style="color:#73777d">{{ number_format($item->quantity, 2) }} {{ $item->unit }} @ RM {{ number_format($item->unit_price, 2) }}</span>@endunless</td><td align="right" style="padding:13px 11px;border-bottom:1px solid #dedbd2;vertical-align:top">RM {{ number_format($item->amount, 2) }}</td></tr>
         @endforeach
         </tbody>
     </table>

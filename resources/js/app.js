@@ -348,9 +348,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (input.value) check();
     });
 
-    document.querySelectorAll('[data-agent-copy]').forEach((button) => {
+    document.querySelectorAll('[data-agent-copy], [data-copy-text]').forEach((button) => {
         button.addEventListener('click', async () => {
-            const value = button.dataset.agentCopy;
+            const value = button.dataset.agentCopy ?? button.dataset.copyText;
             try {
                 await navigator.clipboard.writeText(value);
                 const original = button.textContent;

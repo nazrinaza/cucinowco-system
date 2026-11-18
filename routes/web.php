@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WhatsAppEnquiryController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PublicQuoteController;
 use App\Http\Controllers\ServicePageController;
 use App\Http\Controllers\SubscriberController;
 use App\Http\Controllers\WhatsAppRedirectController;
@@ -51,6 +52,9 @@ Route::post('/newsletter', [SubscriberController::class, 'store'])->middleware('
 Route::match(['get', 'post'], '/newsletter/unsubscribe/{subscriber}', [SubscriberController::class, 'unsubscribe'])
     ->middleware('signed')
     ->name('newsletter.unsubscribe');
+Route::get('/quotation/{quote}', PublicQuoteController::class)
+    ->middleware(['signed', 'throttle:60,1'])
+    ->name('quotes.public');
 
 Route::middleware('guest:web')->group(function () {
     Route::get('/admin/login', [AuthController::class, 'create'])->name('login');

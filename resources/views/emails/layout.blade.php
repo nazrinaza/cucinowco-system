@@ -1,11 +1,13 @@
 <!doctype html>
 @php($isPrint = $printMode ?? false)
+@php($isPublicDocument = $publicMode ?? false)
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    @if($isPrint || $isPublicDocument)<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">@endif
     <title>@yield('title', config('company.name'))</title>
-    @if($isPrint)
+    @if($isPrint || $isPublicDocument)
         <style>
             *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;box-sizing:border-box}
             .document-print-toolbar{position:sticky;z-index:20;top:0;display:flex;justify-content:center;gap:10px;padding:12px;background:#25282d;font-family:Arial,Helvetica,sans-serif}
@@ -29,6 +31,7 @@
                 .document-line-table tr.document-line-item,.document-line-table tr.document-line-item>td{break-inside:avoid!important;page-break-inside:avoid!important}
                 .document-totals,.document-totals-table{break-inside:avoid!important;page-break-inside:avoid!important}
                 .document-service-location,.document-payment-terms{break-inside:avoid!important;page-break-inside:avoid!important}
+                .document-unit-rate{display:none!important}
                 .document-line-item p{margin:4px 0 7px!important;line-height:1.42!important}
                 .document-line-item ul,.document-line-item ol{margin:5px 0 8px!important}
                 .document-line-item li{margin-bottom:3px!important;line-height:1.4!important}
@@ -42,6 +45,8 @@
 <body style="margin:0;padding:0;background:#f2efe7;color:#25282d;font-family:Arial,Helvetica,sans-serif">
 @if($isPrint)
     <div class="document-print-toolbar"><a href="{{ $printBackUrl }}">Back to document</a><button type="button" onclick="window.print()">Print / Save PDF</button></div>
+@elseif($isPublicDocument)
+    <div class="document-print-toolbar"><button type="button" onclick="window.print()">Print / Save PDF</button></div>
 @endif
 <div style="display:none;max-height:0;overflow:hidden;color:transparent">@yield('preview')</div>
 <table class="email-page" role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f2efe7">
