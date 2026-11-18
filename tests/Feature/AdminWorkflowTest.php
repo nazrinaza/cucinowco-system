@@ -97,6 +97,39 @@ class AdminWorkflowTest extends TestCase
         $this->assertSame('General Cleaning, Others: High-level cobweb removal', $siteVisit->clean_types_label);
     }
 
+    public function test_admin_can_edit_the_public_site_visit_information(): void
+    {
+        $user = User::factory()->create(['is_active' => true]);
+        $customer = Customer::create(['name' => 'Address Client', 'phone' => '0112222444']);
+        $siteVisit = SiteVisitRequest::create([
+            'reference_number' => 'SV-ADDRESS-EDIT', 'customer_id' => $customer->id,
+            'status' => 'new', 'space_type' => 'office', 'site_address' => '',
+        ]);
+
+        $this->actingAs($user)->get(route('admin.site-visits.show', $siteVisit))
+            ->assertOk()
+            ->assertSee('Preferred visit date')
+            ->assertSee('name="preferred_date"', false)
+            ->assertSee('name="preferred_time_slot"', false)
+            ->assertSee('name="site_address"', false)
+            ->assertSee('name="customer_notes"', false);
+
+        $this->patch(route('admin.site-visits.update', $siteVisit), [
+            'status' => 'contacted',
+            'preferred_date' => '2026-12-05',
+            'preferred_time_slot' => 'afternoon',
+            'site_address' => 'Level 8, Menara CuciNow, Shah Alam, Selangor',
+            'customer_notes' => 'Security registration is required before arrival.',
+            'internal_notes' => '',
+        ])->assertSessionHasNoErrors();
+
+        $siteVisit->refresh();
+        $this->assertSame('2026-12-05', $siteVisit->preferred_date->format('Y-m-d'));
+        $this->assertSame('afternoon', $siteVisit->preferred_time_slot);
+        $this->assertSame('Level 8, Menara CuciNow, Shah Alam, Selangor', $siteVisit->site_address);
+        $this->assertSame('Security registration is required before arrival.', $siteVisit->customer_notes);
+    }
+
     public function test_an_admin_can_convert_a_quote_to_an_invoice(): void
     {
         $user = User::factory()->create(['is_active' => true]);
