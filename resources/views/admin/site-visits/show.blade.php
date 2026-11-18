@@ -19,6 +19,11 @@
                 <label><span>Status</span><select name="status">@foreach($statuses as $status)<option value="{{ $status }}" @selected($siteVisit->status===$status)>{{ ucfirst($status) }}</option>@endforeach</select></label>
                 <label><span>Assigned team</span><select name="staff_id"><option value="">Unassigned</option>@foreach($staff as $member)<option value="{{ $member->id }}" @selected((int) old('staff_id', $siteVisit->staff_id) === $member->id)>{{ $member->name }}</option>@endforeach</select></label>
                 <div class="form-grid two">
+                    <label><span>Customer name</span><input name="customer_name" value="{{ old('customer_name', $siteVisit->customer->name) }}" maxlength="120" required>@error('customer_name')<small>{{ $message }}</small>@enderror</label>
+                    <label><span>Company <em>optional</em></span><input name="company_name" value="{{ old('company_name', $siteVisit->customer->company_name) }}" maxlength="160">@error('company_name')<small>{{ $message }}</small>@enderror</label>
+                </div>
+                <small class="muted">Name and company update the linked customer profile across CuciNow documents.</small>
+                <div class="form-grid two">
                     <label><span>Preferred visit date</span><input type="date" name="preferred_date" value="{{ old('preferred_date', $siteVisit->preferred_date?->format('Y-m-d')) }}">@error('preferred_date')<small>{{ $message }}</small>@enderror</label>
                     <label><span>Preferred visit time</span><select name="preferred_time_slot"><option value="">Not specified</option>@foreach(['morning' => 'Morning', 'afternoon' => 'Afternoon', 'evening' => 'Evening', 'flexible' => 'Flexible'] as $value => $label)<option value="{{ $value }}" @selected(old('preferred_time_slot', $siteVisit->preferred_time_slot) === $value)>{{ $label }}</option>@endforeach</select>@error('preferred_time_slot')<small>{{ $message }}</small>@enderror</label>
                 </div>
