@@ -12,8 +12,8 @@ use App\Models\SiteVisitRequest;
 use App\Models\User;
 use App\Support\DocumentEmailHistory;
 use App\Support\DocumentEmailRecipients;
-use App\Support\ReferenceNumber;
 use App\Support\QuotationHtmlSanitizer;
+use App\Support\ReferenceNumber;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -80,6 +80,10 @@ class QuoteController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'document_date' => ['required', 'date'],
             'deposit_percentage' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:100'],
+            'service_address' => ['nullable', 'string', 'max:1000'],
+            'postcode' => ['nullable', 'string', 'max:10'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'state' => ['nullable', 'string', 'max:100'],
             'sales_person_user_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where(fn ($query) => $query->where('is_active', true)->whereIn('role', ['admin', 'office']))],
             'internal_notes' => ['nullable', 'string', 'max:3000'],
         ]);
@@ -87,6 +91,10 @@ class QuoteController extends Controller
         $updates = [
             'status' => $data['status'], 'title' => trim($data['title']),
             'document_date' => $data['document_date'], 'deposit_percentage' => $data['deposit_percentage'],
+            'service_address' => filled($data['service_address'] ?? null) ? trim($data['service_address']) : null,
+            'postcode' => filled($data['postcode'] ?? null) ? trim($data['postcode']) : null,
+            'city' => filled($data['city'] ?? null) ? trim($data['city']) : null,
+            'state' => filled($data['state'] ?? null) ? trim($data['state']) : null,
             'sales_person_user_id' => $salesPerson?->id,
             'sales_person_name' => $salesPerson ? ($salesPerson->sales_signature_name ?: $salesPerson->name) : null,
             'sales_person_title' => $salesPerson ? ($salesPerson->sales_signature_title ?: 'SALES DEPARTMENT OF CUCINOW.CO') : null,
