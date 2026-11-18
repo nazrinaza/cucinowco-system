@@ -3,7 +3,8 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>{{ $title ?? 'Admin' }} | CuciNow.co</title><link rel="icon" href="{{ asset('favicon.ico') }}" sizes="64x64"><link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/favicon-32x32.png') }}"><link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/apple-touch-icon.png') }}"><x-google-tag area="admin" />@vite(['resources/css/app.css','resources/js/app.js'])</head>
 <body class="admin-body">
     <div class="admin-shell">
-        <aside class="admin-sidebar" data-admin-sidebar>
+        <aside id="admin-navigation" class="admin-sidebar" data-admin-sidebar>
+            <button class="admin-sidebar-close" type="button" data-admin-menu-close aria-label="Close menu">&times;</button>
             <a href="{{ auth()->user()->role === 'field' ? route('admin.site-visits.index') : route('admin.dashboard') }}" class="admin-brand"><img src="{{ asset('images/cucinow-logo.png') }}" alt="CuciNow.co"></a>
             <nav>
                 @foreach ([
@@ -24,8 +25,9 @@
             </nav>
             <div class="admin-sidebar-foot"><p>Signed in as</p><strong>{{ auth()->user()->name }}</strong><form method="post" action="{{ route('logout') }}">@csrf<button type="submit">Sign out</button></form></div>
         </aside>
+        <button class="admin-sidebar-backdrop" type="button" data-admin-menu-backdrop aria-label="Close menu" tabindex="-1"></button>
         <div class="admin-main">
-            <header class="admin-topbar"><button type="button" data-admin-menu aria-label="Toggle menu">Menu</button><div><span>{{ now()->format('l, d M Y') }}</span><a href="{{ route('home') }}" target="_blank">View website &nearr;</a></div></header>
+            <header class="admin-topbar"><button type="button" data-admin-menu aria-label="Open menu" aria-controls="admin-navigation" aria-expanded="false">Menu</button><div><span>{{ now()->format('l, d M Y') }}</span><a href="{{ route('home') }}" target="_blank">View website &nearr;</a></div></header>
             <main class="admin-content">
                 <div class="admin-page-head"><div><p class="admin-kicker">CuciNow operations</p><h1>{{ $heading ?? $title ?? 'Overview' }}</h1></div>{{ $actions ?? '' }}</div>
                 @if(session('success'))<div class="admin-alert success">{{ session('success') }}</div>@endif

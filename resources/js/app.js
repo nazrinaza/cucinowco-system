@@ -537,9 +537,40 @@ document.addEventListener('DOMContentLoaded', () => {
         menu.classList.remove('open');
         menuButton?.setAttribute('aria-expanded', 'false');
     }));
-    document.querySelector('[data-admin-menu]')?.addEventListener('click', () => {
-        document.querySelector('[data-admin-sidebar]')?.classList.toggle('open');
+    const adminMenuButton = document.querySelector('[data-admin-menu]');
+    const adminSidebar = document.querySelector('[data-admin-sidebar]');
+    const adminMenuClose = document.querySelector('[data-admin-menu-close]');
+    const adminMenuBackdrop = document.querySelector('[data-admin-menu-backdrop]');
+    const adminMobileMedia = window.matchMedia('(max-width: 780px)');
+    const setAdminMenuOpen = (open, restoreFocus = false) => {
+        if (!adminSidebar) return;
+        const mobileOpen = open && adminMobileMedia.matches;
+        adminSidebar.classList.toggle('open', mobileOpen);
+        document.body.classList.toggle('admin-menu-open', mobileOpen);
+        adminMenuButton?.setAttribute('aria-expanded', String(mobileOpen));
+        if (adminMobileMedia.matches) {
+            adminSidebar.setAttribute('aria-hidden', String(!mobileOpen));
+        } else {
+            adminSidebar.removeAttribute('aria-hidden');
+        }
+        if (mobileOpen) adminMenuClose?.focus();
+        if (!mobileOpen && restoreFocus) adminMenuButton?.focus();
+    };
+    adminMenuButton?.addEventListener('click', () => {
+        setAdminMenuOpen(!adminSidebar?.classList.contains('open'));
     });
+    adminMenuClose?.addEventListener('click', () => setAdminMenuOpen(false, true));
+    adminMenuBackdrop?.addEventListener('click', () => setAdminMenuOpen(false, true));
+    adminSidebar?.querySelectorAll('nav a').forEach((link) => {
+        link.addEventListener('click', () => setAdminMenuOpen(false));
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && adminSidebar?.classList.contains('open')) {
+            setAdminMenuOpen(false, true);
+        }
+    });
+    adminMobileMedia.addEventListener('change', () => setAdminMenuOpen(false));
+    setAdminMenuOpen(false);
 
     document.querySelectorAll('[data-full-calendar]').forEach((calendarElement) => {
         const errorMessage = calendarElement.parentElement?.querySelector('[data-calendar-error]');

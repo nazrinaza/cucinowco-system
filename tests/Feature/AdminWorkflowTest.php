@@ -25,7 +25,11 @@ class AdminWorkflowTest extends TestCase
 
         $this->actingAs($user)->get('/admin')
             ->assertOk()
-            ->assertSee('CuciNow operations');
+            ->assertSee('CuciNow operations')
+            ->assertSee('data-admin-menu-close', false)
+            ->assertSee('data-admin-menu-backdrop', false)
+            ->assertSee('aria-controls="admin-navigation"', false)
+            ->assertSee('aria-expanded="false"', false);
     }
 
     public function test_the_internal_estimator_and_site_visits_require_authentication(): void
