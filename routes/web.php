@@ -151,6 +151,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:web', EnsureActiveUser
     });
 
     Route::middleware('can:manage-users')->group(function () {
+        Route::delete('/customers/{customer}/test-data', [CustomerController::class, 'destroyTestData'])->name('customers.test-data.destroy');
         Route::get('/integrations/google-calendar', [GoogleCalendarController::class, 'index'])->name('integrations.google-calendar.index');
         Route::get('/integrations/google-calendar/connect', [GoogleCalendarController::class, 'connect'])->name('integrations.google-calendar.connect');
         Route::get('/integrations/google-calendar/callback', [GoogleCalendarController::class, 'callback'])->name('integrations.google-calendar.callback');
