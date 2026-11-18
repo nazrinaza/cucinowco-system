@@ -135,6 +135,16 @@ class AdminWorkflowTest extends TestCase
         $this->assertSame('afternoon', $siteVisit->preferred_time_slot);
         $this->assertSame('Level 8, Menara CuciNow, Shah Alam, Selangor', $siteVisit->site_address);
         $this->assertSame('Security registration is required before arrival.', $siteVisit->customer_notes);
+
+        $this->patch(route('admin.site-visits.update', $siteVisit), [
+            'status' => 'contacted',
+            'customer_name' => $customer->name,
+            'company_name' => $customer->company_name,
+            'site_address' => '',
+            'internal_notes' => '',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame('', $siteVisit->fresh()->site_address);
     }
 
     public function test_an_admin_can_convert_a_quote_to_an_invoice(): void

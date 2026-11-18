@@ -143,6 +143,12 @@ class SiteVisitController extends Controller
             $customerData['company_name'] = $data['company_name'] ?: null;
         }
         unset($data['customer_name'], $data['company_name']);
+        if (array_key_exists('site_address', $data)) {
+            // The original production schema requires a value. Laravel's
+            // ConvertEmptyStringsToNull middleware turns a cleared textarea
+            // into null, so persist the established empty-string sentinel.
+            $data['site_address'] ??= '';
+        }
 
         $updates = $data;
 
