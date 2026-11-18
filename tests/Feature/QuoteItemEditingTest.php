@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Mail\QuoteMail;
 use App\Models\Customer;
 use App\Models\Quote;
 use App\Models\Service;
 use App\Models\SiteVisitRequest;
 use App\Models\User;
-use App\Mail\QuoteMail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -86,20 +86,30 @@ class QuoteItemEditingTest extends TestCase
         $this->assertSame([$item->id], $quote->items()->pluck('id')->all());
     }
 
-    public function test_invoiced_and_booked_quotations_cannot_be_repriced(): void
+    public function test_accepted_quotations_can_be_revised_without_changing_existing_invoice_or_booking(): void
     {
         $this->actingAs(User::factory()->create(['is_active' => true]));
         foreach (['invoice', 'booking'] as $relation) {
             $quote = $this->quotation();
+            $quote->update(['status' => 'accepted', 'accepted_at' => now()]);
             if ($relation === 'invoice') {
-                $quote->invoice()->create(['invoice_number' => 'INV-LOCK', 'customer_id' => $quote->customer_id]);
+                $downstream = $quote->invoice()->create([
+                    'invoice_number' => 'INV-LOCK', 'customer_id' => $quote->customer_id,
+                    'subtotal' => 250, 'total' => 250, 'balance' => 250,
+                ]);
             } else {
-                $quote->booking()->create(['booking_number' => 'BK-LOCK', 'customer_id' => $quote->customer_id, 'service_address' => 'Shah Alam']);
+                $downstream = $quote->booking()->create([
+                    'booking_number' => 'BK-LOCK', 'customer_id' => $quote->customer_id,
+                    'service_address' => 'Shah Alam', 'total' => 250,
+                ]);
             }
             $this->patch(route('admin.quotes.items.update', $quote), ['items' => [$this->line()], 'discount' => 0])
-                ->assertSessionHasErrors('items');
-            $this->assertSame('250.00', $quote->fresh()->total);
-            $this->assertSame(0, $quote->items()->count());
+                ->assertSessionHasNoErrors()
+                ->assertSessionHas('success', 'Quotation services and totals updated. The existing invoice or booking was not changed.');
+            $this->assertSame('80.00', $quote->fresh()->total);
+            $this->assertSame('accepted', $quote->status);
+            $this->assertSame(1, $quote->items()->count());
+            $this->assertSame('250.00', $downstream->fresh()->total);
         }
     }
 

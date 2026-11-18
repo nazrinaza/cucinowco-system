@@ -1,12 +1,13 @@
-@if($quote->invoice || $quote->booking)
-    <p class="quote-edit-notice">Service pricing is locked because this quotation has an invoice or booking. Create a separate quotation for additional work.</p>
-@else
-    <details class="admin-card quote-item-editor" @if(old('items')) open @endif>
+<details class="admin-card quote-item-editor" @if(old('items')) open @endif>
         <summary>Edit quotation &amp; add-on services <span>Change service lines and pricing</span></summary>
         <form method="post" action="{{ route('admin.quotes.items.update', $quote) }}" data-quote-editor data-tax-rate="{{ $quote->tax_rate }}">
             @csrf
             @method('patch')
-            <p class="quote-editor-help">For a fixed-price add-on, use quantity 1 and enter its amount in Rate (RM). Saving returns this quotation to Draft; email it again when ready.</p>
+            @if($quote->invoice || $quote->booking)
+                <p class="quote-edit-notice">This accepted quotation has an invoice or booking. You can revise the quotation, but the existing invoice and booking remain unchanged.</p>
+            @else
+                <p class="quote-editor-help">For a fixed-price add-on, use quantity 1 and enter its amount in Rate (RM). Saving returns this quotation to Draft; email it again when ready.</p>
+            @endif
             <div data-quote-lines>
                 @foreach(old('items', $quote->items->map->only(['id', 'description', 'notes', 'quantity', 'unit', 'unit_price'])->toArray()) as $index => $line)
                     @include('admin.quotes._item-row', ['index' => $index, 'line' => $line])
@@ -27,5 +28,4 @@
             <p class="quote-editor-help" data-quote-editor-message role="status"></p>
             <button type="submit" class="admin-button">Save quotation services</button>
         </form>
-    </details>
-@endif
+</details>
