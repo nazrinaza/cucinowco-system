@@ -120,8 +120,12 @@ class SiteVisitController extends Controller
         $data = $request->validate([
             'status' => ['required', Rule::in(self::STATUSES)],
             'staff_id' => ['nullable', 'exists:staff,id'],
+            'preferred_date' => ['nullable', 'date'],
+            'preferred_time_slot' => ['nullable', Rule::in(['morning', 'afternoon', 'evening', 'flexible'])],
             'scheduled_start' => [Rule::requiredIf(fn (): bool => in_array($request->input('status'), ['scheduled', 'completed'], true)), 'nullable', 'date'],
             'scheduled_end' => [Rule::requiredIf(fn (): bool => in_array($request->input('status'), ['scheduled', 'completed'], true)), 'nullable', 'date', 'after:scheduled_start'],
+            'site_address' => ['nullable', 'string', 'max:1000'],
+            'customer_notes' => ['nullable', 'string', 'max:3000'],
             'internal_notes' => ['nullable', 'string', 'max:3000'],
             'other_clean_type' => $requiresOtherCleanType
                 ? ['required', 'string', 'max:180']
