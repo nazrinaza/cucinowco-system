@@ -81,7 +81,10 @@
             <div><h2>Contact</h2><a href="tel:+{{ config('company.phone') }}">+60 11-1242 8593</a><a href="mailto:{{ config('company.email') }}">{{ config('company.email') }}</a><p>{{ config('company.address') }}&nbsp;<span class="contact-flag" role="img" aria-label="Malaysia flag">🇲🇾</span></p></div>
             <div><h2>Business</h2><p>{{ config('company.legal_name') }}</p><p>Reg. {{ config('company.registration_number') }}</p></div>
         </div>
-        <div class="site-shell footer-bottom"><span>&copy; {{ date('Y') }} CuciNow.co by Thursina.</span><span>Privacy &middot; Terms &middot; Service policy</span></div>
+        <div class="site-shell footer-bottom">
+            <span>&copy; {{ date('Y') }} CuciNow.co by Thursina.</span>
+            <nav class="footer-legal" aria-label="Legal"><a href="{{ route('legal.privacy') }}">Privacy</a><span aria-hidden="true">&middot;</span><a href="{{ route('legal.terms') }}">Terms</a><span aria-hidden="true">&middot;</span><a href="{{ route('legal.service-policy') }}">Service policy</a></nav>
+        </div>
     </footer>
     <livewire:whats-app-enquiry-form />
     @livewireScripts
