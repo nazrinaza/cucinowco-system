@@ -29,6 +29,9 @@ use Illuminate\Support\Facades\Route;
 require __DIR__.'/agents.php';
 
 Route::view('/', 'welcome')->name('home');
+Route::view('/privacy', 'legal.privacy')->name('legal.privacy');
+Route::view('/terms', 'legal.terms')->name('legal.terms');
+Route::view('/service-policy', 'legal.service-policy')->name('legal.service-policy');
 Route::get('/whatsapp', WhatsAppRedirectController::class)
     ->middleware('throttle:60,1')
     ->name('whatsapp.redirect');
@@ -39,6 +42,9 @@ Route::get('/sitemap.xml', function () {
     $urls = collect(config('cleaning-services'))
         ->keys()
         ->map(fn (string $service) => route('services.show', $service))
+        ->prepend(route('legal.service-policy'))
+        ->prepend(route('legal.terms'))
+        ->prepend(route('legal.privacy'))
         ->prepend(route('home'));
 
     return response()
