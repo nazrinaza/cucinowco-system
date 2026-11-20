@@ -37,7 +37,7 @@
     <p>Payment methods and due dates appear on your quotation or invoice. SST is shown only where legally applicable.</p>
 
     <h2>11. Quality and feedback</h2>
-    <p>We aim for a zero-defect standard and use client feedback to improve future service. Please inspect the work at handover and raise any concern within 7 days through WhatsApp or email, with photos if possible. If the issue falls within the agreed scope, we will review it and arrange reasonable rectification.</p>
+    <p>We aim for a zero-defect standard and use client feedback to improve future service. Please inspect the work at handover and raise any concern within 48 hours through WhatsApp or email, with photos if possible. If the issue falls within the agreed scope, we will review it and arrange reasonable rectification.</p>
 
     <h2>12. Damage and loss</h2>
     <p>Report any damage or loss as soon as possible and before the crew leaves site where practical. We will investigate fairly. Pre-existing damage and wear are not covered.</p>
