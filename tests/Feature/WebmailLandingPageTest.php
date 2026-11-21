@@ -6,9 +6,17 @@ use Tests\TestCase;
 
 class WebmailLandingPageTest extends TestCase
 {
-    public function test_branded_mail_subdomain_serves_the_webmail_login(): void
+    public function test_branded_email_subdomain_serves_the_webmail_login(): void
     {
-        $this->get('https://mail.cucinow.co/')
+        $this->get('https://email.cucinow.co/')
+            ->assertOk()
+            ->assertSee('CuciNow business mail')
+            ->assertSee('Sign in to Roundcube');
+    }
+
+    public function test_email_path_serves_the_webmail_login(): void
+    {
+        $this->get(route('email.login'))
             ->assertOk()
             ->assertSee('CuciNow business mail')
             ->assertSee('Sign in to Roundcube');
