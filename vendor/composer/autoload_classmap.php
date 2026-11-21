@@ -33,6 +33,7 @@ return array(
     'App\\Http\\Controllers\\PublicQuoteController' => $baseDir . '/app/Http/Controllers/PublicQuoteController.php',
     'App\\Http\\Controllers\\ServicePageController' => $baseDir . '/app/Http/Controllers/ServicePageController.php',
     'App\\Http\\Controllers\\SubscriberController' => $baseDir . '/app/Http/Controllers/SubscriberController.php',
+    'App\\Http\\Controllers\\WebmailController' => $baseDir . '/app/Http/Controllers/WebmailController.php',
     'App\\Http\\Controllers\\WhatsAppRedirectController' => $baseDir . '/app/Http/Controllers/WhatsAppRedirectController.php',
     'App\\Http\\Controllers\\WhatsAppWebhookController' => $baseDir . '/app/Http/Controllers/WhatsAppWebhookController.php',
     'App\\Http\\Middleware\\AgentPortalHeaders' => $baseDir . '/app/Http/Middleware/AgentPortalHeaders.php',
