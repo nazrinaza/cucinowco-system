@@ -6,6 +6,14 @@ use Tests\TestCase;
 
 class WebmailLandingPageTest extends TestCase
 {
+    public function test_branded_mail_subdomain_serves_the_webmail_login(): void
+    {
+        $this->get('https://mail.cucinow.co/')
+            ->assertOk()
+            ->assertSee('CuciNow business mail')
+            ->assertSee('Sign in to Roundcube');
+    }
+
     public function test_webmail_landing_page_posts_credentials_directly_to_cpanel(): void
     {
         config(['webmail.login_url' => 'https://mail-host.example.test:2096']);

@@ -32,9 +32,10 @@ class WebmailController extends Controller
 
         $webmailOrigin = 'https://'.$webmailHost.($port ? ':'.$port : '');
         $loginAction = $webmailOrigin.'/login/';
+        $mainSiteUrl = rtrim((string) config('app.url'), '/');
 
         return response()
-            ->view('webmail', compact('destinationPath', 'loginAction', 'webmailHost'))
+            ->view('webmail', compact('destinationPath', 'loginAction', 'mainSiteUrl', 'webmailHost'))
             ->header('Cache-Control', 'no-store, private')
             ->header('Content-Security-Policy', "default-src 'self'; base-uri 'none'; form-action {$webmailOrigin}; frame-ancestors 'none'; img-src 'self' data:; style-src 'self'; script-src 'none'; connect-src 'none'; object-src 'none'")
             ->header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')

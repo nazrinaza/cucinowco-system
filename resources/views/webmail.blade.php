@@ -16,10 +16,10 @@
     <a href="#main" class="skip-link">Skip to sign in</a>
     <header class="webmail-site-header">
         <div class="site-shell webmail-header-inner">
-            <a href="{{ route('home') }}" aria-label="CuciNow.co home">
+            <a href="{{ $mainSiteUrl }}" aria-label="CuciNow.co home">
                 <img src="{{ asset('images/cucinow-logo.png') }}" alt="CuciNow.co by Thursina" class="brand-logo">
             </a>
-            <a href="{{ route('home') }}" class="webmail-header-link">Return to CuciNow.co <span aria-hidden="true">↗</span></a>
+            <a href="{{ $mainSiteUrl }}" class="webmail-header-link">Return to CuciNow.co <span aria-hidden="true">↗</span></a>
         </div>
     </header>
 

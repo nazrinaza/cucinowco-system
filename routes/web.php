@@ -29,6 +29,10 @@ use Illuminate\Support\Facades\Route;
 
 require __DIR__.'/agents.php';
 
+Route::domain((string) config('webmail.branded_host'))
+    ->get('/', WebmailController::class)
+    ->name('webmail.branded');
+
 Route::view('/', 'welcome')->name('home');
 Route::view('/privacy', 'legal.privacy')->name('legal.privacy');
 Route::view('/terms', 'legal.terms')->name('legal.terms');
