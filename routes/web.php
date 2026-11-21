@@ -21,6 +21,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PublicQuoteController;
 use App\Http\Controllers\ServicePageController;
 use App\Http\Controllers\SubscriberController;
+use App\Http\Controllers\WebmailController;
 use App\Http\Controllers\WhatsAppRedirectController;
 use App\Http\Controllers\WhatsAppWebhookController;
 use App\Http\Middleware\EnsureActiveUser;
@@ -32,6 +33,7 @@ Route::view('/', 'welcome')->name('home');
 Route::view('/privacy', 'legal.privacy')->name('legal.privacy');
 Route::view('/terms', 'legal.terms')->name('legal.terms');
 Route::view('/service-policy', 'legal.service-policy')->name('legal.service-policy');
+Route::get('/webmail', WebmailController::class)->name('webmail');
 Route::get('/whatsapp', WhatsAppRedirectController::class)
     ->middleware('throttle:60,1')
     ->name('whatsapp.redirect');
