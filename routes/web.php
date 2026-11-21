@@ -37,6 +37,7 @@ Route::view('/', 'welcome')->name('home');
 Route::view('/privacy', 'legal.privacy')->name('legal.privacy');
 Route::view('/terms', 'legal.terms')->name('legal.terms');
 Route::view('/service-policy', 'legal.service-policy')->name('legal.service-policy');
+Route::get('/email', WebmailController::class)->name('email.login');
 Route::get('/webmail', WebmailController::class)->name('webmail');
 Route::get('/whatsapp', WhatsAppRedirectController::class)
     ->middleware('throttle:60,1')
