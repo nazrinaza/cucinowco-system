@@ -11,4 +11,7 @@ return [
     |
     */
     'login_url' => env('WEBMAIL_LOGIN_URL', 'https://webmail.cucinow.co'),
+
+    /* cPanel adds the authenticated security token before this local path. */
+    'destination_path' => env('WEBMAIL_DESTINATION_PATH', '/3rdparty/roundcube/index.php'),
 ];
