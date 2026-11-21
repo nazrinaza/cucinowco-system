@@ -1,6 +1,9 @@
 <?php
 
 return [
+    /* Public branded login host served by this Laravel application. */
+    'branded_host' => env('WEBMAIL_BRANDED_HOST', 'mail.cucinow.co'),
+
     /*
     |--------------------------------------------------------------------------
     | Official Webmail sign-in
