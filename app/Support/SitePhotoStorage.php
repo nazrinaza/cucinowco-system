@@ -9,7 +9,7 @@ use Illuminate\Validation\ValidationException;
 
 class SitePhotoStorage
 {
-    public const MAX_UPLOAD_KB = 8192;
+    public const MAX_UPLOAD_KB = 15360;
 
     private const MAX_PIXELS = 18_000_000;
 
@@ -48,7 +48,7 @@ class SitePhotoStorage
 
         $folder = "site-visits/{$siteVisitId}/{$phase}";
         if (in_array($mime, ['image/heic', 'image/heif'], true)) {
-            // GD on shared hosting cannot decode HEIC, so keep the original within the 8 MB limit.
+            // GD on shared hosting cannot decode HEIC, so keep the original within the 15 MB limit.
             $extension = $mime === 'image/heif' ? 'heif' : 'heic';
             $path = $file->storeAs($folder, Str::uuid().'.'.$extension, 'local');
 

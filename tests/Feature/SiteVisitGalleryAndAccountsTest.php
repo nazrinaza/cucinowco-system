@@ -174,7 +174,7 @@ class SiteVisitGalleryAndAccountsTest extends TestCase
         $this->actingAs($admin)->post(route('admin.site-visits.photos.store', $visit), [
             'caption' => 'Side doorway',
             'notes' => 'Oversized upload validation test.',
-            'photo' => UploadedFile::fake()->create('oversized.jpg', 8193, 'image/jpeg'),
+            'photo' => UploadedFile::fake()->create('oversized.jpg', 15361, 'image/jpeg'),
         ])->assertSessionHasErrors('photo');
         $this->assertDatabaseCount('site_visit_photos', 1);
     }
