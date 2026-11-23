@@ -65,6 +65,9 @@ class DocumentPrintViewTest extends TestCase
             'invoice_number' => 'INV-PRINT-1', 'customer_id' => $customer->id,
             'status' => 'draft', 'subtotal' => 750, 'total' => 750, 'balance' => 750,
             'payment_terms' => 'Due within 14 days.',
+            'bank_account_name' => 'Thursina Cleaning & Services',
+            'bank_account_number' => '8606139534',
+            'bank_name' => 'CIMB Bank',
         ]);
         $invoice->items()->create(['description' => 'Carpet cleaning', 'quantity' => 1, 'unit' => 'job', 'unit_price' => 750, 'amount' => 750]);
 
@@ -73,12 +76,61 @@ class DocumentPrintViewTest extends TestCase
 
         $response->assertOk()->assertViewIs('emails.invoice')->assertViewHas('printMode', true)
             ->assertSee('INV-PRINT-1')->assertSee('Carpet cleaning')->assertSee('Balance due')->assertSee('Invoice Client Sdn Bhd')
+            ->assertSee('Bank transfer to')->assertSee('Thursina Cleaning &amp; Services', false)
+            ->assertSee('8606139534')->assertSee('CIMB Bank')
             ->assertSee('document-print-toolbar', false);
 
         $email = (new InvoiceMail($invoice->load(['customer', 'items'])))->render();
         $this->assertStringContainsString('Carpet cleaning', $email);
         $this->assertStringContainsString('Balance due', $email);
         $this->assertStringContainsString('Invoice Client Sdn Bhd', $email);
+        $this->assertStringContainsString('Bank transfer to', $email);
+        $this->assertStringContainsString('Thursina Cleaning &amp; Services', $email);
+        $this->assertStringContainsString('8606139534', $email);
+        $this->assertStringContainsString('CIMB Bank', $email);
         $this->assertStringNotContainsString('document-print-toolbar', $email);
+    }
+
+    public function test_invoice_payment_terms_and_bank_details_can_be_customised(): void
+    {
+        $customer = Customer::create(['name' => 'Custom Bank Client', 'phone' => '01187654321']);
+        $invoice = Invoice::create([
+            'invoice_number' => 'INV-CUSTOM-BANK',
+            'customer_id' => $customer->id,
+            'status' => 'draft',
+            'subtotal' => 500,
+            'total' => 500,
+            'balance' => 500,
+            'payment_terms' => 'Due within 14 days',
+        ]);
+        $admin = User::factory()->create();
+
+        $response = $this->actingAs($admin)->patch(route('admin.invoices.update', $invoice), [
+            'status' => 'sent',
+            'due_at' => '2026-12-20',
+            'payment_terms' => 'Full payment before service starts.',
+            'bank_account_name' => 'Custom Operations Sdn Bhd',
+            'bank_account_number' => '1234567890',
+            'bank_name' => 'Example Bank',
+            'notes' => 'Use the invoice number as the payment reference.',
+        ]);
+
+        $response->assertRedirect()->assertSessionHas('success', 'Invoice updated.');
+        $this->assertDatabaseHas('invoices', [
+            'id' => $invoice->id,
+            'status' => 'sent',
+            'payment_terms' => 'Full payment before service starts.',
+            'bank_account_name' => 'Custom Operations Sdn Bhd',
+            'bank_account_number' => '1234567890',
+            'bank_name' => 'Example Bank',
+            'last_edited_by_user_id' => $admin->id,
+        ]);
+
+        $this->get(route('admin.invoices.show', $invoice))
+            ->assertOk()
+            ->assertSee('Full payment before service starts.')
+            ->assertSee('Custom Operations Sdn Bhd')
+            ->assertSee('1234567890')
+            ->assertSee('Example Bank');
     }
 }

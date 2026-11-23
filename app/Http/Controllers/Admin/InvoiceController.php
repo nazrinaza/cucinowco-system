@@ -49,7 +49,20 @@ class InvoiceController extends Controller
 
     public function update(Request $request, Invoice $invoice): RedirectResponse
     {
-        $data = $request->validate(['status' => ['required', Rule::in(['draft', 'sent', 'partial', 'paid', 'overdue', 'cancelled'])], 'due_at' => ['nullable', 'date'], 'notes' => ['nullable', 'string', 'max:3000']]);
+        $data = $request->validate([
+            'status' => ['required', Rule::in(['draft', 'sent', 'partial', 'paid', 'overdue', 'cancelled'])],
+            'due_at' => ['nullable', 'date'],
+            'payment_terms' => ['required', 'string', 'max:120'],
+            'bank_account_name' => ['required', 'string', 'max:160'],
+            'bank_account_number' => ['required', 'string', 'max:80'],
+            'bank_name' => ['required', 'string', 'max:120'],
+            'notes' => ['nullable', 'string', 'max:3000'],
+        ]);
+
+        foreach (['payment_terms', 'bank_account_name', 'bank_account_number', 'bank_name'] as $field) {
+            $data[$field] = trim($data[$field]);
+        }
+
         $invoice->update([...$data, 'last_edited_by_user_id' => $request->user()->id]);
 
         return back()->with('success', 'Invoice updated.');

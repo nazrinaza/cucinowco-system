@@ -42,6 +42,8 @@ class InvoiceMail extends CuciNowMailable
             'Total: RM '.number_format($this->invoice->total, 2),
             'Balance due: RM '.number_format($this->invoice->balance, 2),
             "Payment terms: {$this->invoice->payment_terms}",
+            "Bank transfer to {$this->invoice->bank_account_name}",
+            "{$this->invoice->bank_account_number} ({$this->invoice->bank_name})",
             'Contact accounts: '.route('whatsapp.redirect', ['text' => 'Hi CuciNow, I am contacting you about invoice '.$this->invoice->invoice_number]),
         ]));
     }

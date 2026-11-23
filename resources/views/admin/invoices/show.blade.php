@@ -18,12 +18,32 @@
                 <p><span>Paid</span><strong>RM {{ number_format($invoice->amount_paid,2) }}</strong></p>
                 <p class="balance"><span>Balance due</span><strong>RM {{ number_format($invoice->balance,2) }}</strong></p>
             </div>
-            <div class="document-notes"><strong>Payment terms</strong><p>{{ $invoice->payment_terms }}</p>@if($invoice->notes)<p>{{ $invoice->notes }}</p>@endif</div>
+            <div class="document-notes">
+                <strong>Payment terms</strong>
+                <p>{{ $invoice->payment_terms }}</p>
+                <div class="document-bank-details">
+                    <span>Bank transfer details</span>
+                    <p>Bank transfer to <strong>{{ $invoice->bank_account_name }}</strong></p>
+                    <b>{{ $invoice->bank_account_number }}</b>
+                    <small>{{ $invoice->bank_name }}</small>
+                </div>
+                @if($invoice->notes)<p>{{ $invoice->notes }}</p>@endif
+            </div>
         </section>
         <aside class="detail-side">
             <section class="admin-card">
                 <div class="card-head"><div><p>Invoice</p><h2>Status & due date</h2></div><span class="status status-{{ $invoice->status }}">{{ ucfirst($invoice->status) }}</span></div>
-                <form class="admin-form" method="post" action="{{ route('admin.invoices.update',$invoice) }}">@csrf @method('patch')<label><span>Status</span><select name="status">@foreach(['draft','sent','partial','paid','overdue','cancelled'] as $status)<option value="{{ $status }}" @selected($invoice->status===$status)>{{ ucfirst($status) }}</option>@endforeach</select></label><label><span>Due date</span><input type="date" name="due_at" value="{{ $invoice->due_at?->format('Y-m-d') }}"></label><label><span>Notes</span><textarea name="notes" rows="3">{{ $invoice->notes }}</textarea></label><button class="admin-button" type="submit">Save invoice</button></form>
+                <form class="admin-form" method="post" action="{{ route('admin.invoices.update',$invoice) }}">
+                    @csrf @method('patch')
+                    <label><span>Status</span><select name="status">@foreach(['draft','sent','partial','paid','overdue','cancelled'] as $status)<option value="{{ $status }}" @selected(old('status', $invoice->status)===$status)>{{ ucfirst($status) }}</option>@endforeach</select></label>
+                    <label><span>Due date</span><input type="date" name="due_at" value="{{ old('due_at', $invoice->due_at?->format('Y-m-d')) }}"></label>
+                    <label><span>Payment terms</span><textarea name="payment_terms" rows="3" required>{{ old('payment_terms', $invoice->payment_terms) }}</textarea></label>
+                    <label><span>Bank account name</span><input name="bank_account_name" value="{{ old('bank_account_name', $invoice->bank_account_name) }}" required></label>
+                    <label><span>Bank account number</span><input name="bank_account_number" value="{{ old('bank_account_number', $invoice->bank_account_number) }}" required></label>
+                    <label><span>Bank name</span><input name="bank_name" value="{{ old('bank_name', $invoice->bank_name) }}" required></label>
+                    <label><span>Notes</span><textarea name="notes" rows="3">{{ old('notes', $invoice->notes) }}</textarea></label>
+                    <button class="admin-button" type="submit">Save invoice</button>
+                </form>
             </section>
             @if($invoice->balance>0)
                 <section class="admin-card">

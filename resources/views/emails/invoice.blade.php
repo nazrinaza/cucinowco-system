@@ -28,6 +28,16 @@
         <tr><td align="right" style="font-weight:700">Total</td><td align="right" style="font-weight:700">RM {{ number_format($invoice->total, 2) }}</td></tr>
         <tr style="background:#f5b800"><td align="right" style="font-weight:700">Balance due</td><td align="right" style="font-size:18px;font-weight:700">RM {{ number_format($invoice->balance, 2) }}</td></tr>
     </table>
-    <div style="margin-bottom:24px;padding:16px;background:#f7f4ec;font-size:13px;line-height:1.6"><strong>Payment terms</strong><br>{{ $invoice->payment_terms }}@if($invoice->notes)<br><br>{{ $invoice->notes }}@endif</div>
+    <div style="margin-bottom:24px;padding:16px;background:#f7f4ec;font-size:13px;line-height:1.6">
+        <strong>Payment terms</strong><br>
+        {{ $invoice->payment_terms }}
+        <div style="margin-top:14px;padding:16px;background:#fff3bd;border:2px solid #f5b800;border-radius:10px;color:#25282d">
+            <span style="display:block;margin-bottom:7px;color:#8c6906;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em">Bank transfer details</span>
+            Bank transfer to <strong>{{ $invoice->bank_account_name }}</strong><br>
+            <strong style="display:inline-block;margin-top:4px;font-size:18px;letter-spacing:.03em">{{ $invoice->bank_account_number }}</strong><br>
+            <span style="color:#5f6268">{{ $invoice->bank_name }}</span>
+        </div>
+        @if($invoice->notes)<br>{{ $invoice->notes }}@endif
+    </div>
     <a href="{{ route('whatsapp.redirect', ['text' => 'Hi CuciNow, I am contacting you about invoice '.$invoice->invoice_number]) }}" style="display:inline-block;padding:14px 20px;color:#25282d;background:#f5b800;border-radius:9px;font-size:14px;font-weight:700;text-decoration:none">Contact accounts</a>
 @endsection

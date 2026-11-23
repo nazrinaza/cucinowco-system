@@ -382,14 +382,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const image = modal.querySelector('[data-gallery-modal-image]');
         const fallback = modal.querySelector('[data-gallery-modal-fallback]');
         const original = modal.querySelector('[data-gallery-modal-original]');
+        const editForm = modal.querySelector('[data-gallery-modal-form]');
+        const captionInput = modal.querySelector('[data-gallery-modal-caption-input]');
+        const notesInput = modal.querySelector('[data-gallery-modal-notes-input]');
         const close = () => modal.close();
         modal.closest('.site-photo-section')?.querySelectorAll('[data-gallery-preview]').forEach((preview) => {
             preview.addEventListener('click', (event) => {
                 event.preventDefault();
                 modal.querySelector('[data-gallery-modal-caption]').textContent = preview.dataset.photoCaption || 'Site condition';
-                modal.querySelector('[data-gallery-modal-notes]').textContent = preview.dataset.photoNotes || 'No inspection note recorded.';
                 modal.querySelector('[data-gallery-modal-uploader]').textContent = preview.dataset.photoUploader || 'Team member';
                 modal.querySelector('[data-gallery-modal-date]').textContent = preview.dataset.photoDate || '';
+                editForm.action = preview.dataset.photoUpdateUrl;
+                captionInput.value = preview.dataset.photoCaption || '';
+                notesInput.value = preview.dataset.photoNotes || '';
                 image.hidden = false;
                 fallback.hidden = true;
                 image.alt = `Site assessment: ${preview.dataset.photoCaption || 'site condition'}`;

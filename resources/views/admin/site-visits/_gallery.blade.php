@@ -29,7 +29,12 @@
             <div class="site-photo-modal-info">
                 <p>Captured site condition</p>
                 <h3 id="site-photo-modal-title" data-gallery-modal-caption></h3>
-                <div class="site-photo-modal-notes"><span>Inspection note / observation</span><p data-gallery-modal-notes></p></div>
+                <form method="post" class="site-photo-modal-edit" data-gallery-modal-form>
+                    @csrf @method('patch')
+                    <label><span>Area / location</span><input name="caption" maxlength="180" required data-gallery-modal-caption-input></label>
+                    <label><span>Inspection note / observation</span><textarea name="notes" rows="5" maxlength="1000" required data-gallery-modal-notes-input></textarea></label>
+                    <button class="admin-button" type="submit">Save photo details</button>
+                </form>
                 <dl><div><dt>Uploaded by</dt><dd data-gallery-modal-uploader></dd></div><div><dt>Uploaded</dt><dd data-gallery-modal-date></dd></div></dl>
                 <a class="admin-button secondary" data-gallery-modal-original target="_blank" rel="noopener">Open original image</a>
             </div>

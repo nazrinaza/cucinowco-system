@@ -5,13 +5,13 @@ namespace Tests\Feature;
 use App\Models\Booking;
 use App\Models\Customer;
 use App\Models\Quote;
-use App\Models\SiteVisitRequest;
 use App\Models\SiteVisitPhoto;
+use App\Models\SiteVisitRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class SiteVisitGalleryAndAccountsTest extends TestCase
@@ -73,6 +73,67 @@ class SiteVisitGalleryAndAccountsTest extends TestCase
 
         $this->assertSame(4, $photo->site_visit_request_id);
         $this->assertSame(7, $photo->uploaded_by_user_id);
+    }
+
+    public function test_team_can_edit_a_site_visit_photo_area_and_inspection_note(): void
+    {
+        Storage::fake('local');
+        [$visit] = $this->visitWithBooking();
+        $field = User::factory()->create(['role' => 'field']);
+        $photo = $visit->photos()->create([
+            'phase' => 'inspection',
+            'path' => 'site-visits/inspection.jpg',
+            'mime_type' => 'image/jpeg',
+            'original_name' => 'inspection.jpg',
+            'caption' => 'Old area',
+            'notes' => 'Old inspection note.',
+            'uploaded_by_user_id' => $field->id,
+        ]);
+
+        $this->actingAs($field)->patch(route('admin.site-visits.photos.update', [$visit, $photo]), [
+            'caption' => 'Loading bay, Level 1',
+            'notes' => 'Oil marks near the roller shutter; bring degreaser.',
+        ])->assertRedirect()->assertSessionHas('success', 'Photo details updated.');
+
+        $this->assertDatabaseHas('site_visit_photos', [
+            'id' => $photo->id,
+            'caption' => 'Loading bay, Level 1',
+            'notes' => 'Oil marks near the roller shutter; bring degreaser.',
+        ]);
+        $this->get(route('admin.site-visits.show', $visit))
+            ->assertOk()
+            ->assertSee('data-photo-update-url', false)
+            ->assertSee('Loading bay, Level 1')
+            ->assertSee('Oil marks near the roller shutter; bring degreaser.');
+    }
+
+    public function test_photo_details_cannot_be_edited_through_another_site_visit(): void
+    {
+        [$visit] = $this->visitWithBooking();
+        $otherCustomer = Customer::create(['name' => 'Other Gallery Client', 'phone' => '01187654321']);
+        $otherVisit = SiteVisitRequest::create([
+            'reference_number' => 'SV-GALLERY-OTHER',
+            'customer_id' => $otherCustomer->id,
+            'status' => 'completed',
+            'space_type' => 'office',
+            'site_address' => 'Shah Alam',
+        ]);
+        $admin = User::factory()->create();
+        $photo = $visit->photos()->create([
+            'phase' => 'inspection',
+            'path' => 'site-visits/inspection.jpg',
+            'mime_type' => 'image/jpeg',
+            'original_name' => 'inspection.jpg',
+            'caption' => 'Original area',
+            'notes' => 'Original note.',
+        ]);
+
+        $this->actingAs($admin)->patch(route('admin.site-visits.photos.update', [$otherVisit, $photo]), [
+            'caption' => 'Changed area',
+            'notes' => 'Changed note.',
+        ])->assertNotFound();
+
+        $this->assertSame('Original area', $photo->fresh()->caption);
     }
 
     public function test_large_png_is_resized_for_the_inspection_gallery(): void
