@@ -305,6 +305,9 @@ class QuoteController extends Controller
                 'issued_at' => today(), 'due_at' => today()->addDays(14), 'subtotal' => $quote->subtotal,
                 'discount' => $quote->discount, 'tax_rate' => $taxRate, 'tax_amount' => $taxAmount,
                 'total' => $total, 'balance' => $total, 'payment_terms' => 'Due within 14 days',
+                'bank_account_name' => config('company.bank.account_name'),
+                'bank_account_number' => config('company.bank.account_number'),
+                'bank_name' => config('company.bank.name'),
             ]);
             foreach ($quote->items as $item) {
                 $invoice->items()->create($item->only(['description', 'quantity', 'unit', 'unit_price', 'amount']));

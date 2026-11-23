@@ -282,6 +282,23 @@ class SiteVisitController extends Controller
         ]);
     }
 
+    public function updatePhoto(Request $request, SiteVisitRequest $siteVisit, SiteVisitPhoto $photo): RedirectResponse
+    {
+        abort_unless($photo->site_visit_request_id === $siteVisit->id, 404);
+
+        $data = $request->validate([
+            'caption' => ['required', 'string', 'max:180'],
+            'notes' => ['required', 'string', 'max:1000'],
+        ]);
+
+        $photo->update([
+            'caption' => trim($data['caption']),
+            'notes' => trim($data['notes']),
+        ]);
+
+        return back()->with('success', 'Photo details updated.');
+    }
+
     public function deletePhoto(SiteVisitRequest $siteVisit, SiteVisitPhoto $photo): RedirectResponse
     {
         abort_unless($photo->site_visit_request_id === $siteVisit->id, 404);
